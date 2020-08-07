@@ -1,0 +1,112 @@
+# -*- coding:utf8 -*-
+"""
+专门存放fixture的配置文件
+pytest 会在执行测试函数之前（或之后）加载运行它们
+Pytest 使用 yield 关键词将固件分为两部分，yield 之前的代码属于预处理，会在测试前执行；yield 之后的代码属于后处理，将在测试完成后执行。
+比如每个用例都要ssh到PCU环境上，就可以把fixture放到这里
+pytest会默认读取conftest.py中的所有fixture
+conftest.py只有一个package下的所有测试用例生效
+不同目录可以有自己的conftest.py
+测试用例不需要手动导入conftest.py，pytest会自己找
+在定义固件时，通过 scope 参数声明作用域，可选项有：
+
+    function: 函数级，每个测试函数都会执行一次固件；
+    class: 类级别，每个测试类执行一次，所有方法都可以使用；
+    module: 模块级，每个模块执行一次，模块内函数和方法都可使用；
+    session: 会话级，一次测试只执行一次，所有被找到的函数和方法都可用。
+
+"""
+
+import pytest
+import allure
+import os
+from utils import remote
+import config
+import logging
+from utils.log import md_logger
+logger = logging.getLogger()
+
+
+@allure.step('1. 连接PCU环境')
+@allure.title('1. 连接PCU环境')
+@pytest.fixture
+def connect_pcu():
+    logger.info('================= 1. connect to PCU env =================')
+    logger.info('IP: {}, USER: {}, PWD: {}'.format(config.PCU_IP, config.PCU_USER, config.PCU_PWD))
+    remote_server = remote.Remote(config.PCU_IP, config.PCU_USER, config.PCU_PWD)
+    r_bool, desc = remote_server.check_is_connect()
+    assert r_bool, desc
+    logger.info('=============== set up connect PCU OK ===============')
+    return remote_server
+
+
+def clean_env(remote_server):
+    """清理环境"""
+    remote_server.exec_comm('rm -rf /opt/autocore/test_data/map/*')
+    # os.system('rm -rf {}/test_data/map/*'.format(config.TEST_CASE_PATH))
+    logger.info('clean ok')
+
+
+@allure.step('清理环境')
+@pytest.fixture
+def clean_file(connect_pcu, name='连接PCU环境'):
+    """
+    清理文件
+    :return:
+    """
+    remote_server = connect_pcu
+
+    with allure.step('2. 清理远程环境'):
+        logger.info('================= 2. clean env =================')
+        clean_env(remote_server)
+
+    yield
+
+    with allure.step('15. 清理远程环境'):
+        logger.info('================= 15. clean env =================')
+        clean_env(remote_server)
+    logger.info('=============== tear down test end ===============')
+
+
+@allure.step('生成日志层级对象')
+@pytest.fixture(autouse=True)
+def log(request, name='日志'):
+    """
+    动态日志路径
+    :param request:
+    :param name:
+    :return:
+    """
+    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
+    case_name = request.function.__name__
+    if request.cls:
+        cls_name = request.cls.__name__
+        log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
+    else:
+        log_path = '{}/{}'.format(case_path, case_name)
+    return md_logger(log_path)  # 初始话日志路径
+
+
+@pytest.fixture(scope='function')
+def log_path(request, name='日志路径'):
+    """
+    获取日志路径
+    :param request:
+    :param name:
+    :return:
+    """
+    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
+    case_name = request.function.__name__
+    if request.cls:
+        cls_name = request.cls.__name__
+        real_log_path = '{}logs/{}/{}/{}'.format(config.TEST_CASE_PATH, case_path, cls_name, case_name)
+    else:
+        real_log_path = '{}logs/{}/{}'.format(config.TEST_CASE_PATH, case_path, case_name)
+    return real_log_path  # 日志路径
+
+
+@pytest.fixture(scope="session")
+def image_file(tmpdir_factory):
+    # img = compute_expensive_image()
+    fn = tmpdir_factory.mktemp("data").join("img.png")
+    return str(fn)
