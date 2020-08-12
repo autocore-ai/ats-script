@@ -55,6 +55,13 @@ pip install pytest-assume  # assert 失败还继续进行
     Packages：这就是按照package、module来分组测试用例了
 
 # 框架学习
+
+pytest官网： https://docs.pytest.org/en/stable/
+
 https://www.cnblogs.com/poloyy/tag/Pytest/
 
 https://www.cnblogs.com/luizyao/tag/pytest/
+
+allure官网： https://docs.qameta.io/allure/
+
+https://www.cnblogs.com/linuxchao/p/linuxchao-pytest-allure.html
