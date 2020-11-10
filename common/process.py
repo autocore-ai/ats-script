@@ -107,22 +107,30 @@ def local_stop_process(process_name, kill_cmd='-9', stop_time=1):
         logger.info('local stop process: {}'.format(stop_cmd))
         ret_obj = os.popen(stop_cmd)
         ret = ret_obj.read()
-        logger.info('stdout: {}'.format(ret))
+        logger.info('kill process stdout: {}'.format(ret))
 
         # 进程停止时间
-        logger.info('wait time: {}s'.format(stop_time))
+        logger.info('kill process wait time: {}s'.format(stop_time))
         time.sleep(stop_time)
 
         # 检查是否kill 成功
-        check_cmd = 'ps -ef| grep {} | grep -v grep'.format(process_name)
-        logger.info('local check process: {}'.format(check_cmd))
-        ret_obj = os.popen(check_cmd)
-        ret = ret_obj.read()
-        logger.info('stdout: {}'.format(ret))
-
-        if process_name in ret:
+        r_bool = check_process(process_name)
+        if r_bool:
             return False, 'stop failed, local process : {}'.format(process_name)
         return True, 'stop successfully, local process : {}'.format(process_name)
     except Exception as e:
         logger.exception(e)
         return False, 'raised except, stop local process : {}'.format(process_name)
+
+
+def check_process(process_name: str):
+    """通过ps检查进程是否存在
+    return: True 进程存在； False 进程不存在"""
+    check_cmd = 'ps -ef| grep {} | grep -v grep'.format(process_name)
+    logger.info('local check process is exist: {}'.format(check_cmd))
+    ret_obj = os.popen(check_cmd)
+    ret = ret_obj.read()
+    logger.info('check result: {}'.format(ret))
+    if process_name in ret:
+        return True
+    return False

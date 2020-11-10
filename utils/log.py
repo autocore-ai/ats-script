@@ -17,9 +17,11 @@ id_simple_format = '[%(levelname)s][%(asctime)s] %(message)s'
 
 
 def md_logger(log_path):
-    logfile_path_staff = '{}/logs/{}.log'.format(TEST_CASE_PATH, log_path)
-    # print(logfile_path_staff)
+    logfile_path_staff = '{}logs/{}.log'.format(TEST_CASE_PATH, log_path)
+    print(logfile_path_staff)
     log_path = '/'.join(logfile_path_staff.split('/')[:-1])
+    print(log_path)
+    print('1'*50)
     if not os.path.exists(log_path):
         os.makedirs(log_path)
     # log配置字典

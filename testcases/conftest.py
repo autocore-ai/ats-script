@@ -79,11 +79,15 @@ def log(request, name='日志'):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
     case_name = request.function.__name__
-    if request.cls:
+    if request.cls is None:
+        if 'case_data' in request.fixturenames:
+            case_id = request.getfixturevalue('case_data')['jira_id']
+            log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
+        else:
+            log_path = '{}/{}'.format(case_path, case_name)
+    else:
         cls_name = request.cls.__name__
         log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
-    else:
-        log_path = '{}/{}'.format(case_path, case_name)
     return md_logger(log_path)  # 初始话日志路径
 
 
@@ -97,11 +101,27 @@ def log_path(request, name='日志路径'):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
     case_name = request.function.__name__
-    if request.cls:
+    """
+    request
+    ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__',
+     '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', 
+     '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 
+     '_addfinalizer', '_arg2fixturedefs', '_arg2index', '_check_scope', '_compute_fixture_value', '_factorytraceback', 
+     '_fillfixtures', '_fixture_defs', '_fixturedef', '_fixturemanager', '_get_active_fixturedef', '_get_fixturestack', 
+     '_getnextfixturedef', '_getscopeitem', '_parent_request', '_pyfuncitem', '_schedule_finalizers', 'addfinalizer', 
+     'applymarker', 'cls', 'config', 'fixturename', 'fixturenames', 'fspath', 'function', 'getfixturevalue', 'instance',
+      'keywords', 'module', 'node', 'param_index', 'raiseerror', 'scope', 'session']
+    """
+    if request.cls is None:
+        if 'case_data' in request.fixturenames:
+            case_id = request.getfixturevalue('test_data')['jira_id']
+            real_log_path = '{}logs/{}/{}_JiraID_{}'.format(config.TEST_CASE_PATH, case_path, case_name, case_id)
+        else:
+            real_log_path = '{}logs/{}/{}'.format(config.TEST_CASE_PATH, case_path, case_name)
+    else:
         cls_name = request.cls.__name__
         real_log_path = '{}logs/{}/{}/{}'.format(config.TEST_CASE_PATH, case_path, cls_name, case_name)
-    else:
-        real_log_path = '{}logs/{}/{}'.format(config.TEST_CASE_PATH, case_path, case_name)
+
     return real_log_path  # 日志路径
 
 
@@ -110,3 +130,10 @@ def image_file(tmpdir_factory):
     # img = compute_expensive_image()
     fn = tmpdir_factory.mktemp("data").join("img.png")
     return str(fn)
+
+
+@pytest.fixture(scope="session")
+def test_f(request,):
+    print(request)
+    return 1
+
