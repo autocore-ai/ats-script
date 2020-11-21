@@ -29,15 +29,17 @@ def generate_case_data(csv_case_path):
     df = pd.read_csv(csv_case_path)
     for index, d in df.iterrows():
         jira_id = d['Jira_ID']
-        case_dict = {'Jira_ID': jira_id, 'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story']}
+        case_dict = {'Jira_ID': jira_id, 'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story'], 'CaseName': d['CaseName']}
         d.drop('Jira_ID', inplace=True)
         d.drop('Title', inplace=True)
         d.drop('Priority', inplace=True)
         d.drop('Story', inplace=True)
+        d.drop('CaseName', inplace=True)
         case_dict['test_case'] = d
         case_dict['test_case']['Jira_ID'] = jira_id
         data_list.append(case_dict)
     logger.info('read cases count: {}'.format(len(data_list)))
+    logger.info('read cases: {}'.format(data_list))
     return data_list
 
 

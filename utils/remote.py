@@ -4,23 +4,13 @@ Fabric真正强大在于可以很方便的执行远程机器上的Shell命令，
 1. 连接到远程，执行命令
 2. 上传文件
 3. 下载文件
-['Config', 'Connection', 'Executor', 'Group', 'GroupResult', 'Remote', 'Result', 'SerialGroup', 'Task', 'ThreadingGroup',
-'__builtins__', '__cached__', '__doc__', '__file__', '__loader__', '__name__', '__package__', '__path__', '__spec__',
-'__version__', '__version_info__', '_version', 'config', 'connection', 'exceptions', 'executor', 'group', 'main',
-'runners', 'task', 'tasks', 'transfer', 'tunnels', 'util']
-fabric.runners.Result对象属相：
-print(result.command)  # 执行的命令
-print(result.stdout)  # 标准输出
-print(result.stderr)  # 错误输出
-print(result.shell)  # shell 类型
-print(result.return_code)  # An alias for ``.exited``.
-print(result.encoding)  # 编码
 """
 from fabric import Connection
 import time
 import os
 import logging
 from socket import timeout
+import paramiko
 from paramiko.ssh_exception import AuthenticationException
 
 
@@ -39,6 +29,7 @@ class Remote:
         """
         try:
             self.conn = Connection(host, user=user, connect_kwargs={'password': pwd, 'timeout': 5})
+
         except Exception as e:
             logger.exception(e)
             raise e
@@ -63,7 +54,7 @@ class Remote:
         :param timeout: 超时时间
         :return: fabric.runners.Result
         """
-        logger.info('exec command: {}'.format(cmd))
+        logger.info('exec remote command: {}'.format(cmd))
         return self.conn.run(cmd, hide=hide, timeout=timeout, warn=True)
 
     def local(self, cmd, hide=False, timeout=3):
@@ -215,6 +206,59 @@ class Remote:
 
         return True, 'put success'
 
+    def close(self):
+        self.conn.close()
+
+
+class RemoteP:
+    def __init__(self, host, user, pwd):
+        self.host, self.user, self.pwd = host, user, pwd
+
+    def __get_conn(self):
+        ssh = paramiko.SSHClient()
+        # 允许连接不在know_hosts文件中的主机
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        # 建立连接
+        ssh.connect(self.host, username=self.user, port=22, password=self.pwd)
+        return ssh
+
+    def exec_comm(self, command):
+        # 使用这个连接执行命令
+        ssh = self.__get_conn()
+        try:
+            ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
+            stdout = ssh_stdout.read().decode("utf-8")
+            stderr = ssh_stderr.read().decode('utf-8')
+            ssh.close()
+            if len(stderr) != 0:
+                return False, stderr
+            # get stdout
+            return True, stdout
+        except Exception as e:
+            logger.error('exec command exception: {}'.format(command))
+            logger.exception(e)
+            return False, 'exec command exception: {}'.format(command)
+
+    def exec_comm_no_out(self, command):
+        # 使用这个连接执行命令
+        ssh = self.__get_conn()
+        ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
+        ssh.close()
+
+    def get(self, remote_file, local_file):
+        t = paramiko.Transport((self.host, 22))
+        try:
+            t.connect(username=self.user, password=self.pwd)
+            sftp = paramiko.SFTPClient.from_transport(t)
+            sftp.get(remote_file, local_file)
+            t.close()
+            return True, ''
+        except Exception as e:
+            t.close()
+            logger.error("get remote file execption")
+            logger.exception(e)
+            return False, 'get remote file execption'
 
 if __name__ == '__main__':
     from common.command import *

@@ -22,8 +22,10 @@ import allure
 import os
 from utils import remote
 from common.command import START_AUTOWARE_4, START_PERCEPTION
-from common.process import check_process, local_stop_process, local_start_process, remote_start_process
+from common.process import *
+import common.perception_action as p_env
 import config
+import common.perception_conf as p_conf
 import logging
 from utils.log import md_logger
 logger = logging.getLogger()
@@ -52,36 +54,180 @@ def clean_env(remote_server):
 @allure.step('启动Autoware4和perception环境')
 @allure.title('启动Autoware4和perception环境')
 @pytest.fixture
-def start_perception_env():
+def perception_env(timer_function_scope, scope='function'):
     """
-    默认当前环境已经export了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
-    启动perception环境
-        1. 启动 Autoware 4, 对应命令：START_AUTOWARE_4
-        2. 启动 perception
+    1. set up
+    Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
+    start perception env
+        1. start Autoware.4, command：START_AUTOWARE_4
+        2. start perception
+
+    1. tear down
+    1. close perception
+    2. close Autoware.4
     """
-    # 1. 检查Autoware是否没有运行
-    logger.info('check Autoware status is stop')
-    process_name = 'Autoware'  # autoware 当前环境中，只有Autoware启动的进程所含有的关键字
-    r_bool = check_process(process_name)
-    if not r_bool:
-        logger.warning('Autoware.4 is running still, now to kill it.')
-        # 2. Autoware4 正在运行，去杀它一次，如杀不成功，则退出，为了保证环境的干净
-        r_bool, msg = local_stop_process(process_name, kill_cmd='-9', stop_time=5)
-        assert r_bool, msg  # 停止失败，不再继续进行
+    step_desc = '1. check Autoware4 status, if running, to stop it, autoware.4 env: {}'.format(p_conf.PERCEPTION_AUTOWARE4_IP)
+    with allure.step(step_desc):
+        logger.info('='*20 + step_desc + '='*20)
+        r_bool, status = p_env.check_autoware_status()
+        logger.info('check_autoware_status, return: {}, {}'.format(r_bool, status))
+        assert r_bool, str(status)
+        if status:
+            step_desc = 'Autoware4 is running...now to stop it'
+            with allure.step(step_desc):
+                logger.info('=' * 20 + step_desc + '=' * 20)
+                s_bool, s_ret = p_env.stop_autoware4()
+                assert s_bool, s_ret
+                time.sleep(3)  # wait killed success
+            step_desc = 'Autoware4 stopped, now to check status'
+            with allure.step(step_desc):
+                logger.info('=' * 20 + step_desc + '=' * 20)
+                r_bool, status = p_env.check_autoware_status()
+                assert r_bool, status
+                assert not status, 'Autoware4 stopped failed, please check ...'
 
-    # 3. 启动 Autoware 4
-    r_bool, msg = local_start_process(START_AUTOWARE_4, 'Autoware', start_time=30)
-    assert r_bool, msg
+    step_desc = '2. To start Autoware4'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, msg = p_env.start_autoware4()
+        assert r_bool, msg
+        wait_time = 30
+        for i in range(1, wait_time+1):
+            time.sleep(1)
+            logger.info('Waiting autoware to start, wait {}s, {}s ...'.format(wait_time, i))
 
-    # 4. 启动 Perception
-    logger.info('connect remote perception: IP: {}, USER: {}, PWD: {}'.
-                format(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD))
+    step_desc = '3. Check Autoware4 is running'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, status = p_env.check_autoware_status()
+        logger.info('check autoware status, return: {}, {}'.format(r_bool, status))
+        assert r_bool, status
+        assert status, 'Autoware is not running after wait {}s'.format(wait_time)
+
+    # need to enter docker to check
+    step_desc = '4. Check perception status, if running, to stop it'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, ret = p_env.check_perception()
+        assert r_bool, ret
+        if ret:
+            step_desc = 'Perception is running, to kill it.'
+            with allure.step(step_desc):
+                logger.info('=' * 20 + step_desc + '=' * 20)
+                r_bool, msg = p_env.stop_perception()
+                assert r_bool, msg
+                wait_time = 10
+                for i in range(1, wait_time+1):
+                    time.sleep(1)
+                    logger.info('waiting perception stop, {}s...'.format(i))
+            step_desc = 'check perception is stopped'
+            with allure.step(step_desc):
+                logger.info('=' * 20 + step_desc + '=' * 20)
+                r_bool, ret = p_env.check_perception()
+                assert r_bool, ret
+                assert not ret, 'Perception is stopped once, now it is running still, return'
+
+    step_desc = '5. Start perception ...'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, msg = p_env.start_perception()
+        assert r_bool, msg
+        wait_time = 60
+        for i in range(1, wait_time+1):
+            time.sleep(1)
+            logger.info('Waiting perception to start, wait {}s, {}s ...'.format(wait_time, i))
+
+    # 6. check perception is ok
+    step_desc = '6. Check start perception OK'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, msg = p_env.check_perception()
+        assert r_bool, msg
+        assert msg, 'perception is not running, start env failed, return'
+
+    logger.info('Test env for autoware4 perception is ready, let\'s to do test...')
+
+    yield
+
+    step_desc = '1. Stop perception'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, ret = p_env.stop_perception()
+        assert r_bool, ret
+        wait_time = 30
+        for i in range(1, wait_time+1):
+            logger.info('waiting perception to stop, {}s ...'.format(i))
+            time.sleep(1)
+
+    step_desc = '2. Check perception has stopped'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, ret = p_env.check_perception()
+        assert r_bool, ret
+        assert not ret, 'perception stopped failed, return'
+
+    step_desc = '3. Stop autoware4'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, ret = p_env.stop_autoware4()
+        assert r_bool, ret
+        wait_time = 10
+        for i in range(1, wait_time + 1):
+            logger.info('waiting autoware4 to stop, {}s ...'.format(i))
+            time.sleep(1)
+
+    step_desc = '4.Check autoware4 has stopped'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, ret = p_env.check_autoware_status()
+        assert r_bool, ret
+        assert not ret, 'autoware4 stopped failed, return'
+
+    # to clean autoware env
+    # msg = 'tear down: stop perception'
+    # logger.info(msg)
+    # with allure.step(msg):
+    #     logger.info(msg)
+    #     r_bool, node_list = get_perception_node_list()
+    #     assert r_bool, node_list
+    #     assert node_list, 'perception quit expectedly'
+    #     r_bool, msg = stop_perception_node_list(node_list)
+    #     assert r_bool, msg
+    #
+    #
+    # # to stop autoware
+    # msg = 'To stop Autoware'
+    # with allure.step(msg):
+    #     logger.info(msg)
+    #     r_bool, msg = local_stop_process(key_autoware, kill_cmd='-9', stop_time=5)
+    #     assert r_bool, msg  # stop failed, stop
+    #     r_bool, msg = local_stop_process(key_ros, kill_cmd='-9', stop_time=5)
+    #     assert r_bool, msg  # stop failed, stop
+
+
+if __name__ == '__main__':
+    # r_bool, msg = local_start_process(START_AUTOWARE_4, 'AutowareArchitectureProposa', start_time=30)
+    # perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
+    # r_bool, desc = perc_server.check_is_connect()
+    # perc_key = 'ros'
+    # perc_key2 = 'autoware'
+    # perc_bool = remote_check_process(perc_server, perc_key)
+    # perc_bool2 = remote_check_process(perc_server, perc_key2)
+    # print(r_bool)
+    # print(desc)
+    # r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
+
     perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-    r_bool, desc = perc_server.check_is_connect()
-    assert r_bool, desc
-    # 启动
-    r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware_launch', start_time=30)
+    perc_key = 'ros'
+    perc_key2 = 'autoware'
+    perc_bool = remote_check_process(perc_server, perc_key)
+    perc_bool2 = remote_check_process(perc_server, perc_key2)
+    if perc_bool or perc_bool2:
+        logger.warning('Perception is running still, now to kill it.')
+        c_bool, msg = remote_stop_process(perc_server, perc_key, stop_time=5)
+        assert c_bool, msg
+        c_bool, msg = remote_stop_process(perc_server, perc_key2, stop_time=5)
+        assert c_bool, msg
+    r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
     assert r_bool, msg
-    logger.info('Test env for autoware4 perception is ready, let\'s go')
-
 

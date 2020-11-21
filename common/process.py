@@ -7,6 +7,9 @@
 import os
 import time
 import logging
+import subprocess
+from utils.remote import Remote, RemoteP
+import config
 logger = logging.getLogger()
 
 
@@ -19,7 +22,8 @@ def local_start_process(command, check_key, start_time=2):
     :return:
     """
     logger.info('exec local command: {}'.format(command))
-    os.system(command)
+    # os.popen(command)
+    proc = subprocess.Popen(command, shell=True)
 
     # 等待进程启动
     logger.info('wait time: {}'.format(start_time))
@@ -33,10 +37,12 @@ def local_start_process(command, check_key, start_time=2):
     logger.info('stdout: {}'.format(ret))
     if check_key in ret:
         return True, 'start successfully, exec command: {}'.format(command)
+
+    proc.terminate()
     return False, 'start failed, exec command: {}'.format(command)
 
 
-def remote_start_process(server, command, check_key, start_time=2):
+def remote_start_process(command, check_key, start_time=2):
     """
     远程启动命令
     :param server: 远程服务
@@ -46,10 +52,13 @@ def remote_start_process(server, command, check_key, start_time=2):
     :return:
     """
     try:
+        server = Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
         ret = server.exec_comm(command)
+        print(ret)
         logger.info('stdout: {}'.format(ret.stdout))
 
         # 等待进程启动
+        print('wait time')
         logger.info('wait time: {}'.format(start_time))
         time.sleep(start_time)
 
@@ -58,6 +67,7 @@ def remote_start_process(server, command, check_key, start_time=2):
         ret = server.exec_comm(cmd)
         ret = ret.stdout
         logger.info('stdout: {}'.format(ret))
+        server.close()
         if check_key in ret:
             return True, 'start successfully, command: {}'.format(command)
         else:
@@ -68,7 +78,7 @@ def remote_start_process(server, command, check_key, start_time=2):
         return False, 'raised except, command: {}'.format(command)
 
 
-def remote_stop_process(server, process_name, kill_cmd='-9', stop_time=1):
+def remote_stop_process(process_name, kill_cmd='-9', stop_time=1):
     """
     远程停止进程
     :param server:  远程服务
@@ -78,13 +88,13 @@ def remote_stop_process(server, process_name, kill_cmd='-9', stop_time=1):
     :return:
     """
     try:
+        server = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
         server.exec_comm('kill {} `ps -ef|grep "{}"|awk \'{{print $2}}\'`'.format(kill_cmd, process_name))
         # 进程停止所需时间
         logger.info('wait time: {}s'.format(stop_time))
         time.sleep(stop_time)
         # 检查是否kill 成功
-        ret = server.exec_comm('ps -ef| grep {} | grep -v grep'.format(process_name))
-        ret = ret.stdout
+        r_bool, ret = server.exec_comm('ps -ef| grep {} | grep -v grep'.format(process_name))
         logger.info('stdout: {}'.format(ret))
         if process_name in ret:
             return False, 'stop failed, remote process : {}'.format(process_name)
@@ -94,7 +104,7 @@ def remote_stop_process(server, process_name, kill_cmd='-9', stop_time=1):
         return False, 'raised except, stop remote process : {}'.format(process_name)
 
 
-def local_stop_process(process_name, kill_cmd='-9', stop_time=1):
+def local_stop_process(process_name, kill_cmd='-9', stop_time=2):
     """
     远程本地进程
     :param process_name: 进程名字，必须包含在运行的进程命令中，否则不会被kill
@@ -104,10 +114,10 @@ def local_stop_process(process_name, kill_cmd='-9', stop_time=1):
     """
     try:
         stop_cmd = 'kill {} `ps -ef|grep "{}"|awk \'{{print $2}}\'`'.format(kill_cmd, process_name)
-        logger.info('local stop process: {}'.format(stop_cmd))
+        logger.info('stop the local process[{}]: {}'.format(process_name, stop_cmd))
         ret_obj = os.popen(stop_cmd)
         ret = ret_obj.read()
-        logger.info('kill process stdout: {}'.format(ret))
+        logger.info('kill process[{}] stdout: {}'.format(process_name, ret))
 
         # 进程停止时间
         logger.info('kill process wait time: {}s'.format(stop_time))
@@ -127,10 +137,37 @@ def check_process(process_name: str):
     """通过ps检查进程是否存在
     return: True 进程存在； False 进程不存在"""
     check_cmd = 'ps -ef| grep {} | grep -v grep'.format(process_name)
-    logger.info('local check process is exist: {}'.format(check_cmd))
-    ret_obj = os.popen(check_cmd)
-    ret = ret_obj.read()
+    logger.info('check the local process exists: {}'.format(check_cmd))
+    ret_obj = subprocess.Popen(check_cmd, shell=True, stdout=subprocess.PIPE)
+    ret = ret_obj.stdout.read()
+    logger.info('check result: {}'.format(ret))
+    if process_name in str(ret):
+        return True
+    return False
+
+
+def remote_check_process(process_name: str):
+    """
+    check remote process status
+    """
+    check_cmd = 'ps -ef| grep {} | grep -v grep'.format(process_name)
+    logger.info('check the remote process status: {}'.format(check_cmd))
+    server = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
+    t_bool, ret = server.exec_comm(check_cmd)
     logger.info('check result: {}'.format(ret))
     if process_name in ret:
         return True
     return False
+
+
+def remote_check_rosnode_list():
+    """
+    check remote process status
+    """
+    check_cmd = 'export ROS_MASTER_URI=http://192.168.10.29:11311;rosnode list'
+    logger.info('check rosnode list command: {}'.format(check_cmd))
+    server = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
+    r_bool, ret = str(server.exec_comm(check_cmd))
+    logger.info('check result: {}'.format(ret))
+    return True
+
