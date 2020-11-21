@@ -81,7 +81,7 @@ def log(request, name='日志'):
     case_name = request.function.__name__
     if request.cls is None:
         if 'case_data' in request.fixturenames:
-            case_id = request.getfixturevalue('case_data')['jira_id']
+            case_id = request.getfixturevalue('case_data')['Jira_ID']
             log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
         else:
             log_path = '{}/{}'.format(case_path, case_name)

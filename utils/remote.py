@@ -247,6 +247,8 @@ class RemoteP:
         ssh.close()
 
     def get(self, remote_file, local_file):
+        logger.info('remote file: {}'.format(remote_file))
+        logger.info('local file: {}'.format(local_file))
         t = paramiko.Transport((self.host, 22))
         try:
             t.connect(username=self.user, password=self.pwd)

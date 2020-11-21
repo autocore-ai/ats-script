@@ -15,6 +15,7 @@ PERCEPTION_PWD = '123456'
 # PERCEPTION_USER = 'nv'
 # PERCEPTION_PWD = '123456'
 PERCEPTION_BAG_PATH = '/media/adlink/test_bags'  # record bag, play bag path
+# PERCEPTION_BAG_PATH = '/media/duan/OS/auto_test/bag'  # record bag, play bag path
 
 PERCEPTION_BAG_REMOTE = True  # record or play bag env, True remote, False local
 PERCEPTION_BAG_REMOTE_IP = '192.168.50.235'
