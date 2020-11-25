@@ -4,6 +4,8 @@
 """
 import numpy as np
 import traceback
+import logging
+logger = logging.getLogger()
 
 
 def cal_std(l1, l2, step=1):
@@ -16,9 +18,9 @@ def cal_std(l1, l2, step=1):
     l1_len = len(l1)
     l2_len = len(l2)
     if l1_len > l2_len and l1_len == l2_len+step:
-        l2 = l1[step:]
+        l1 = l1[step:]
     elif l1_len < l2_len and l1_len+step == l2_len:
-        l1 = l2[step:]
+        l2 = l2[step:]
     elif l1_len == l2_len:
         pass
     else:
@@ -33,14 +35,19 @@ def cal_std(l1, l2, step=1):
 def cal_euc_distance(array1, array2):
     """计算两个向量各个点之间的欧式距离，返回数组"""
     ret_list = []
+    if len(array1) != len(array2):
+        return False, 'two array\'s length is not equal, {} != {}'.format(len(array1), len(array2))
     try:
         for i, d in enumerate(array1):
             dist = np.linalg.norm(np.array(d)-np.array(array2[i]))
             ret_list.append(dist)
         return True, ret_list
-    except:
+    except Exception as e:
+        logger.error(array1)
+        logger.error(array2)
+        logger.exception(e)
         return False, '%s' % traceback.format_exc()
 
 
 if __name__ == '__main__':
-    print(cal_euc_distance([np.array([1, 2, 3]), np.array([2,3])], [np.array([1, 2]), np.array([2,3])]))
+    print(cal_euc_distance([np.array([1, 2]), np.array([2,3])], [np.array([2, 1]), np.array([2,3])]))

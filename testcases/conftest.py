@@ -79,9 +79,18 @@ def log(request, name='日志'):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
     case_name = request.function.__name__
+    print(dir(request))
+    # [{'Jira_ID': 1, 'Title': 'In the front of stopped ego car, other cat is moving at 20km/h', 'Priority': 'normal',
+    #   'Story': 'Car', 'CaseName': 'test_ego_stopped_cat_front_20', 'test_case': bag_name
+    #   moving_p_inner_front_2020 - 10 - 13 - 16 - 37 - 15.bag
+    #   bag_duration                                              51
+    #   Jira_ID                                                    1
+    #   Name: 0, dtype: object}]
+
     if request.cls is None:
         if 'case_data' in request.fixturenames:
             case_id = request.getfixturevalue('case_data')['Jira_ID']
+            case_name = request.getfixturevalue('case_data')['CaseName']
             log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
         else:
             log_path = '{}/{}'.format(case_path, case_name)

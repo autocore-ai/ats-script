@@ -5,7 +5,7 @@ import logging
 import subprocess
 from common.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
     CHECK_PERCEPTION_DOCKER, CHECK_PERCEPTION_NODE, STOP_PERCEPTION, ROSBAG_RECORD_O, ROSBAG_RECORD_O_REMOTE, \
-    ROSBAG_PLAY, ROSBAG_PLAY_REMOTE
+    ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME
 from utils.remote import Remote, RemoteP
 import common.perception_conf as p_conf
 import utils.local as loc
@@ -82,20 +82,24 @@ def check_autoware_status():
     True, True: first true, check
     """
     check_cmd_autoware = CHECK_AUTOWARE_4
+    logger.info('check autoware4 status, command: {}'.format(check_cmd_autoware))
     if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        subprocess.Popen(check_cmd_autoware, shell=True)
+        p = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = p.stderr.read().decode('utf-8')
+        ret = p.stdout.read().decode('utf-8')
+        if len(stderr) > 1:
+            return False, stderr
     else:
-        logger.info('check remote autoware4 status, command: {}'.format(check_cmd_autoware))
         server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD, p_conf.PERCEPTION_AUTOWARE4_PWD)
         r_bool, ret = server.exec_comm(check_cmd_autoware)
         logger.info('check remote autoware4-Autoware, exec result: {}, autoware status: {}'.format(r_bool, ret))
         if not r_bool:
             return False, ret
 
-        run_status = False
-        if AUTOWARE_SCREEN_NAME in ret:
-            run_status = True
-        return True, run_status
+    run_status = False
+    if AUTOWARE_SCREEN_NAME in ret:
+        run_status = True
+    return True, run_status
 
 
 def start_autoware4():
@@ -106,10 +110,15 @@ def start_autoware4():
     3. if not, remote to autoware, to start
     """
     start_cmd_autoware = START_AUTOWARE_4
+    logger.info('start autoware4, command: {}'.format(START_AUTOWARE_4))
     if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
         subprocess.Popen(start_cmd_autoware, shell=True)
+        # stderr = p.stderr.read().decode('utf-8')
+        # if len(stderr) > 1:
+        #     logger.error('start autoware failed: {}'.format(stderr))
+        #     return False, stderr
+        return True, ''
     else:
-        logger.info('start remote autoware4, command: {}'.format(START_AUTOWARE_4))
         server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
                          p_conf.PERCEPTION_AUTOWARE4_PWD)
         r_bool_autoware4, ret_autoware4 = server.exec_comm(start_cmd_autoware)
@@ -128,10 +137,11 @@ def stop_autoware4():
     3. if not, remote to autoware, to stop
     """
     stop_cmd_autoware = STOP_AUTOWARE_4
+    logger.info('stop autoware4 command: {}'.format(stop_cmd_autoware))
     if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        subprocess.Popen(stop_cmd_autoware, shell=True)
+        subprocess.Popen(stop_cmd_autoware, shell=True, stderr=subprocess.PIPE)
+        return True, ''
     else:
-        logger.info('stop remote autoware4 command: {}'.format(stop_cmd_autoware))
         server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
                          p_conf.PERCEPTION_AUTOWARE4_PWD)
         r_bool, ret = server.exec_comm(stop_cmd_autoware)
@@ -149,14 +159,15 @@ def start_perception():
     3. if not, remote to autoware, to start
     """
     cmd = START_PERCEPTION
+    logger.info('start perception, command: {}'.format(cmd))
     if config.TEST_IP == p_conf.PERCEPTION_IP:
         subprocess.Popen(cmd, shell=True)
+        return True, ''
     else:
         remote = RemoteP(p_conf.PERCEPTION_IP, p_conf.PERCEPTION_USER, p_conf.PERCEPTION_PWD)
         # cmd = 'export ROS_IP={};export ROS_MASTER_URI={};source /opt/ros/melodic/setup.bash;{}'.\
         #     format(PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI, START_PERCEPTION)
         # cmd = 'sh ~/workspace/run_autoware4_perception.sh'
-        logger.info('start remote perception, command: {}'.format(cmd))
         r_bool, ret = remote.exec_comm(cmd)
         logger.info('start remote perception, exec result: {} msg: {}'.format(r_bool, ret))
         if not r_bool:
@@ -175,6 +186,7 @@ def stop_perception():
     if config.TEST_IP == p_conf.PERCEPTION_IP:
         logger.info('stop local perception, command: {}'.format(cmd))
         subprocess.Popen(cmd, shell=True)
+        return True, ''
     else:
         remote = RemoteP(p_conf.PERCEPTION_IP, p_conf.PERCEPTION_USER, p_conf.PERCEPTION_PWD)
         logger.info('stop remote perception, command: {}'.format(cmd))
@@ -197,6 +209,7 @@ def check_perception():
     """
     cmd_docker = CHECK_PERCEPTION_DOCKER
     cmd_rosnodes = CHECK_PERCEPTION_NODE
+    docker_name = PERCEPTION_DOCKER_NAME
     if config.TEST_IP == p_conf.PERCEPTION_IP:
         # check docker
         logger.info('check perception docker, cmd: {}'.format(cmd_docker))
@@ -221,7 +234,7 @@ def check_perception():
         nodes_status = False
         if len(stdout.split('\n')) > 1:
             nodes_status = True
-            logger.info('perception node is OK')
+            logger.info('perception nodes are OK')
 
         return True, nodes_status
     else:
@@ -231,7 +244,7 @@ def check_perception():
         logger.info('check remote perception docker, exec result: {} status: {}'.format(r_bool, ret))
         if not r_bool:
             return False, ret
-        if len(ret) == 0:  # docker is not running, return
+        if docker_name not in ret:  # docker is not running, return
             return True, False
 
         logger.info('check remote perception nodes, command: {}'.format(cmd_rosnodes))
@@ -242,7 +255,7 @@ def check_perception():
         node_status = False
         if len(ret.split('\n')) > 1:
             node_status = True
-            logger.info('perception node is OK')
+            logger.info('perception nodes are OK')
         return True, node_status
 
 

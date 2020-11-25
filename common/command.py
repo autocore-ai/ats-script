@@ -30,6 +30,7 @@ RADAR_PF_LOCALIZER = '{};{};{};{}; $(roslaunch radar_pf_localizer radar_pf_local
 # START_AUTOWARE_4 = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;$(nohup ./start_bag_test.sh > /dev/null 2>&1 &) && sleep 1'
 AUTOWARE_SCREEN_NAME = 'autoware_test'
 START_AUTOWARE_4 = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;screen -d -m -S {} ./start_bag_test.sh'.format(AUTOWARE_SCREEN_NAME)
+# START_AUTOWARE_4 = 'export ROS_IP={};ROS_MASTER_URI={};cd ~/workspace/test_autoware/AutowareArchitectureProposal;./start_bag_test.sh'.format(TEST_IP, PERCEPTION_ROS_MASTER_URI, AUTOWARE_SCREEN_NAME)
 CHECK_AUTOWARE_4 = 'screen -ls| grep {}'.format(AUTOWARE_SCREEN_NAME)
 STOP_AUTOWARE_4 = 'screen -S {} -X quit'.format(AUTOWARE_SCREEN_NAME)
 
@@ -38,7 +39,7 @@ STOP_AUTOWARE_4 = 'screen -S {} -X quit'.format(AUTOWARE_SCREEN_NAME)
 # START_PERCEPTION = 'cd ~/workspace;$(nohup ./run_autoware4_perception.sh > /dev/null 2>&1 &) && sleep 1'
 PERCEPTION_DOCKER_NAME = 'devel'
 START_PERCEPTION = 'cd ~/workspace;screen -d -m -S perception-test ./run_autoware4_perception.sh'
-CHECK_PERCEPTION_DOCKER = 'docker ps | grep {}'.format(PERCEPTION_DOCKER_NAME)
+CHECK_PERCEPTION_DOCKER = 'docker inspect -f {{.Name}} $(docker ps -q) | grep %s' % PERCEPTION_DOCKER_NAME
 CHECK_PERCEPTION_NODE = 'docker exec {} /bin/bash -c \'source /opt/ros/melodic/setup.bash && source /root/autoware4/devel/setup.bash && export ROS_IP=192.168.50.98 && export ROS_MASTER_URI=http://192.168.50.235:11311 && rosnode list | grep perception\''.format(PERCEPTION_DOCKER_NAME)
 STOP_PERCEPTION = 'cd ~/workspace;screen -S perception-test -X quit'
 # START_PERCEPTION = 'cd /home/nv/NVME/aw_debug/perception/perception_radar_v2/autoware4-xavier;source devel/setup.bash;export ROS_MASTER_URI=http://192.168.10.79:11311;$(nohup /home/nv/NVME/aw_debug/perception/perception_radar_v2/autoware4-xavier/run_perception.sh > /dev/null 2>&1 &) && sleep 1'

@@ -91,7 +91,7 @@ def perception_env(timer_function_scope, scope='function'):
         logger.info('=' * 20 + step_desc + '=' * 20)
         r_bool, msg = p_env.start_autoware4()
         assert r_bool, msg
-        wait_time = 30
+        wait_time = 10
         for i in range(1, wait_time+1):
             time.sleep(1)
             logger.info('Waiting autoware to start, wait {}s, {}s ...'.format(wait_time, i))
