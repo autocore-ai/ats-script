@@ -40,6 +40,7 @@ import errno
 from common.command import *
 import sys
 import logging
+
 logger = logging.getLogger()
 
 io = auto_io.auto_test_io
@@ -58,11 +59,9 @@ def read_jira_file(file_path, keyword):
        'end.orientation.w', 'bag_name', 'duration']
 
     KEYWORD：['Jira ID', 'Priority', 'Story' ,'bag_name', 'duration']
-       if keyword is 'start_end_point'  ->  return {'start_point':{'start.position.x',
-       'start.position.y', 'start.position.z', 'start.orientation.x',
-       'start.orientation.y', 'start.orientation.z', 'start.orientation.w'}, 'end_point':{'end.position.x', 'end.position.y', 'end.position.z',
-       'end.orientation.x', 'end.orientation.y', 'end.orientation.z',
-       'end.orientation.w'}
+       if keyword is 'start/end_point'  ->  return {'start/end_point':{'start/end.position.x',
+       'start/end.position.y', 'start.position.z', 'start.orientation.x',
+       'start/end.orientation.y', 'start.orientation.z', 'start.orientation.w'}}
 
        }
 
@@ -73,18 +72,26 @@ def read_jira_file(file_path, keyword):
     print(dict_df)
     if 'Jira' in keyword:
         return dict_df["Jira ID"][0]
-    if keyword == 'start_end_point':
-        result={}
-        result['start_point']={}
-        # start_end_point["start.position"]=
+    if keyword == 'start_point':
+        result = {'start.position.x': dict_df['start.position.x'][0],
+                  'start.position.y': dict_df['start.position.y'][0],
+                  'start.position.z': dict_df['start.position.z'][0],
+                  'start.orientation.x': dict_df['start.orientation.x'][0],
+                  'start.orientation.y': dict_df['start.orientation.y'][0],
+                  'start.orientation.z': dict_df['start.orientation.z'][0],
+                  'start.orientation.w': dict_df['start.orientation.w'][0]}
+        return result
+    if keyword == 'end_point':
+        result = {'end.position.x': dict_df['end.position.x'][0],
+                  'end.position.y': dict_df['end.position.y'][0],
+                  'end.position.z': dict_df['end.position.z'][0],
+                  'end.orientation.x': dict_df['end.orientation.x'][0],
+                  'end.orientation.y': dict_df['end.orientation.y'][0],
+                  'end.orientation.z': dict_df['end.orientation.z'][0],
+                  'end.orientation.w': dict_df['end.orientation.w'][0]}
+        return result
     else:
         return dict_df[keyword][0]
-    start_end_point_list = []
-    gt_bag_path = LOCAL_GT_BAG_PATH + str(dict_df[keyword][0])
-    extract_info = str(dict_df[keyword][0])
-
-    return extract_info
-
 
 def local_planning_start():
     "起planning_stimulator_launch， 子进程"
@@ -104,6 +111,7 @@ def local_planning_start_test():
             logger.info(i)
             return False
 
+
 def local_docker_start():
     "起planning_stimulator_launch"
     time.sleep(30)
@@ -112,6 +120,7 @@ def local_docker_start():
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     logger.info(p2.stdout)
     return p2
+
 
 def pid_exists(pid):
     """Check whether pid exists in the current process table.
@@ -131,13 +140,15 @@ def pid_exists(pid):
     else:
         return True
 
+
 def local_planning_end(p1):
     "结束local planning子进程"
     time.sleep(10)
-    ll= os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
+    ll = os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info("end local planning env")
     p1.terminate()
+
 
 def local_docker_end(p2):
     "结束docker进程"
@@ -147,6 +158,7 @@ def local_docker_end(p2):
     os.system("docker stop test_docker_sim")
     os.system('kill -9 `ps -ef|grep "docker"|awk \'{{print $2}}\'`')
     logger.info('kill -9 `ps -ef|grep "docker"|awk \'{{print $2}}\'`')
+
 
 def add_start_end_point(start_postition, start_orientation, end_position, end_orientation):
     "position: [x,y,z], orientation: [x,y,z,w]"
@@ -172,7 +184,9 @@ def add_start_end_point(start_postition, start_orientation, end_position, end_or
     goal_pose.pose.orientation.w = end_orientation[3]
     io_class.goal(goal_pose)  # 发送终点
     logger.info("end_point sent")
-    time.sleep(1)
+
+def engage_auto():
+    io_class = io.AutoTestIO()
     io_class.engage_autoware(True)  # engage
     logger.info("engage auto")
 
@@ -188,9 +202,7 @@ def start_record_bag(count_seconds, bag_name):
     logger.info(cmd)
     subprocess.Popen(cmd, shell=True)
     logger.info("start recording")
-
     return bag_name
-
 
 def check_bag(bag_name):
     # rosbag.rosbag_main.info_cmd("/home/minwei/autotest/common/08.bag")
@@ -207,13 +219,14 @@ def topic_csv(bag_name, topic_name, result_file_name):
     # try:
 
     process = len(os.popen(
-        "source /home/minwei/AutowareArchitectureProposal/devel/setup.bash; rostopic echo -b %s -p %s >  %s.csv" % (
-        LOCAL_TEST_BAG_PATH+bag_name, topic_name, result_file_name)
+        "source /home/minwei/AutowareArchitectureProposal/devel/setup.bash; rostopic echo -b %s -p %s >  ~/autotest/bags/%s.csv" % (
+            str(LOCAL_TEST_BAG_PATH + bag_name), topic_name, result_file_name)
     ).readlines())
-    print("the process=" + str(process))
+    logger.info("the process=" + str(process))
     if process == 0:
-        return 'CSV file loading complete'
-        logger.info("CSV file loading complete")
+        logger.info('CSV file loading complete: '+ topic_name)
+        print('CSV file loading complete: '+ topic_name)
+        return True
     else:
         return False
 
@@ -241,7 +254,11 @@ def bag_demo():
 #     complete
 
 if __name__ == '__main__':
-    read_jira_file(LOCAL_JIRA_PLANNING_FILE_PATH, "duration")
+    for topic in TOPICS.split(" "):
+        print(topic)
+        keyw= topic.split("/")
+        topic_csv('test_01.bag', topic, keyw[-1])
+    # /home/minwei/autotest/bags/planning_bags/test_bags/test_01.bag
     # time.sleep(10)
     # p1 = local_planning_start()
     # for i in range(1, 31):

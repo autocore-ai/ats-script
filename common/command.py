@@ -59,3 +59,10 @@ ROSBAG_RECORD_O = 'export ROS_IP=%s;ROS_MASTER_URI=%s;source ~/AutowareArchitect
 ROSBAG_RECORD_O_REMOTE = 'export ROS_IP=%s;ROS_MASTER_URI=%s;source %s/devel/setup.bash;screen -d -m -S record_test rosbag record -O {name} --duration {t} {topic}' % (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_AUTOWARE4_DEVEL)
 ROSBAG_PLAY = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;rosbag play {bag_path} --clock' % (TEST_IP, PERCEPTION_ROS_MASTER_URI)
 ROSBAG_PLAY_REMOTE = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s/devel/setup.bash;rosbag play {bag_path} --clock' % (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_AUTOWARE4_DEVEL)
+
+
+# ====================== Planning command ======================
+
+LOCAL_JIRA_PLANNING_FILE_PATH = "/home/minwei/autotest/testcases/test_ODD/cases/planning_cases.csv"
+LOCAL_GT_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/groundtruth_bags/"
+LOCAL_TEST_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/test_bags/"

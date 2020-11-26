@@ -21,7 +21,7 @@ import pandas as pd
 
 
 @allure.feature('planning')
-def test_planning_testcase(planning_env):
+def test_planning_testcase(name="test_01"):
     """
     1.起planning，本地AutowareA. setup.bash , roslaunch map
     预计在这一步骤里头加上起点终点接口    会写进docker里面
@@ -57,28 +57,29 @@ def test_planning_testcase(planning_env):
 
     step_3 = "start_record bag"
     with allure.step(step_3):
-        start_position_sample = [-815.500610352, -249.504760742, 0]
-        start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
-        end_position_sample = [-1130.37866211, -401.696289062, 0]
-        end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
-        logger.info(
-            "start_position_sample: {} , start_orientation_sample: {} , end_position_sample: {} , end_orientation_sample: {}".format(
-                start_position_sample, start_orientation_sample, end_position_sample, end_orientation_sample))
-
-        bag_name = start_record_bag(90, "test_01")
-        assert check_bag("test_01.bag"), "bag has not recorded successfully"
+        # start_position_sample = [-815.500610352, -249.504760742, 0]
+        # start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
+        # end_position_sample = [-1130.37866211, -401.696289062, 0]
+        # end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
+        bag_name = start_record_bag(90, name)
+        assert check_bag(name+".bag"), "bag has not recorded successfully"
 
     step_4 = "add start end point， and engage"
     with allure.step(step_4):
         logger.info(step_4)
         time.sleep(1)
-        start_position_sample = [-815.500610352, -249.504760742, 0]
-        start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
-        end_position_sample = [-1130.37866211, -401.696289062, 0]
-        end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
+        dict_start= read_jira_file(LOCAL_JIRA_PLANNING_FILE_PATH,"start_point")
+        dict_end= read_jira_file(LOCAL_JIRA_PLANNING_FILE_PATH,"end_point")
+        a_l = list(dict_start.values())
+        b_l = list(dict_end.values())
+        start_position_sample = a_l[0:3]
+        start_orientation_sample = a_l[3:]
+        end_position_sample = b_l[0:3]
+        end_orientation_sample = b_l[3:]
         add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
                             end_orientation_sample)
-        time.sleep(2)
+        time.sleep(1)
+        engage_auto()
 
     step_6 = "6. end recording maunally"
     with allure.step(step_6):
@@ -90,21 +91,6 @@ def test_planning_testcase(planning_env):
         logger.info("end recording ")
         time.sleep(3)
 
-    step_5 = "collect data"
-    with allure.step(step_5):
-        time.sleep(3)
-        topic_csv("test_01.bag", "/planning/scenario_planning/trajectory",
-                  "record_result")
-        time.sleep(3)
-        topic_csv("test_01.bag", "/current_pose", "record_current_pose")
-        time.sleep(3)
-        topic_csv("test_01.bag", "/vehicle/status/twist", "record_vehicletwist")
-        time.sleep(3)
-        topic_csv("test_01.bag", "/vehicle/status/velocity",
-                  "record_vehiclevelocity")
-        time.sleep(3)
-        topic_csv("test_01.bag", "/vehicle/status/velocity",
-                 "record_vehiclevelocity")
 
     with allure.step("stop environment"):
         time.sleep(5)
@@ -112,6 +98,14 @@ def test_planning_testcase(planning_env):
         local_planning_end(p1)
         time.sleep(10)
         local_docker_end(p2)
+
+    step_5 = "collect data"
+    with allure.step(step_5):
+        for topic in TOPICS.split(" "):
+            print(topic)
+            keyw = topic.split("/")
+            assert topic_csv(name+".bag", topic, keyw[-1]), topic+" could not saved to csv file"
+            time.sleep(2)
 
     BAG_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"
     GROUNDTRUTH_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"
