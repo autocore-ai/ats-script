@@ -14,6 +14,7 @@ import pytest
 import re
 import json
 from common.planning_command import *
+import common.planning_conf as conf
 from common.planning_bag_analysis import *
 
 logger = logging.getLogger()
@@ -42,9 +43,10 @@ def test_planning_testcase(name="test_01"):
     step_1 = "start environment "
     with allure.step(step_1):
         logger.info(step_1)
-        time.sleep(10)
         p1 = local_planning_start()
         logger.info(p1)
+        logging.info('waiting autoware start ...')
+        time.sleep(10)
         assert local_planning_start_test(), 'local planning env started fail'
 
     step_2 = "start docker"
@@ -68,8 +70,8 @@ def test_planning_testcase(name="test_01"):
     with allure.step(step_4):
         logger.info(step_4)
         time.sleep(1)
-        dict_start= read_jira_file(LOCAL_JIRA_PLANNING_FILE_PATH,"start_point")
-        dict_end= read_jira_file(LOCAL_JIRA_PLANNING_FILE_PATH,"end_point")
+        dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
+        dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
         a_l = list(dict_start.values())
         b_l = list(dict_end.values())
         start_position_sample = a_l[0:3]
@@ -91,14 +93,6 @@ def test_planning_testcase(name="test_01"):
         logger.info("end recording ")
         time.sleep(3)
 
-
-    with allure.step("stop environment"):
-        time.sleep(5)
-        logger.info("stop env")
-        local_planning_end(p1)
-        time.sleep(10)
-        local_docker_end(p2)
-
     step_5 = "collect data"
     with allure.step(step_5):
         for topic in TOPICS.split(" "):
@@ -106,6 +100,13 @@ def test_planning_testcase(name="test_01"):
             keyw = topic.split("/")
             assert topic_csv(name+".bag", topic, keyw[-1]), topic+" could not saved to csv file"
             time.sleep(2)
+
+    with allure.step("stop environment"):
+        time.sleep(5)
+        logger.info("stop env")
+        local_planning_end(p1)
+        time.sleep(10)
+        local_docker_end(p2)
 
     BAG_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"
     GROUNDTRUTH_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"

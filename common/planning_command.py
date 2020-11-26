@@ -34,6 +34,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 import time
 import os
+import common.planning_conf as conf
 import rosbag
 from common.process import local_stop_process
 import errno
@@ -95,29 +96,27 @@ def read_jira_file(file_path, keyword):
 
 def local_planning_start():
     "起planning_stimulator_launch， 子进程"
-    p1 = subprocess.Popen("~/AutowareArchitectureProposal/start_planning_test.sh", stdout=subprocess.PIPE, shell=True)
+    p1 = subprocess.Popen(START_AUTOWARE_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     logger.info(p1.stdout)
     return p1
+
 
 def local_planning_start_test():
     # 检测进程起来了
     shown = os.popen("rostopic list")
-    topic_list = shown.readlines()
-    for i in list(topic_list):
-        if i.find("perception") and i.find("planning"):
-            logger.info(i)
-            return True
-        else:
-            logger.info(i)
-            return False
+    topics = shown.read()
+    logger.info('start planning topics: {}'.format(topics))
+    if 'perception' in topics and 'planning' in topics:
+        return True
+    return False
+
 
 
 def local_docker_start():
     "起planning_stimulator_launch"
     time.sleep(30)
-    p2 = subprocess.Popen(
-        'export ROS_IP=192.168.10.188;export ROS_MASTER_URI=http://192.168.10.188:11311;~/run_docker_sim.sh',
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    logger.info('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
+    p2 = subprocess.Popen(START_PLANNING_DOCKER, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     logger.info(p2.stdout)
     return p2
 
@@ -219,8 +218,8 @@ def topic_csv(bag_name, topic_name, result_file_name):
     # try:
 
     process = len(os.popen(
-        "source /home/minwei/AutowareArchitectureProposal/devel/setup.bash; rostopic echo -b %s -p %s >  ~/autotest/bags/%s.csv" % (
-            str(LOCAL_TEST_BAG_PATH + bag_name), topic_name, result_file_name)
+        "rostopic echo -b %s -p %s >  %s/%s.csv" % (
+            str(conf.LOCAL_TEST_BAG_PATH + bag_name), topic_name, conf.LOCAL_TEST_BAG_PATH, result_file_name)
     ).readlines())
     logger.info("the process=" + str(process))
     if process == 0:

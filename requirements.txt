@@ -1,3 +1,11 @@
 requests
 pytest
 allure-pytest
+pandas
+pycryptodomex
+matplotlib
+fabric
+pycryptodome
+pyyaml
+rospkg
+gnupg

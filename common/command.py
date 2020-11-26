@@ -2,8 +2,9 @@
 """
 命令
 """
-from config import PCU_IP, LOCAL_IP, TEST_IP
+from config import PCU_IP, LOCAL_IP, TEST_IP, TEST_CASE_PATH
 from common.perception_conf import PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_BAG_REMOTE_IP, PERCEPTION_AUTOWARE4_DEVEL
+from common.planning_conf import PLANNING_ROS_MASTER_URI, PLANNING_AUTOWARE4_IP
 # ====================== source env ======================
 SOURCE_1 = 'source /opt/ros/melodic/setup.bash'
 SOURCE_2 = 'source /opt/autocore/ros1_ws/setup.bash'
@@ -30,6 +31,8 @@ RADAR_PF_LOCALIZER = '{};{};{};{}; $(roslaunch radar_pf_localizer radar_pf_local
 # START_AUTOWARE_4 = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;$(nohup ./start_bag_test.sh > /dev/null 2>&1 &) && sleep 1'
 AUTOWARE_SCREEN_NAME = 'autoware_test'
 START_AUTOWARE_4 = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;screen -d -m -S {} ./start_bag_test.sh'.format(AUTOWARE_SCREEN_NAME)
+# START_AUTOWARE_4_PLANNING = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;screen -d -m -S {} ./start_planning_test.sh'.format(AUTOWARE_SCREEN_NAME)
+START_AUTOWARE_4_PLANNING = 'cd ~/workspace/test_autoware/AutowareArchitectureProposal;./start_planning_test.sh'
 # START_AUTOWARE_4 = 'export ROS_IP={};ROS_MASTER_URI={};cd ~/workspace/test_autoware/AutowareArchitectureProposal;./start_bag_test.sh'.format(TEST_IP, PERCEPTION_ROS_MASTER_URI, AUTOWARE_SCREEN_NAME)
 CHECK_AUTOWARE_4 = 'screen -ls| grep {}'.format(AUTOWARE_SCREEN_NAME)
 STOP_AUTOWARE_4 = 'screen -S {} -X quit'.format(AUTOWARE_SCREEN_NAME)
@@ -63,7 +66,6 @@ ROSBAG_PLAY_REMOTE = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s/devel/
 
 # ====================== Planning command ======================
 
-LOCAL_JIRA_PLANNING_FILE_PATH = "/home/minwei/autotest/testcases/test_ODD/cases/planning_cases.csv"
-LOCAL_GT_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/groundtruth_bags/"
-LOCAL_TEST_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/test_bags/"
+START_PLANNING_DOCKER = 'export ROS_IP={};export ROS_MASTER_URI={};{}/common/script/run_docker_sim.sh'.format(PLANNING_AUTOWARE4_IP, PLANNING_ROS_MASTER_URI, TEST_CASE_PATH)
+
 

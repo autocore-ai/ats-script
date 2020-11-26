@@ -39,7 +39,8 @@ if __name__ == "__main__":
     #         "--alluredir", xml_report_path, "--html=%s" % summary_report_path]
 
     args = sys.argv
-    args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
+    # args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
+    args = ['-v', '-s', '--allure-features', 'planning', '--alluredir', './allure_reports/result']
     # args = ['-v', '-s', '-k', 'child']
     print(args)
     # 根据参数生成执行命令，命令里包含了模块，用例等级等
@@ -51,8 +52,3 @@ if __name__ == "__main__":
     print('generate allure_results: {}'.format(generate))
     os.system(generate)
 
-    # 移动日志
-    report_html_dir = '{}allure_reports/report'.format(TEST_CASE_PATH)
-    mv_log = 'cp -r {}logs {}/data/attachments'.format(TEST_CASE_PATH, report_html_dir)
-    print('mv log: {}'.format(mv_log))
-    os.system(mv_log)

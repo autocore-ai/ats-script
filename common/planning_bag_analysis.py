@@ -9,7 +9,6 @@
 import numpy as np
 import pandas as pd
 import os
-from scipy import stats
 import mpl_toolkits.axisartist.axislines as axislines
 import re
 
