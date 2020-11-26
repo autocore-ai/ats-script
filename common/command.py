@@ -66,3 +66,4 @@ ROSBAG_PLAY_REMOTE = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s/devel/
 LOCAL_JIRA_PLANNING_FILE_PATH = "/home/minwei/autotest/testcases/test_ODD/cases/planning_cases.csv"
 LOCAL_GT_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/groundtruth_bags/"
 LOCAL_TEST_BAG_PATH = "/home/minwei/autotest/bags/planning_bags/test_bags/"
+
