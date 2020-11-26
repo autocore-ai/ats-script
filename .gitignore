@@ -116,11 +116,14 @@ dmypy.json
 
 # pycharm
 .idea
-./bags
-./common/*.csv
-./common/*.png
-./testcases/test_ODD/*.bag
-./testcases/test_ODD/*.csv
-./*.png
-./*.txt
-./*.csv
+bags
+bags
+common/*.csv
+common/*.png
+testcases/test_ODD/*.bag
+testcases/test_ODD/*.csv
+*.png
+*.txt
+*.csv
+allure_reports
+*.bak
