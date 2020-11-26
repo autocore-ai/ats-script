@@ -178,7 +178,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
             allure.attach('expect position sum data: {}\n real position sum data: {}'.format(exp_pos_dict, real_pos_dict),
                           'expect and real position dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'position.png')
-            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=30)
+            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=50)
             logger.info('compare result of position: {}'.format(pos_dict))
             assert r_bool, 'compare of position is wrong, message: {}'.format(pos_dict)
             # attach position png
@@ -228,14 +228,14 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
             real_line_dict = bag_real_sum_dict['line']
             logger.info('expect line sum data: {}, real line sum data: {}'.format(exp_line_dict, real_line_dict))
             allure.attach(
-                'expect line sum data: {}\n real line sum data: {}'.format(exp_pos_dict, real_pos_dict),
+                'expect line sum data: {}\n real line sum data: {}'.format(exp_line_dict, real_line_dict),
                 'expect and real line dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'line.png')
             r_bool, line_dict = compare_line(exp_line_dict, real_line_dict, save_path, max_step=1000)
             logger.info('compare result of line: {}'.format(line_dict))
             assert r_bool, 'compare of line got an error, message: {}'.format(line_dict)
             # attach compare result
-            attach_mag = 'prediction_paths compare result'
+            attach_mag = 'line speed compare result'
             allure.attach('{}'.format(line_dict), attach_mag, allure.attachment_type.TEXT)
             # attach line png
             attach_mag = 'linear velocity line chart'

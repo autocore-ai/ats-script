@@ -1,2 +1,2 @@
 Jira_ID,Priority,Story,CaseName,Title,bag_name,bag_duration
-AO-TC-449,normal,Car,test_ego_stopped_cat_front_20,"In the front of stopped ego car, other cat is moving at 20km/h",moving_p_inner_front_2020-10-13-16-37-15.bag,51
+AO-TC-449,normal,Adult,test_moving_p_inner_front,"Stopped adult standing in the front of stopped ego car",moving_p_inner_front_2020-10-13-16-37-15.bag,51

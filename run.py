@@ -15,7 +15,6 @@ import shutil
 import subprocess
 import pytest
 import logging
-from config import TEST_CASE_PATH, REMOTE_TEST_DATA, TEST_REPORT_LOG, TEST_CASE_LINK
 
 SEVERITY = ['normal']
 
@@ -39,8 +38,8 @@ if __name__ == "__main__":
     #         "--alluredir", xml_report_path, "--html=%s" % summary_report_path]
 
     args = sys.argv
-    # args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
-    args = ['-v', '-s', '--allure-features', 'planning', '--alluredir', './allure_reports/result']
+    args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
+    # args = ['-v', '-s', '--allure-features', 'planning', '--alluredir', './allure_reports/result']
     # args = ['-v', '-s', '-k', 'child']
     print(args)
     # 根据参数生成执行命令，命令里包含了模块，用例等级等
@@ -48,7 +47,8 @@ if __name__ == "__main__":
     print(test_result)
 
     # 生成报告
-    generate = 'allure generate ./allure_reports/result/ -o ./allure_reports/report/ --clean'
+    # generate = 'allure generate ./allure_reports/result/ -o ./allure_reports/report/ --clean'
+    generate = 'allure serve ./allure_reports/result'
     print('generate allure_results: {}'.format(generate))
     os.system(generate)
 

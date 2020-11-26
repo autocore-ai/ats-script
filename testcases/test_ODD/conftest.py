@@ -54,7 +54,7 @@ def clean_env(remote_server):
 @allure.step('启动Autoware4和perception环境')
 @allure.title('启动Autoware4和perception环境')
 @pytest.fixture
-def perception_env(timer_function_scope, scope='function'):
+def perception_env(timer_function_scope, log, scope='function'):
     """
     1. set up
     Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
