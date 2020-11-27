@@ -27,6 +27,7 @@ import common.perception_action as p_env
 import config
 import common.perception_conf as p_conf
 import logging
+from common.planning_command import *
 from utils.log import md_logger
 logger = logging.getLogger()
 
@@ -53,6 +54,7 @@ def clean_env(remote_server):
 
 @allure.step('启动Autoware4和perception环境')
 @allure.title('启动Autoware4和perception环境')
+
 @pytest.fixture
 def perception_env(timer_function_scope, log, scope='function'):
     """
@@ -203,6 +205,34 @@ def perception_env(timer_function_scope, log, scope='function'):
     #     assert r_bool, msg  # stop failed, stop
     #     r_bool, msg = local_stop_process(key_ros, kill_cmd='-9', stop_time=5)
     #     assert r_bool, msg  # stop failed, stop
+
+@pytest.fixture
+def planning_env(scope='function'):
+    step_1 = "start environment "
+    with allure.step(step_1):
+        logger.info(step_1)
+        p1 = local_planning_start()
+        logger.info(p1)
+        logging.info('waiting autoware start ...')
+        time.sleep(5)
+        assert local_planning_start_test(), 'local planning env started fail'
+
+    step_2 = "start docker"
+    with allure.step(step_2):
+        logger.info(step_2)
+        time.sleep(5)
+        p2 = local_docker_start()
+        time.sleep(10)
+        assert pid_exists(p2.pid), "local docker env started fail"
+
+    yield
+
+    with allure.step("stop environment"):
+        time.sleep(5)
+        logger.info("stop env")
+        local_planning_end(p1)
+        time.sleep(5)
+        local_docker_end(p2)
 
 
 if __name__ == '__main__':

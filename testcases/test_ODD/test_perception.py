@@ -139,14 +139,14 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                           allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'uuid.png')
             r_bool, std_uuid, msg = compare_uuid(exp_uuid, real_uuid, save_path)
-            logger.info('compare result of uuid std: {}'.format(std_uuid))
+            logger.info('compare result of uuid std: {:<8.2f}'.format(std_uuid))
             assert r_bool, 'compare of uuid is wrong, message: {}'.format(msg)
             # attach uuid png
             attach_mag = 'uuid count bar/per'
             allure.attach.file(save_path, attach_mag, allure.attachment_type.PNG)
             # compare std
             assert std_uuid < 10, 'The standard deviation between the expected uuid and '\
-                                  'the actual uuid is greater than 1, std: {}'.format(std_uuid)
+                                  'the actual uuid is greater than 1, std: {:<8.2f}'.format(std_uuid)
 
         step_desc = '8. compare real bag with expect bag: 3. semantic'
         with allure.step(step_desc):
@@ -167,7 +167,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
             for sem, std in sem_std_dict.items():
                 assert sem != 'UNKNOWN', 'Semantic is UNKNOWN, that is not allow'
                 assert std < 10, 'Semantic-{}: The standard deviation between the expected position and ' \
-                                 'the actual position is greater than 1, std: {}'.format(sem, std)
+                                 'the actual position is greater than 1, std: {:<8.2f}'.format(sem, std)
 
         step_desc = '9. compare real bag with expect bag: 3. position'
         with allure.step(step_desc):
@@ -189,7 +189,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                 # 1. compare of std
                 std = dis_std_dict['std']
                 assert std < 1000, 'Position-{}: The standard deviation between the expected position and ' \
-                                   'the actual position is greater than 1, std: {}'.format(sem, std)
+                                   'the actual position is greater than 1, std: {:<8.2f}'.format(sem, std)
                 # 2. compare of distance between expect and actual, the distance should be less that 0.5m
                 for dis in dis_std_dict['distance']:
                     assert dis < 2000.5, 'Position-{}: The distance between expect and actual ' \
@@ -215,7 +215,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                 # 1. compare of std
                 std = dis_std_dict['std']
                 assert std < 200, 'Orientation-{}: The standard deviation between the expected orientation and ' \
-                                 'the actual orientation is greater than 10, std: {}'.format(sem, std)
+                                 'the actual orientation is greater than 10, std: {:<8.2f}'.format(sem, std)
                 # 2. compare of distance between expect and actual, the distance should be less that 0.5m
                 for dis in dis_std_dict['yaw_diff']:
                     assert dis < 2000, 'Orientation-{}: The distance between expect and actual ' \
@@ -245,7 +245,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                 # 1. compare of std
                 std = line_std_dict['std']
                 assert std < 200, 'Line-{}: The standard deviation between the expected linear velocity and ' \
-                                 'the actual velocity is greater than 1, std: {}'.format(sem, std)
+                                 'the actual velocity is greater than 1, std: {:<8.2f}'.format(sem, std)
                 # 2. compare of size between expect and actual, the size should be less that 1km/h
                 for dis in line_std_dict['distance']:
                     assert dis < 2000, 'Line-{}: The linear velocity difference between expect and actual ' \
@@ -276,11 +276,11 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                 # 1. compare of std
                 std_2th = pre_std_dict['paths_std_2th_xy']
                 assert std_2th < 1000, 'Prediction-2th-{}: The standard deviation between the expected Prediction-2th and' \
-                                       ' the actual Prediction-2th is greater than 1, std: {}'.format(sem, std_2th)
+                                       ' the actual Prediction-2th is greater than 1, std: {:<8.2f}'.format(sem, std_2th)
 
                 std_3th = pre_std_dict['paths_std_3th_xy']
                 assert std_3th < 1000, 'Prediction-3th-{}: The standard deviation between the expected Prediction-3th ' \
-                                       'and the actual Prediction-3th is greater than 1, std: {}'.format(sem, std_3th)
+                                       'and the actual Prediction-3th is greater than 1, std: {:<8.2f}'.format(sem, std_3th)
                 # 2. compare of size between expect and actual, the size should be less that 1km/h
                 for dis in pre_std_dict['paths_eul_2th_xy']:
                     assert dis < 1000, 'Prediction-2th-XY-{}: The Prediction-2th difference between expect and actual ' \
@@ -316,12 +316,12 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
                 # 1. compare of size x std
                 std_x = s_dict['std_x']
                 assert std < 100, 'Shape-{}: The standard deviation between the expected size-x and ' \
-                                 'the size-x is greater than 1, std: {}'.format(sem, std_x)
+                                 'the size-x is greater than 1, std: {:<8.2f}'.format(sem, std_x)
 
                 # 2. compare of size y std
                 std_y = s_dict['std_y']
                 assert std_y < 1000, 'Shape-{}: The standard deviation between the expected size-y and ' \
-                                  'the size-y is greater than 1, std: {}'.format(sem, std_y)
+                                  'the size-y is greater than 1, std: {:<8.2f}'.format(sem, std_y)
                 # 3. compare of shape-x difference between expect and actual, the distance should be less that 0.5m
                 for dis in s_dict['shape_diff_x']:
                     assert dis < 1000.5, 'shape-x-{}: The shape-x difference between expect and actual ' \

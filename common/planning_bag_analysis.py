@@ -182,7 +182,7 @@ def plot_pose(a,b):
     fig.add_subplot(ax2)
     fig.add_subplot(ax3)
     upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc+"/bags/"
+    upper_loc = upper_loc+"/autotest/bags/"
     pic_loc = upper_loc + 'pose.png'
     plt.savefig(pic_loc)
 
@@ -233,17 +233,18 @@ def current_pose_analysis_eur(rangenum, df1 , df2 ):
             for i in df_all.tolist():
                 if abs(i) > rangenum :
                     result = False
+                    er_msg="out of range , TC not pass"
                 else :
                     result =True
             key_name = "eu_distance of current pose"
         else:
-            result = False
             print("current pose shape is not the same")
-            kkey_name = None
+            result = False
+            key_name = None
         df_all = pd.DataFrame(df_all,columns=[key_name])
         print(df_all)
         print(key_name)
-        return result, key_name, df_all
+        return result, key_name, df_all , er_msg
 
 def current_pose_analysis_yaw(range_scale, df1 , df2 ):
     ac = df1.shape[0]
