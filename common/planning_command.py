@@ -214,12 +214,12 @@ def check_bag(bag_name):
         return False
 
 
-def topic_csv(bag_name, topic_name, result_file_name):
-    # try:
+def topic_csv(bag_name, topic_name, result_file_name, path):
+    # bag_name
 
     process = len(os.popen(
         "rostopic echo -b %s -p %s >  %s/%s.csv" % (
-            str(conf.LOCAL_TEST_BAG_PATH + bag_name), topic_name, conf.LOCAL_TEST_BAG_PATH, result_file_name)
+            str(path + bag_name), topic_name, path, result_file_name)
     ).readlines())
     logger.info("the process=" + str(process))
     if process == 0:
@@ -251,12 +251,18 @@ def bag_demo():
 
 
 #     complete
-
-if __name__ == '__main__':
+def save_csv_file(path,bag_name):
     for topic in TOPICS.split(" "):
-        print(topic)
-        keyw= topic.split("/")
-        topic_csv('test_01.bag', topic, keyw[-1])
+        logger.info("Saving "+ topic)
+        keyw = topic.split("/")
+        logger.info("saving "+ keyw[-1] + " ...")
+        assert topic_csv(bag_name + ".bag", topic, "test_" + keyw[-1],
+                         path), topic + " could not saved to csv file"
+        logger.info("saving address: "+ path)
+        time.sleep(2)
+if __name__ == '__main__':
+    # save_csv_file(conf.LOCAL_TEST_BAG_PATH,"test_01")
+    save_csv_file(conf.LOCAL_GT_BAG_PATH, "gt_01")
     # /home/minwei/autotest/bags/planning_bags/test_bags/test_01.bag
     # time.sleep(10)
     # p1 = local_planning_start()

@@ -13,6 +13,7 @@ import subprocess
 import pytest
 import re
 import json
+from config import TEST_CASE_PATH
 from common.planning_command import *
 import common.planning_conf as conf
 from common.planning_bag_analysis import *
@@ -22,7 +23,7 @@ import pandas as pd
 
 
 @allure.feature('planning')
-def test_planning_testcase(name="test_01"):
+def test_planning_testcase(name="test_01", gt_name="gt_01"):
     """
     1.起planning，本地AutowareA. setup.bash , roslaunch map
     预计在这一步骤里头加上起点终点接口    会写进docker里面
@@ -52,10 +53,22 @@ def test_planning_testcase(name="test_01"):
     step_2 = "start docker"
     with allure.step(step_2):
         logger.info(step_2)
-        time.sleep(10)
+        time.sleep(5)
         p2 = local_docker_start()
-        time.sleep(20)
+        time.sleep(5)
         assert pid_exists(p2.pid), "local docker env started fail"
+
+    with allure.step("collect ground_truth bag data"):
+        #
+        # for topic in TOPICS.split(" "):
+        #     print(topic)
+        #     keyw = topic.split("/")
+        #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #     time.sleep(2)
+        #
+        save_csv_file(conf.LOCAL_GT_BAG_PATH,gt_name)
+        for i in time.sleep(5):
+            logger.info("Waiting.. {}s".format(i))
 
     step_3 = "start_record bag"
     with allure.step(step_3):
@@ -73,7 +86,9 @@ def test_planning_testcase(name="test_01"):
         dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
         dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
         a_l = list(dict_start.values())
+        logger.info("start_point is {}".format(a_l))
         b_l = list(dict_end.values())
+        logger.info("end_point is {}".format(b_l))
         start_position_sample = a_l[0:3]
         start_orientation_sample = a_l[3:]
         end_position_sample = b_l[0:3]
@@ -82,6 +97,7 @@ def test_planning_testcase(name="test_01"):
                             end_orientation_sample)
         time.sleep(1)
         engage_auto()
+        logger.info("auto engage")
 
     step_6 = "6. end recording maunally"
     with allure.step(step_6):
@@ -98,7 +114,7 @@ def test_planning_testcase(name="test_01"):
         for topic in TOPICS.split(" "):
             print(topic)
             keyw = topic.split("/")
-            assert topic_csv(name+".bag", topic, keyw[-1]), topic+" could not saved to csv file"
+            assert topic_csv(name+".bag", topic, keyw[-1],conf.LOCAL_TEST_BAG_PATH ), topic+" could not saved to csv file"
             time.sleep(2)
 
     with allure.step("stop environment"):
@@ -108,14 +124,14 @@ def test_planning_testcase(name="test_01"):
         time.sleep(10)
         local_docker_end(p2)
 
-    BAG_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"
-    GROUNDTRUTH_VELOCITY_FILE_PATH = "/bags/record_vehiclewist1.csv"
-    BAG_POSE_FILE_PATH = "/bags/record_current_pose1.csv"
-    GROUNDTRUTH_FILE_PATH = "/bags/record_current_pose.csv"
+    BAG_VELOCITY_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_twist.csv"
+    GROUNDTRUTH_VELOCITY_FILE_PATH =  conf.LOCAL_GT_BAG_PATH+"gt_twist.csv"
+    BAG_POSE_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_current_pose.csv"
+    GROUNDTRUTH_FILE_PATH = conf.LOCAL_GT_BAG_PATH+"gt_current_pose.csv"
 
     with allure.step("Data analysis"):
         with allure.step("1. 如果输出文档速度一直为 0   -> not pass"):
-            a = pd.read_csv(BAG_VELOCITY_FILE_PATH)
+            a = pd.read_csv(BAG_VELOCITY_FILE_PATH )
             assert velocity_not_zero(a)
 
         with allure.step("2. current_pose 值一直没有变 -> not pass"):
@@ -127,7 +143,7 @@ def test_planning_testcase(name="test_01"):
             df2.drop(df2.tail(3).index, inplace=True)
             result, key_name, df_all = current_pose_analysis_eur(50, df1, df2)
             df_all.to_csv("./1.csv")
-            allure.attach.file("/home/minwei/autotest/1.csv")
+            allure.attach.file(TEST_CASE_PATH+"/1.csv")
             assert result
 
         with allure.step("4.current pose: 两值比较： 2. 偏航角之差  -》 超过一个range， 不pass "):
@@ -136,12 +152,12 @@ def test_planning_testcase(name="test_01"):
             with open('1.txt', 'w') as f:
                 for i in range(len(c_yaw_list)):
                     f.write(str(c_yaw_list[i]))
-            allure.attach.file("/home/minwei/autotest/1.txt")
+            allure.attach.file(TEST_CASE_PATH+"/1.txt")
 
         with allure.step("5. current twist 两值比较： ×3.6 画图"):
             dfc, dfd = csv_to_df(GROUNDTRUTH_VELOCITY_FILE_PATH, BAG_VELOCITY_FILE_PATH)
             plot_twist(dfc, dfd)
-            allure.attach.file("/home/minwei/autotest/common/twist.png")
+            allure.attach.file(TEST_CASE_PATH+"/common/twist.png")
 
         with allure.step("6. /planning/mission_planning/route   不为空"):
             pass
