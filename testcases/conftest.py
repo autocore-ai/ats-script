@@ -19,7 +19,6 @@ conftest.py只有一个package下的所有测试用例生效
 
 import pytest
 import allure
-import os
 from utils import remote
 import config
 import logging
@@ -79,13 +78,6 @@ def log(request, name='日志'):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
     case_name = request.function.__name__
-    print(dir(request))
-    # [{'Jira_ID': 1, 'Title': 'In the front of stopped ego car, other cat is moving at 20km/h', 'Priority': 'normal',
-    #   'Story': 'Car', 'CaseName': 'test_ego_stopped_cat_front_20', 'test_case': bag_name
-    #   moving_p_inner_front_2020 - 10 - 13 - 16 - 37 - 15.bag
-    #   bag_duration                                              51
-    #   Jira_ID                                                    1
-    #   Name: 0, dtype: object}]
 
     if request.cls is None:
         if 'case_data' in request.fixturenames:
@@ -110,17 +102,7 @@ def log_path(request, name='日志路径'):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
     case_name = request.function.__name__
-    """
-    request
-    ['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__',
-     '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', 
-     '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 
-     '_addfinalizer', '_arg2fixturedefs', '_arg2index', '_check_scope', '_compute_fixture_value', '_factorytraceback', 
-     '_fillfixtures', '_fixture_defs', '_fixturedef', '_fixturemanager', '_get_active_fixturedef', '_get_fixturestack', 
-     '_getnextfixturedef', '_getscopeitem', '_parent_request', '_pyfuncitem', '_schedule_finalizers', 'addfinalizer', 
-     'applymarker', 'cls', 'config', 'fixturename', 'fixturenames', 'fspath', 'function', 'getfixturevalue', 'instance',
-      'keywords', 'module', 'node', 'param_index', 'raiseerror', 'scope', 'session']
-    """
+
     if request.cls is None:
         if 'case_data' in request.fixturenames:
             case_id = request.getfixturevalue('test_data')['jira_id']

@@ -14,5 +14,5 @@ docker run -it --net=host --gpus=all --rm\
     --name=devel \
     --volumes-from exe \
     --volumes-from config \
-    nuc:5000/autocore/autoware4runtime:0.0.1-ros-eloquent-bridge-amd64 /bin/bash -c "source /opt/ros/melodic/setup.bash && source /root/autoware4/devel/setup.bash && export ROS_IP=192.168.50.235 && export ROS_MASTER_URI=http://192.168.50.235:11311 && roslaunch autoware_launch autoware.launch"
+    nuc:5000/autocore/autoware4runtime:0.0.1-ros-eloquent-bridge-amd64 /bin/bash -c "source /opt/ros/melodic/setup.bash && source /root/autoware4/devel/setup.bash && export ROS_IP=${ROS_IP} && export ROS_MASTER_URI=${ROS_MASTER_URI} && roslaunch autoware_launch autoware.launch"
 

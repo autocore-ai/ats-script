@@ -4,16 +4,10 @@ import hashlib
 import math
 import os
 import numpy as np
-import shutil
-import rospy
-# from tf.transformations import euler_from_quaternion
-import matplotlib.pyplot as plt
 import matplotlib.path as mpath
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, generate_pre_path_row
 from utils.calculate import cal_std, cal_euc_distance
-from collections import Counter
 import logging
 logger = logging.getLogger()
 

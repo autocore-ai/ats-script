@@ -9,9 +9,6 @@ PERCEPTION_AUTOWARE4_DEVEL = '~/workspace/test_autoware/AutowareArchitectureProp
 PERCEPTION_ROS_MASTER_URI = 'http://{}:11311'.format(PERCEPTION_AUTOWARE4_IP)
 
 # perception server info
-# PERCEPTION_IP = '192.168.50.98'
-# PERCEPTION_USER = 'train'
-# PERCEPTION_PWD = '123456'
 PERCEPTION_IP = '192.168.50.235'
 PERCEPTION_USER = 'adlink'
 PERCEPTION_PWD = 'adlink'

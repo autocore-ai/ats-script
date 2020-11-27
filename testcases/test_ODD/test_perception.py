@@ -7,16 +7,13 @@ import allure
 import pytest
 import time
 import logging
-import os
 
 from common.generate_case_data import generate_case_data
-from run import SEVERITY
-from config import TEST_CASE_PATH, REMOTE_TEST_DATA, TEST_REPORT_LOG, TEST_CASE_LINK, TEST_IP
-from common.perception_bag_analysis import Analysis, compare_uuid, compare_semantic, compare_line, compare_position,\
+from config import TEST_CASE_PATH
+from common.perception.perception_bag_analysis import Analysis, compare_uuid, compare_semantic, compare_line, compare_position,\
     compare_shape, compare_orientation, compare_prediction_paths
-import common.perception_action as p_act
-import common.perception_conf as conf
-from utils.remote import Remote, RemoteP
+import common.perception.perception_action as p_act
+import common.perception.perception_conf as conf
 
 logger = logging.getLogger()
 
