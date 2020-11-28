@@ -19,7 +19,7 @@ CHECK_AUTOWARE_4 = 'screen -ls| grep {}'.format(AUTOWARE_SCREEN_NAME)
 CHECK_AUTOWARE_4_NODES = 'source {}/devel/setup.bash;export ROS_IP={};export ROS_MASTER_URI={};' \
                          'rosnode list'.format(PERCEPTION_AUTOWARE4_DEVEL, PERCEPTION_AUTOWARE4_IP,
                                                PERCEPTION_ROS_MASTER_URI)
-AUTOWARE_4_NODES_LIST = ['planning']
+AUTOWARE_4_NODES_LIST = ['rviz']
 STOP_AUTOWARE_4 = 'screen -S {} -X quit'.format(AUTOWARE_SCREEN_NAME)
 
 # START_AUTOWARE_4 = 'roscore'
@@ -27,9 +27,9 @@ STOP_AUTOWARE_4 = 'screen -S {} -X quit'.format(AUTOWARE_SCREEN_NAME)
 # START_PERCEPTION = 'cd ~/workspace;$(nohup ./run_autoware4_perception.sh > /dev/null 2>&1 &) && sleep 1'
 PERCEPTION_DOCKER_NAME = 'devel'
 START_PERCEPTION = 'cd {}/common/script/;export ROS_IP={};export ROS_MASTER_URI={};' \
-                   'screen -d -m -S perception-test ./run_autoware4_perception.sh'.format(PERCEPTION_IP,
-                                                                                          PERCEPTION_ROS_MASTER_URI,
-                                                                                          TEST_CASE_PATH)
+                   'screen -d -m -S perception-test ./run_autoware4_perception.sh'.format(TEST_CASE_PATH,
+                                                                                          PERCEPTION_IP,
+                                                                                          PERCEPTION_ROS_MASTER_URI)
 # CHECK_PERCEPTION_DOCKER = 'docker inspect -f {{.Name}} $(docker ps -q) | grep %s' % PERCEPTION_DOCKER_NAME
 CHECK_PERCEPTION_DOCKER = 'docker ps | grep %s' % PERCEPTION_DOCKER_NAME
 CHECK_PERCEPTION_NODE = 'docker exec {} /bin/bash -c \'source /opt/ros/melodic/setup.bash && ' \

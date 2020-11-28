@@ -36,7 +36,7 @@ import time
 import os
 import common.planning.planning_conf as conf
 import errno
-from common.command import *
+from common.planning.command import *
 import logging
 
 logger = logging.getLogger()

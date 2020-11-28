@@ -15,7 +15,7 @@ TEST_CASE_PATH = '{}'.format(CURRENT_DIR)  # test script path
 TEST_REPORT_LOG = 'data/attachments/logs/'  # 测试日志在报告中的位置，相对路径
 TEST_CASE_LINK = 'https://gitlab.com/autocore/AutoTest/autotest/-/tree/master'
 
-TEST_IP = '192.168.50.235'
+TEST_IP = '127.0.0.1'
 
 SEVERITY = ['normal', 'minor']  # 设置需要执行的用例级别
 

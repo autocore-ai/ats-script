@@ -3,7 +3,7 @@
 # @File : planning_conf.py
 from config import TEST_CASE_PATH
 
-PLANNING_AUTOWARE4_IP = '192.168.50.235'  # as master
+PLANNING_AUTOWARE4_IP = '127.0.0.1'  # as master
 PLANNING_AUTOWARE4_USER = 'adlink'
 PLANNING_AUTOWARE4_PWD = 'adlink'
 PLANNING_AUTOWARE4_DEVEL = '~/workspace/test_autoware/AutowareArchitectureProposal'

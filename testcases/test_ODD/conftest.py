@@ -24,7 +24,7 @@ from common.process import *
 import common.perception.perception_action as p_env
 import config
 import common.perception.perception_conf as p_conf
-from common.planning_command import *
+from common.planning.planning_command import *
 
 logger = logging.getLogger()
 
@@ -100,16 +100,16 @@ def perception_env(scope='function'):
                     logger.info('Autoware started OK')
                     break
 
-    # step_desc = '3. Autoware4 is running, '
-    # with allure.step(step_desc):
-    #     logger.info('=' * 20 + step_desc + '=' * 20)
-    #     r_bool, status = p_env.check_autoware_status()
-    #     logger.info('check autoware status, return: {}, {}'.format(r_bool, status))
-    #     assert r_bool, status
-    #     assert status, 'Autoware is not running after wait {}s'.format(wait_time)
+    step_desc = '3. Check Autoware4 started ok'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, status = p_env.check_autoware_status()
+        logger.info('check autoware status, return: {}, {}'.format(r_bool, status))
+        assert r_bool, status
+        assert status, 'Autoware is not running after wait {}s'.format(wait_time)
 
     # need to enter docker to check
-    step_desc = '3. Check perception status, if running, to stop it'
+    step_desc = '4. Check perception status, if running, to stop it'
     with allure.step(step_desc):
         logger.info('=' * 20 + step_desc + '=' * 20)
         r_bool, ret = p_env.check_perception()
@@ -131,7 +131,7 @@ def perception_env(scope='function'):
                 assert r_bool, ret
                 assert not ret, 'Perception is stopped once, now it is running still, return'
 
-    step_desc = '4. Start perception ...'
+    step_desc = '5. Start perception ...'
     with allure.step(step_desc):
         logger.info('=' * 20 + step_desc + '=' * 20)
         r_bool, msg = p_env.start_perception()
@@ -149,14 +149,15 @@ def perception_env(scope='function'):
                     break
 
     # 6. check perception is ok
-    # step_desc = '6. Check start perception OK'
-    # with allure.step(step_desc):
-    #     logger.info('=' * 20 + step_desc + '=' * 20)
-    #     r_bool, msg = p_env.check_perception()
-    #     assert r_bool, msg
-    #     assert msg, 'perception is not running, start env failed, return'
+    step_desc = '6. Check start perception OK'
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, msg = p_env.check_perception()
+        assert r_bool, msg
+        assert msg, 'perception is not running, start env failed, return'
 
     logger.info('Test env for autoware4 perception is ready, let\'s to do test...')
+    time.sleep(5)
 
     yield
 
@@ -239,17 +240,18 @@ if __name__ == '__main__':
     # print(desc)
     # r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
 
-    perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-    perc_key = 'ros'
-    perc_key2 = 'autoware'
-    perc_bool = remote_check_process(perc_server, perc_key)
-    perc_bool2 = remote_check_process(perc_server, perc_key2)
-    if perc_bool or perc_bool2:
-        logger.warning('Perception is running still, now to kill it.')
-        c_bool, msg = remote_stop_process(perc_server, perc_key, stop_time=5)
-        assert c_bool, msg
-        c_bool, msg = remote_stop_process(perc_server, perc_key2, stop_time=5)
-        assert c_bool, msg
-    r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
-    assert r_bool, msg
+    # perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
+    # perc_key = 'ros'
+    # perc_key2 = 'autoware'
+    # perc_bool = remote_check_process(perc_server, perc_key)
+    # perc_bool2 = remote_check_process(perc_server, perc_key2)
+    # if perc_bool or perc_bool2:
+    #     logger.warning('Perception is running still, now to kill it.')
+    #     c_bool, msg = remote_stop_process(perc_server, perc_key, stop_time=5)
+    #     assert c_bool, msg
+    #     c_bool, msg = remote_stop_process(perc_server, perc_key2, stop_time=5)
+    #     assert c_bool, msg
+    # r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
+    # assert r_bool, msg
+    pass
 

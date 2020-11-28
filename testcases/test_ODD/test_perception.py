@@ -175,7 +175,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
             allure.attach('expect position sum data: {}\n real position sum data: {}'.format(exp_pos_dict, real_pos_dict),
                           'expect and real position dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'position.png')
-            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=50)
+            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=500)
             logger.info('compare result of position: {}'.format(pos_dict))
             assert r_bool, 'compare of position is wrong, message: {}'.format(pos_dict)
             # attach position png
@@ -201,7 +201,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
             allure.attach('expect orientation sum data: {}\n real orientation sum data: {}'.format(exp_ori_dict, real_ori_dict),
                           'expect and real orientation dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'orientation.png')
-            r_bool, ori_dict = compare_orientation(exp_ori_dict, real_ori_dict, save_path, max_step=50)
+            r_bool, ori_dict = compare_orientation(exp_ori_dict, real_ori_dict, save_path, max_step=500)
             logger.info('compare result of orientation: {}'.format(ori_dict))
             assert r_bool, 'compare of orientation is wrong, message: {}'.format(msg)
             # attach position png

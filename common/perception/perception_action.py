@@ -2,7 +2,7 @@
 import time
 import logging
 import subprocess
-from common.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
+from common.perception.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
     CHECK_PERCEPTION_DOCKER, CHECK_PERCEPTION_NODE, STOP_PERCEPTION, ROSBAG_RECORD_O, ROSBAG_RECORD_O_REMOTE, \
     ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME, CHECK_AUTOWARE_4_NODES, AUTOWARE_4_NODES_LIST, \
     PERCEPTION_NODES_LIST
@@ -90,21 +90,28 @@ def check_autoware_status():
         p = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = p.stderr.read().decode('utf-8')
         ret = p.stdout.read().decode('utf-8')
+        logger.info('check autoware result, stdout:{}, stderr: {}'.format(ret, stderr))
         if len(stderr) > 1:
             return False, stderr
+
+        if len(ret) == 0:
+            return True, False
 
         # check nodes are all ok
         p = subprocess.Popen(check_cmd_node, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = p.stderr.read().decode('utf-8')
         ret_nodes = p.stdout.read().decode('utf-8')
-        if len(stderr) > 1:
-            return False, stderr
+        logger.info('check Autoware nodes result, stdout: {}, stderr: {}'.format(ret_nodes, stderr))
+        # if len(stderr) > 1:
+        #     return False, stderr
     else:
         server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD, p_conf.PERCEPTION_AUTOWARE4_PWD)
         r_bool, ret = server.exec_comm(check_cmd_autoware)
         logger.info('check remote autoware4-Autoware, exec result: {}, autoware status: {}'.format(r_bool, ret))
         if not r_bool:
             return False, ret
+        if len(ret) == 0:
+            return True, False
 
         r_bool, ret_nodes = server.exec_comm(check_cmd_node)
         logger.info('check remote autoware4-Autoware nodes, exec result: {}, autoware status: {}'.format(r_bool, ret))
@@ -470,7 +477,4 @@ def stop_record_bag():
 
 
 if __name__ == '__main__':
-    r_bool, status = start_perception()
-    print(r_bool)
-    print(status)
-
+    r_bool, 
