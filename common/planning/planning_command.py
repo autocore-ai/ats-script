@@ -34,12 +34,9 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 import time
 import os
-import common.planning_conf as conf
-import rosbag
-from common.process import local_stop_process
+import common.planning.planning_conf as conf
 import errno
 from common.command import *
-import sys
 import logging
 
 logger = logging.getLogger()

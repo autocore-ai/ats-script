@@ -9,7 +9,10 @@
 import numpy as np
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist.axislines as axislines
+import logging
+logger = logging.getLogger()
 import re
 
 # csv to df
@@ -56,8 +59,61 @@ def eu_dataFrame(a,b):
     for i in range(0, a_num + 1):
         key, df = eur_calculate(a, b, i)
         df_eu[key] = df
-    print(df_eu.head(20))
     return df_eu
+
+# plot欧式距离差, 单个一列
+# def plot_eur(df_eur,column_name):
+#     df_ex=df_eur[column_name]
+#     figure = plt.figure()
+#     plot1 = figure.add_subplot(111)
+#     plot1.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
+#     # print(list(np.array(df_ex)))
+#     # plt.show()
+#     return plot1
+# plot_position=[541,542,543,544,441,442,443]
+def plot_eu(csv_file, csv_file_1):
+    import matplotlib.pyplot as plt
+    fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
+    fig.subplots_adjust(wspace=0.4, hspace=0.4)
+    # fig.subplots_adjust(bottom=0.02,top =0.03)
+    a, b = csv_to_df(csv_file, csv_file_1)
+    print("===================")
+    eur_df = eu_dataFrame(a, b)
+    logger.info("Euclidean distance dataframe for all the points : {}".format(eur_df))
+    for i,a_list in enumerate(ax_list):
+        index = i * 5
+        for j,ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = eur_df[eur_df.columns[df_index]]
+            np_df= df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a,3)
+            ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
+            ax.set_title(eur_df.columns[df_index]+" std is {}".format(a))
+    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
+    upper_loc = upper_loc + "/bags/"
+    pic_loc = upper_loc + 'trajectory.png'
+    plt.savefig(pic_loc)
+
+    fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
+    fig1.subplots_adjust(wspace=0.4, hspace=0.4)
+    for i, a_list in enumerate(ax_list1):
+        index = i * 5
+        for j, ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = eur_df[eur_df.columns[df_index + 21]]
+            np_df = df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a, 3)
+            ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
+            ax.set_title(eur_df.columns[df_index + 21] + " std is {}".format(a))
+    pic_loc1 = upper_loc + 'trajectory1.png'
+    plt.savefig(pic_loc1)
+
+
+    # plt.show()
 
 # 偏航角计算
 import math
@@ -127,22 +183,14 @@ def yaw_df(a,b):
     yaw_df = pd.DataFrame(c_all_dict)
     return yaw_df
 
+
+
 #选取异样值
 def extract(df1,df2):
     for i in df1.columns:
         df1_reuslt = df1.loc[df1[i] > 1]
 
     return df1_reuslt
-
-import matplotlib.pyplot as plt
-# plot欧式距离差
-def plot_eur(a,b):
-    df1= eu_dataFrame(a,b)
-    df_ex=df1["eu_distance of 0"]
-    fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-    ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
-    # print(list(np.array(df_ex)))
-    # plt.show()
 
 #plot两个速度
 def plot_twist(a,b):
@@ -187,15 +235,6 @@ def plot_pose(a,b):
     plt.savefig(pic_loc)
 
     return pic_loc
-
-def compare_analysis(csv1,csv2):
-    "欧式距离之差"
-    a,b = csv_to_df(csv1,csv2)
-    eu_dataFrame(a,b)
-    "偏航角之差"
-    print(yaw_df(a,b))
-    plot_eur(a, b)
-    return eu_dataFrame(a,b), yaw_df(a,b)
 
 def velocity_not_zero(df):
     df_1 = df["field.twist.linear.x"]
@@ -291,8 +330,23 @@ def current_pose_analysis_yaw(range_scale, df1 , df2 ):
         c_yaw_list = None
     return result, c_yaw_list
 
+def compare_analysis(csv1,csv2):
+    "欧式距离之差"
+    a,b = csv_to_df(csv1,csv2)
+    print("===================")
+    aa = eu_dataFrame(a,b)
+    print(aa.head(20))
+    # plot_eur(a,b)
+    plt.show()
 
+    # "偏航角之差"
+    # print("*******************")
+    # print(yaw_df(a,b))
+    # plot_eur(a, b)
+    # return eu_dataFrame(a,b), yaw_df(a,b)
 
+def route_same(csv1,csv2):
+    pass
 def data_analysis():
     """
     调用函数
@@ -319,25 +373,39 @@ def data_analysis():
     print(result,ll)
     # plot_twist(df_ta, df_tb)
     # plot_pose(dfa,dfb)
-
-
     pass
+
+def route_same(a,b):
+    #a gt , b test
+    col = list(a.loc[0, :])
+    print(col)
+    logger.info("groundtruth bag planning_route info: {}".format(col))
+    col1 = list(b.loc[0, :])
+    logger.info("test bag planning_route info: {}".format(col1))
+    assert col == col1
+
 if __name__ == '__main__':
+    local = "/home/minwei/autotest/bags/planning_bags"
+    # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
+    # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
+    a = pd.read_csv(local+"/groundtruth_bags/gt_route.csv")
+    b = pd.read_csv(local + "/test_bags/test_route.csv")
 
+    # compare_analysis(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
 
-    # df1,df2 = compare_analysis(local + "/record_result1.csv", local + "/record_result.csv")
-    # # compare_position(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
     # print("==================================================")
     # dd =extract(df1, df2)
     # print(dd)
-    local = "/home/minwei/autotest/common"
+
     # df1 , df2 = csv_to_df(local + "/record_vehiclewist.csv", local + "/record_vehiclewist1.csv")
     # # plot_twist(df1,df2)
-    dfa, dfb = csv_to_df(local + "/record_current_pose.csv", local + "/record_current_pose1.csv")
-    dfb.drop(dfb.tail(3).index, inplace=True)
-    result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
-    df_all.to_csv("./tzzs_data.csv")
-    plot_pose(dfa,dfb)
+    # dfa, dfb = csv_to_df(local + "/record_current_pose.csv", local + "/record_current_pose1.csv")
+    # dfb.drop(dfb.tail(3).index, inplace=True)
+    # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
+    # df_all.to_csv("./tzzs_data.csv")
+    # plot_pose(dfa,dfb)
+
+
 
     # plot_pose(dfa,dfb)
     # # p = extract(df1,df2).plot.bar()

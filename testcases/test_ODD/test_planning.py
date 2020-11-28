@@ -6,17 +6,10 @@ planning 模块 case
 """
 import allure
 from common.process import *
-import time
-import logging
-import os
-import subprocess
 import pytest
-import re
-import json
-from config import TEST_CASE_PATH
-from common.planning_command import *
-import common.planning_conf as conf
-from common.planning_bag_analysis import *
+from common.planning.planning_command import *
+import common.planning.planning_conf as conf
+from common.planning.planning_bag_analysis import *
 
 logger = logging.getLogger()
 import pandas as pd
@@ -126,8 +119,15 @@ def test_planning_testcase(name="test_01", gt_name="gt_01"):
 
     BAG_VELOCITY_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_twist.csv"
     GROUNDTRUTH_VELOCITY_FILE_PATH =  conf.LOCAL_GT_BAG_PATH+"gt_twist.csv"
+
     BAG_POSE_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_current_pose.csv"
     GROUNDTRUTH_FILE_PATH = conf.LOCAL_GT_BAG_PATH+"gt_current_pose.csv"
+
+    GROUNDTRUTH_TRAJECTORY = conf.LOCAL_GT_BAG_PATH + "gt_trajectory.csv"
+    TEST_TRAJECTORY = conf.LOCAL_TEST_BAG_PATH + "test_trajectory.csv"
+
+    GROUNDTRUTH_ROUTE = conf.LOCAL_GT_BAG_PATH + "gt_route.csv"
+    TEST_ROUTE = conf.LOCAL_TEST_BAG_PATH + "test_route.csv"
 
     with allure.step("Data analysis"):
         with allure.step("1. 如果输出文档速度一直为 0   -> not pass"):
@@ -159,8 +159,12 @@ def test_planning_testcase(name="test_01", gt_name="gt_01"):
             plot_twist(dfc, dfd)
             allure.attach.file(TEST_CASE_PATH+"/common/twist.png")
 
-        with allure.step("6. /planning/mission_planning/route   不为空"):
-            pass
+        with allure.step("6. /planning/mission_planning/route   信息匹配"):
+             assert  route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
+
+        with allure.step("8.trajectory 欧式距离之差 做图，前40的points"):
+            plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
+            allure.attach.file(TEST_CASE_PATH+"/common/trajectory.png",TEST_CASE_PATH+"/common/trajectory1.png")
 
         with allure.step("7. plot pose"):
             pic_loc = plot_pose(df1, df2)
