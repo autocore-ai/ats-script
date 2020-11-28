@@ -4,16 +4,10 @@ import hashlib
 import math
 import os
 import numpy as np
-import shutil
-import rospy
-# from tf.transformations import euler_from_quaternion
-import matplotlib.pyplot as plt
 import matplotlib.path as mpath
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 from utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, generate_pre_path_row
 from utils.calculate import cal_std, cal_euc_distance
-from collections import Counter
 import logging
 logger = logging.getLogger()
 
@@ -468,7 +462,7 @@ def compare_uuid(uuid_exp, uuid_rel, save_path):
     data_list = [{'data': uuid_exp, 'label': 'expect uuid, sum: {}'.format(sum(uuid_exp))},
                  {'data': uuid_rel, 'label': 'real uuid, sum: {}'.format(sum(uuid_rel))}]
     r_bool, msg = generate_bar(data_list, save_path, y_label='Count',
-                               title='Expect and real uuid count per second, std: {}'.format(std_uuid))
+                               title='Expect and real uuid count per second, std: {:<8.2f}'.format(std_uuid))
     if not r_bool:
         logger.error(msg)
         return False, 0, msg
@@ -500,7 +494,7 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
             return False, msg
         sem_std_dict[key] = std
         sem_list.append({'data': {'expect semantic': value, 'real semantic': sem_dict_rel[key]}, 'x_label': 'Second',
-                         'y_label': 'Count per second', 'title': 'Semantic: {} expect and real, std: {}'.format(key, std)})
+                         'y_label': 'Count per second', 'title': 'Semantic: {} expect and real, std: {:<8.2f}'.format(key, std)})
 
     # 画柱状图
     r_bool, msg = generate_bar_rows(sem_list, save_path)
@@ -564,7 +558,7 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
         ret_dict[semantic]['std'] = std
 
         # 轨迹图数据拼接
-        data_list.append({'trace_title': '{} Trace, std: {}'.format(semantic, std),
+        data_list.append({'trace_title': '{} Trace, std: {:<8.2f}'.format(semantic, std),
                           'trace_dict': {'{}_exp'.format(semantic): exp_data_list, '{}_real'.format(semantic): real_data_list},
                           })
     # 3. 画出两个的轨迹图
@@ -627,7 +621,7 @@ def compare_orientation(ori_dict_expt, ori_dict_real, save_path, max_step=5):
         data_list.append(
             (
                 {
-                    'title': '{}_Orientation, std: {}'.format(semantic, std),
+                    'title': '{}_Orientation, std: {:<8.2f}'.format(semantic, std),
                     'data': {'ori_exp': exp_data_list, 'ori_real_x': real_data_list, 'ori_diff_x': ret_list}
                 }
             )
@@ -719,11 +713,11 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
         #                                  '{}_real'.format(semantic): real_data_list},
         #                   })
         data_list.append((
-            {'title': '{}_X Line Speed, std: {}'.format(semantic, std_x),
+            {'title': '{}_X Line Speed, std: {:<8.2f}'.format(semantic, std_x),
              'data': {'{}_exp_x'.format(semantic): exp_data_list_x, '{}_real_x'.format(semantic): real_data_list_x,
                       '{}_distance_x'.format(semantic): ret_list_x}
              },
-            {'title': '{}_Y Line Speed, std: {}'.format(semantic, std_y),
+            {'title': '{}_Y Line Speed, std: {:<8.2f}'.format(semantic, std_y),
              'data': {'{}_exp_y'.format(semantic): exp_data_list_y, '{}_real_y'.format(semantic): real_data_list_y,
                       '{}_distance_y'.format(semantic): ret_list_y}
              },
@@ -829,12 +823,12 @@ def compare_prediction_paths(pre_dict_exp, pre_dict_real, save_path, max_step=5)
                  },
                 # xy eul line graph
                 {
-                    'title': 'The 2nd xy eul of {}\'s, std: {}'.format(semantic, paths_std_2th_xy),
+                    'title': 'The 2nd xy eul of {}\'s, std: {:<8.2f}'.format(semantic, paths_std_2th_xy),
                     'line_data': {'{}_xy_eul'.format(semantic): paths_diff_2th_xy}
                 },
                 # ori line (exp, real, diff)
                 {
-                    'title': 'The 2nd orientation of {}\'s, std: {}'.format(semantic, paths_std_2th_ori),
+                    'title': 'The 2nd orientation of {}\'s, std: {:<8.2f}'.format(semantic, paths_std_2th_ori),
                     'line_data': {'{}_ori_exp'.format(semantic): exp_2th_ori,
                                   '{}_ori_real'.format(semantic): real_2th_ori,
                                   '{}_ori_diff'.format(semantic): paths_diff_2th_ori}
@@ -851,12 +845,12 @@ def compare_prediction_paths(pre_dict_exp, pre_dict_real, save_path, max_step=5)
                 },
                 # xy eul line graph
                 {
-                    'title': 'The 3rd xy eul of {}\'s, std: {}'.format(semantic, paths_std_3th_xy),
+                    'title': 'The 3rd xy eul of {}\'s, std: {:<8.2f}'.format(semantic, paths_std_3th_xy),
                     'line_data': {'{}_xy_eul'.format(semantic): paths_diff_3th_xy}
                 },
                 # ori line (exp, real, diff)
                 {
-                    'title': 'The 3rd orientation of {}\'s, std: {}'.format(semantic, paths_std_3th_ori),
+                    'title': 'The 3rd orientation of {}\'s, std: {:<8.2f}'.format(semantic, paths_std_3th_ori),
                     'line_data': {'{}_ori_exp'.format(semantic): exp_3th_ori,
                                   '{}_ori_real'.format(semantic): real_3th_ori,
                                   '{}_ori_diff'.format(semantic): paths_diff_3th_ori}
@@ -937,11 +931,11 @@ def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
         data_list.append(
             (
                 {
-                    'title': '{}_Shape_X, std: {}'.format(semantic, std),
+                    'title': '{}_Shape_X, std: {:<8.2f}'.format(semantic, std),
                     'data': {'shape_exp_x': shape_exp_x, 'shape_real_x': shape_real_x, 'shape_diff_x': diff_list}
                 },
                 {
-                    'title': '{}_Shape_Y, std: {}'.format(semantic, std_y),
+                    'title': '{}_Shape_Y, std: {:<8.2f}'.format(semantic, std_y),
                     'data': {'shape_exp_y': shape_exp_y, 'shape_real_y': shape_real_y, 'shape_diff_y': diff_list_y}
                 },
             )

@@ -93,6 +93,7 @@ def read_jira_file(file_path, keyword):
 
 def local_planning_start():
     "起planning_stimulator_launch， 子进程"
+    logger.info(START_AUTOWARE_4_PLANNING)
     p1 = subprocess.Popen(START_AUTOWARE_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     logger.info(p1.stdout)
     return p1
@@ -253,7 +254,7 @@ def save_csv_file(path,bag_name):
         logger.info("Saving "+ topic)
         keyw = topic.split("/")
         logger.info("saving "+ keyw[-1] + " ...")
-        assert topic_csv(bag_name + ".bag", topic, "test_" + keyw[-1],
+        assert topic_csv(bag_name + ".bag", topic, bag_name+"_" + keyw[-1],
                          path), topic + " could not saved to csv file"
         logger.info("saving address: "+ path)
         time.sleep(2)

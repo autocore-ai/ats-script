@@ -19,15 +19,13 @@ conftest.py只有一个package下的所有测试用例生效
 
 import pytest
 import allure
-import os
 from utils import remote
-from common.command import START_AUTOWARE_4, START_PERCEPTION
 from common.process import *
-import common.perception_action as p_env
+import common.perception.perception_action as p_env
 import config
-import common.perception_conf as p_conf
-import logging
-from utils.log import md_logger
+import common.perception.perception_conf as p_conf
+from common.planning_command import *
+
 logger = logging.getLogger()
 
 
@@ -51,10 +49,8 @@ def clean_env(remote_server):
     logger.info('clean ok')
 
 
-@allure.step('启动Autoware4和perception环境')
-@allure.title('启动Autoware4和perception环境')
 @pytest.fixture
-def perception_env(timer_function_scope, log, scope='function'):
+def perception_env(scope='function'):
     """
     1. set up
     Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
@@ -66,6 +62,7 @@ def perception_env(timer_function_scope, log, scope='function'):
     1. close perception
     2. close Autoware.4
     """
+    start_time = time.time()
     step_desc = '1. check Autoware4 status, if running, to stop it, autoware.4 env: {}'.format(p_conf.PERCEPTION_AUTOWARE4_IP)
     with allure.step(step_desc):
         logger.info('='*20 + step_desc + '='*20)
@@ -183,26 +180,37 @@ def perception_env(timer_function_scope, log, scope='function'):
         assert r_bool, ret
         assert not ret, 'autoware4 stopped failed, return'
 
-    # to clean autoware env
-    # msg = 'tear down: stop perception'
-    # logger.info(msg)
-    # with allure.step(msg):
-    #     logger.info(msg)
-    #     r_bool, node_list = get_perception_node_list()
-    #     assert r_bool, node_list
-    #     assert node_list, 'perception quit expectedly'
-    #     r_bool, msg = stop_perception_node_list(node_list)
-    #     assert r_bool, msg
-    #
-    #
-    # # to stop autoware
-    # msg = 'To stop Autoware'
-    # with allure.step(msg):
-    #     logger.info(msg)
-    #     r_bool, msg = local_stop_process(key_autoware, kill_cmd='-9', stop_time=5)
-    #     assert r_bool, msg  # stop failed, stop
-    #     r_bool, msg = local_stop_process(key_ros, kill_cmd='-9', stop_time=5)
-    #     assert r_bool, msg  # stop failed, stop
+    end_time = time.time()
+    allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
+
+
+@pytest.fixture
+def planning_env(scope='function'):
+    step_1 = "start environment "
+    with allure.step(step_1):
+        logger.info(step_1)
+        p1 = local_planning_start()
+        logger.info(p1)
+        logging.info('waiting autoware start ...')
+        time.sleep(5)
+        assert local_planning_start_test(), 'local planning env started fail'
+
+    step_2 = "start docker"
+    with allure.step(step_2):
+        logger.info(step_2)
+        time.sleep(5)
+        p2 = local_docker_start()
+        time.sleep(10)
+        assert pid_exists(p2.pid), "local docker env started fail"
+
+    yield
+
+    with allure.step("stop environment"):
+        time.sleep(5)
+        logger.info("stop env")
+        local_planning_end(p1)
+        time.sleep(5)
+        local_docker_end(p2)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,12 @@
 # -*- coding:utf8 -*-
-import os
 import time
 import logging
 import subprocess
 from common.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
     CHECK_PERCEPTION_DOCKER, CHECK_PERCEPTION_NODE, STOP_PERCEPTION, ROSBAG_RECORD_O, ROSBAG_RECORD_O_REMOTE, \
     ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME
-from utils.remote import Remote, RemoteP
-import common.perception_conf as p_conf
+from utils.remote import RemoteP
+import common.perception.perception_conf as p_conf
 import utils.local as loc
 import config
 logger = logging.getLogger()
