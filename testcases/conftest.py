@@ -116,15 +116,3 @@ def log_path(request, name='日志路径'):
     return real_log_path  # 日志路径
 
 
-@pytest.fixture(scope="session")
-def image_file(tmpdir_factory):
-    # img = compute_expensive_image()
-    fn = tmpdir_factory.mktemp("data").join("img.png")
-    return str(fn)
-
-
-@pytest.fixture(scope="session")
-def test_f(request,):
-    print(request)
-    return 1
-

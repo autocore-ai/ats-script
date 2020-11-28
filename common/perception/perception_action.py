@@ -4,7 +4,8 @@ import logging
 import subprocess
 from common.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
     CHECK_PERCEPTION_DOCKER, CHECK_PERCEPTION_NODE, STOP_PERCEPTION, ROSBAG_RECORD_O, ROSBAG_RECORD_O_REMOTE, \
-    ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME
+    ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME, CHECK_AUTOWARE_4_NODES, AUTOWARE_4_NODES_LIST, \
+    PERCEPTION_NODES_LIST
 from utils.remote import RemoteP
 import common.perception.perception_conf as p_conf
 import utils.local as loc
@@ -82,10 +83,20 @@ def check_autoware_status():
     """
     check_cmd_autoware = CHECK_AUTOWARE_4
     logger.info('check autoware4 status, command: {}'.format(check_cmd_autoware))
+    check_cmd_node = CHECK_AUTOWARE_4_NODES
+    logger.info('check autoware4 nodes status, command: {}'.format(check_cmd_node))
+
     if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
         p = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stderr = p.stderr.read().decode('utf-8')
         ret = p.stdout.read().decode('utf-8')
+        if len(stderr) > 1:
+            return False, stderr
+
+        # check nodes are all ok
+        p = subprocess.Popen(check_cmd_node, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = p.stderr.read().decode('utf-8')
+        ret_nodes = p.stdout.read().decode('utf-8')
         if len(stderr) > 1:
             return False, stderr
     else:
@@ -95,10 +106,20 @@ def check_autoware_status():
         if not r_bool:
             return False, ret
 
-    run_status = False
-    if AUTOWARE_SCREEN_NAME in ret:
-        run_status = True
-    return True, run_status
+        r_bool, ret_nodes = server.exec_comm(check_cmd_node)
+        logger.info('check remote autoware4-Autoware nodes, exec result: {}, autoware status: {}'.format(r_bool, ret))
+        if not r_bool:
+            return False, ret
+
+    if AUTOWARE_SCREEN_NAME not in ret:
+        return True, False
+
+    # loop auto other nodes
+    for node in AUTOWARE_4_NODES_LIST:
+        if node not in ret_nodes:
+            return True, False
+
+    return True, True
 
 
 def start_autoware4():
@@ -230,12 +251,10 @@ def check_perception():
         logger.info('check perception nodes, \nstdout: {}, \nstderr: {}'.format(stdout, stderr))
         if len(stderr) > 0:
             return False, stderr
-        nodes_status = False
-        if len(stdout.split('\n')) > 1:
-            nodes_status = True
-            logger.info('perception nodes are OK')
 
-        return True, nodes_status
+        for node in PERCEPTION_NODES_LIST:
+            if node not in stdout:
+                return True, False
     else:
         remote = RemoteP(p_conf.PERCEPTION_IP, p_conf.PERCEPTION_USER, p_conf.PERCEPTION_PWD)
         logger.info('check remote perception docker, command: {}'.format(cmd_docker))
@@ -251,11 +270,11 @@ def check_perception():
         logger.info('check remote perception nodes, exec result: {}, status: {}'.format(r_bool, ret))
         if not r_bool:
             return False, ret
-        node_status = False
-        if len(ret.split('\n')) > 1:
-            node_status = True
-            logger.info('perception nodes are OK')
-        return True, node_status
+        for node in PERCEPTION_NODES_LIST:
+            if node not in ret:
+                return True, False
+    logger.info('perception is running')
+    return True, True
 
 
 #
