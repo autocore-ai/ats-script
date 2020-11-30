@@ -71,49 +71,8 @@ def eu_dataFrame(a,b):
 #     # plt.show()
 #     return plot1
 # plot_position=[541,542,543,544,441,442,443]
-def plot_eu(csv_file, csv_file_1):
-    import matplotlib.pyplot as plt
-    fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
-    fig.subplots_adjust(wspace=0.4, hspace=0.4)
-    # fig.subplots_adjust(bottom=0.02,top =0.03)
-    a, b = csv_to_df(csv_file, csv_file_1)
-    print("===================")
-    eur_df = eu_dataFrame(a, b)
-    logger.info("Euclidean distance dataframe for all the points : {}".format(eur_df))
-    for i,a_list in enumerate(ax_list):
-        index = i * 5
-        for j,ax in enumerate(a_list):
-            df_index = index + j
-            df_ex = eur_df[eur_df.columns[df_index]]
-            np_df= df_ex.to_numpy()
-            np_df[np.isnan(np_df)] = 0
-            a = np_df.std()
-            a = round(a,3)
-            ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
-            ax.set_title(eur_df.columns[df_index]+" std is {}".format(a))
-    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc + "/bags/"
-    pic_loc = upper_loc + 'trajectory.png'
-    plt.savefig(pic_loc)
 
-    fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
-    fig1.subplots_adjust(wspace=0.4, hspace=0.4)
-    for i, a_list in enumerate(ax_list1):
-        index = i * 5
-        for j, ax in enumerate(a_list):
-            df_index = index + j
-            df_ex = eur_df[eur_df.columns[df_index + 21]]
-            np_df = df_ex.to_numpy()
-            np_df[np.isnan(np_df)] = 0
-            a = np_df.std()
-            a = round(a, 3)
-            ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
-            ax.set_title(eur_df.columns[df_index + 21] + " std is {}".format(a))
-    pic_loc1 = upper_loc + 'trajectory1.png'
-    plt.savefig(pic_loc1)
-
-
-    # plt.show()
+import matplotlib.pyplot as plt
 
 # 偏航角计算
 import math
@@ -346,38 +305,9 @@ def compare_analysis(csv1,csv2):
     # plot_eur(a, b)
     # return eu_dataFrame(a,b), yaw_df(a,b)
 
-def route_same(csv1,csv2):
-    pass
-def data_analysis():
-    """
-    调用函数
-    一。
-    1. 如果输出文档速度一直为 0   -> not pass
-    2. current_pose 值一直没有变 -> not pass
-    3. current pose: 两值比较： 1.欧式距离之差 -》 超过一个range， 不pass
-                              2.偏航角之差  -》  超过一个range, 不pass
-    4. current twist 两值比较： ×3.6 画图
-    5. trajectory：  比较各个points
-    6. /planning/mission_planning/route   不为空
-    7. /planning/mission_planning/route   信息匹配
-    8. plot pose
-    """
-    #1.
-
-    local = "/home/minwei/autotest/common"
-    dfa, dfb = csv_to_df(local + "/record_current_pose.csv", local + "/record_current_pose1.csv")
-    dfb.drop(dfb.tail(3).index, inplace=True)
-    df_ta,df_tb=csv_to_df(local+"/record_vehiclewist.csv",local+"/record_vehiclewist1.csv")
-    print(dfa.shape, dfb.shape)
-    result, ll = current_pose_analysis_yaw(10,dfa,dfb)
-
-    print(result,ll)
-    # plot_twist(df_ta, df_tb)
-    # plot_pose(dfa,dfb)
-    pass
-
-def route_same(a,b):
+def route_same(csv_a,csv_b):
     #a gt , b test
+    a,b= csv_to_df(csv_a,csv_b)
     col = list(a.loc[0, :])
     print(col)
     logger.info("groundtruth bag planning_route info: {}".format(col))
@@ -385,13 +315,96 @@ def route_same(a,b):
     logger.info("test bag planning_route info: {}".format(col1))
     assert col == col1
 
+def plot_eu(csv_file, csv_file_1):
+
+    fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
+    fig.subplots_adjust(wspace=0.4, hspace=0.4)
+    # fig.subplots_adjust(bottom=0.02,top =0.03)
+    a, b = csv_to_df(csv_file, csv_file_1)
+    print("===================")
+    eur_df = eu_dataFrame(a, b)
+    logger.info("Euclidean distance dataframe for all the points : {}".format(eur_df))
+    for i,a_list in enumerate(ax_list):
+        index = i * 5
+        for j,ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = eur_df[eur_df.columns[df_index]]
+            np_df= df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a,3)
+            ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
+            ax.set_title(eur_df.columns[df_index]+" std is {}".format(a))
+    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
+    upper_loc = upper_loc + "/bags/"
+    pic_loc = upper_loc + 'trajectory.png'
+    plt.savefig(pic_loc)
+
+    fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
+    fig1.subplots_adjust(wspace=0.4, hspace=0.4)
+    for i, a_list in enumerate(ax_list1):
+        index = i * 5
+        for j, ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = eur_df[eur_df.columns[df_index + 21]]
+            np_df = df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a, 3)
+            ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
+            ax.set_title(eur_df.columns[df_index + 21] + " std is {}".format(a))
+    pic_loc1 = upper_loc + 'trajectory1.png'
+    plt.savefig(pic_loc1)
+
+def trajectory_yaw_plot(a,b):
+    yaw_df_sample = yaw_df(a,b)
+    fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
+    fig.subplots_adjust(wspace=0.4, hspace=0.4)
+    logger.info("delta yaw angle : {}".format(yaw_df_sample))
+    for i,a_list in enumerate(ax_list):
+        index = i * 5
+        for j,ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = yaw_df_sample[yaw_df_sample.columns[df_index]]
+            np_df= df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a,3)
+            ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
+            ax.set_title(yaw_df_sample.columns[df_index]+" std is {}".format(a))
+    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
+    upper_loc = upper_loc + "/bags/"
+    pic_loc = upper_loc + 'delta_yaw.png'
+    plt.savefig(pic_loc)
+
+    fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
+    fig1.subplots_adjust(wspace=0.4, hspace=0.4)
+    for i, a_list in enumerate(ax_list1):
+        index = i * 5
+        for j, ax in enumerate(a_list):
+            df_index = index + j
+            df_ex = yaw_df_sample[yaw_df_sample.columns[df_index + 21]]
+            np_df = df_ex.to_numpy()
+            np_df[np.isnan(np_df)] = 0
+            a = np_df.std()
+            a = round(a, 3)
+            ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
+            ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
+    pic_loc1 = upper_loc + 'delta_yaw1.png'
+    plt.savefig(pic_loc1)
+
+
 if __name__ == '__main__':
     local = "/home/minwei/autotest/bags/planning_bags"
     # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    a = pd.read_csv(local+"/groundtruth_bags/gt_route.csv")
-    b = pd.read_csv(local + "/test_bags/test_route.csv")
-
+    a = pd.read_csv(local+"/groundtruth_bags/gt_trajectory.csv")
+    b = pd.read_csv(local + "/test_bags/test_trajectory.csv")
+    count = a.shape[0] - b.shape[0]
+    a.drop(a.tail(count).index, inplace=True)
+    print(a.shape[0],b.shape[0])
+    # print(current_pose_analysis_yaw(10,a,b))
+    trajectory_yaw_plot(a,b)
     # compare_analysis(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
 
     # print("==================================================")

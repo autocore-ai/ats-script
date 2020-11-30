@@ -87,15 +87,15 @@ def test_planning_testcase(planning_env, name="test_01", gt_name="gt_01"):
         logger.info(msg)
         logger.info("end recording ")
         time.sleep(3)
-    #
-#     step_5 = "collect data"
-#     with allure.step(step_5):
-# <<<<<<< HEAD
-#         for topic in TOPICS.split(" "):
-#             print(topic)
-#             keyw = topic.split("/")
-#             assert topic_csv(name+".bag", topic, keyw[-1],conf.LOCAL_TEST_BAG_PATH ), topic+" could not saved to csv file"
-#             time.sleep(2)
+
+    step_5 = "collect data"
+    with allure.step(step_5):
+
+        for topic in TOPICS.split(" "):
+            print(topic)
+            keyw = topic.split("/")
+            assert topic_csv(bag_name+".bag", topic, keyw[-1],conf.LOCAL_TEST_BAG_PATH ), topic+" could not saved to csv file"
+            time.sleep(2)
 
 
     BAG_VELOCITY_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_01_twist.csv"
@@ -152,16 +152,23 @@ def test_planning_testcase(planning_env, name="test_01", gt_name="gt_01"):
             plot_twist(dfc, dfd)
             allure.attach.file(TEST_CASE_PATH+"/twist.png")
 
-        with allure.step("6. /planning/mission_planning/route   信息匹配"):
-             assert  route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
-
-        with allure.step("8.trajectory 欧式距离之差 做图，前40的points"):
+        with allure.step("6.trajectory 欧式距离之差 做图，前40的points"):
             plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
             allure.attach.file(TEST_CASE_PATH+"/common/trajectory.png",TEST_CASE_PATH+"/common/trajectory1.png")
+
+        with allure.step("6.trajectory 偏航角之差 做图，前40的points"):
+            trajectory_yaw_plot(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
+            allure.attach.file(TEST_CASE_PATH+"/common/delta_yaw.png",TEST_CASE_PATH+"/common/delta_yaw1.png")
 
         with allure.step("7. plot pose"):
             pic_loc = plot_pose(df1, df2)
             allure.attach.file(pic_loc)
+
+        with allure.step("8. /planning/mission_planning/route   信息匹配"):
+             assert  route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
+
+
+
 
 
 
