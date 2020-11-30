@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist.axislines as axislines
 import logging
 logger = logging.getLogger()
+import common.planning.planning_conf as conf
+from common.planning.planning_command import *
 import re
 
 # csv to df
@@ -51,15 +53,7 @@ def eur_calculate(a,b,point_num):
         key = "eu_distance of "+str(point_num)
     return key, df_all
 
-#全部点的欧式距离，然后重新组合成Dataframe
-def eu_dataFrame(a,b):
-    a_num,b_num=point_count(a,b)
-    print("there are "+ str(a_num) + " points")
-    df_eu = pd.DataFrame()
-    for i in range(0, a_num + 1):
-        key, df = eur_calculate(a, b, i)
-        df_eu[key] = df
-    return df_eu
+
 
 # plot欧式距离差, 单个一列
 # def plot_eur(df_eur,column_name):
@@ -131,6 +125,17 @@ def orientation_one_point(a,b,point_num,four_angles):
             c_yaw_list.append(c_yaw)
         return c_yaw_list
 
+
+#全部点的欧式距离，然后重新组合成Dataframe
+def eu_dataFrame(a,b):
+    a_num,b_num=point_count(a,b)
+    print("there are "+ str(a_num) + " points")
+    df_eu = pd.DataFrame()
+    for i in range(0, a_num + 1):
+        key, df = eur_calculate(a, b, i)
+        df_eu[key] = df
+    return df_eu
+
 #集合所有点的偏航角之差
 def yaw_df(a,b):
     a_num,b_num= point_count(a,b)
@@ -141,8 +146,6 @@ def yaw_df(a,b):
         c_all_dict["delta yaw "+str(i)]=c_dict
     yaw_df = pd.DataFrame(c_all_dict)
     return yaw_df
-
-
 
 #选取异样值
 def extract(df1,df2):
@@ -335,9 +338,12 @@ def plot_eu(csv_file, csv_file_1):
             a = round(a,3)
             ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
             ax.set_title(eur_df.columns[df_index]+" std is {}".format(a))
-    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc + "/bags/"
-    pic_loc = upper_loc + 'trajectory.png'
+    # upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
+    # logger.info(upper_loc)
+    # print(upper_loc)
+    # upper_loc = upper_loc + "/autotest/bags"
+    pic_loc = TEST_CASE_PATH + '/trajectory.png'
+    logger.info(pic_loc)
     plt.savefig(pic_loc)
 
     fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
@@ -353,10 +359,12 @@ def plot_eu(csv_file, csv_file_1):
             a = round(a, 3)
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(eur_df.columns[df_index + 21] + " std is {}".format(a))
-    pic_loc1 = upper_loc + 'trajectory1.png'
+    pic_loc1 = TEST_CASE_PATH + '/trajectory1.png'
+    logger.info(pic_loc1)
     plt.savefig(pic_loc1)
 
 def trajectory_yaw_plot(a,b):
+
     yaw_df_sample = yaw_df(a,b)
     fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
     fig.subplots_adjust(wspace=0.4, hspace=0.4)
@@ -374,7 +382,7 @@ def trajectory_yaw_plot(a,b):
             ax.set_title(yaw_df_sample.columns[df_index]+" std is {}".format(a))
     upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
     upper_loc = upper_loc + "/bags/"
-    pic_loc = upper_loc + 'delta_yaw.png'
+    pic_loc = TEST_CASE_PATH + '/delta_yaw.png'
     plt.savefig(pic_loc)
 
     fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
@@ -390,21 +398,24 @@ def trajectory_yaw_plot(a,b):
             a = round(a, 3)
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
-    pic_loc1 = upper_loc + 'delta_yaw1.png'
+    pic_loc1 = TEST_CASE_PATH + '/delta_yaw1.png'
     plt.savefig(pic_loc1)
 
 
 if __name__ == '__main__':
     local = "/home/minwei/autotest/bags/planning_bags"
+    GROUNDTRUTH_TRAJECTORY = conf.LOCAL_GT_BAG_PATH + "gt_01_trajectory.csv"
+    TEST_TRAJECTORY = conf.LOCAL_TEST_BAG_PATH + "test_01_trajectory.csv"
     # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    a = pd.read_csv(local+"/groundtruth_bags/gt_trajectory.csv")
-    b = pd.read_csv(local + "/test_bags/test_trajectory.csv")
+    a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )
+    b = pd.read_csv(TEST_TRAJECTORY)
     count = a.shape[0] - b.shape[0]
     a.drop(a.tail(count).index, inplace=True)
     print(a.shape[0],b.shape[0])
+    trajectory_yaw_plot(a , b)
     # print(current_pose_analysis_yaw(10,a,b))
-    trajectory_yaw_plot(a,b)
+    # trajectory_yaw_plot(a,b)
     # compare_analysis(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
 
     # print("==================================================")

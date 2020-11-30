@@ -154,11 +154,18 @@ def test_planning_testcase(planning_env, name="test_01", gt_name="gt_01"):
 
         with allure.step("6.trajectory 欧式距离之差 做图，前40的points"):
             plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
-            allure.attach.file(TEST_CASE_PATH+"/common/trajectory.png",TEST_CASE_PATH+"/common/trajectory1.png")
+            logger.info(TEST_CASE_PATH+"/trajectory.png")
+            allure.attach.file(TEST_CASE_PATH + "/trajectory.png")
+            allure.attach.file(TEST_CASE_PATH+"/trajectory1.png")
 
         with allure.step("6.trajectory 偏航角之差 做图，前40的points"):
-            trajectory_yaw_plot(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
-            allure.attach.file(TEST_CASE_PATH+"/common/delta_yaw.png",TEST_CASE_PATH+"/common/delta_yaw1.png")
+            a = pd.read_csv(GROUNDTRUTH_TRAJECTORY)
+            b = pd.read_csv(TEST_TRAJECTORY)
+            count = a.shape[0] - b.shape[0]
+            a.drop(a.tail(count).index, inplace=True)
+            trajectory_yaw_plot(a,b)
+            allure.attach.file(TEST_CASE_PATH + "/delta_yaw.png")
+            allure.attach.file(TEST_CASE_PATH+"/delta_yaw1.png")
 
         with allure.step("7. plot pose"):
             pic_loc = plot_pose(df1, df2)
