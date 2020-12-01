@@ -312,11 +312,16 @@ def route_same(csv_a,csv_b):
     #a gt , b test
     a,b= csv_to_df(csv_a,csv_b)
     col = list(a.loc[0, :])
-    print(col)
+    logger.info(col)
     logger.info("groundtruth bag planning_route info: {}".format(col))
     col1 = list(b.loc[0, :])
+    logger.info(col1)
     logger.info("test bag planning_route info: {}".format(col1))
-    assert col == col1
+    if col == col1 :
+        return True
+    else:
+        return False
+
 
 def plot_eu(csv_file, csv_file_1):
 
@@ -380,8 +385,6 @@ def trajectory_yaw_plot(a,b):
             a = round(a,3)
             ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index]+" std is {}".format(a))
-    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc + "/bags/"
     pic_loc = TEST_CASE_PATH + '/delta_yaw.png'
     plt.savefig(pic_loc)
 
@@ -404,8 +407,8 @@ def trajectory_yaw_plot(a,b):
 
 if __name__ == '__main__':
     local = "/home/minwei/autotest/bags/planning_bags"
-    GROUNDTRUTH_TRAJECTORY = conf.LOCAL_GT_BAG_PATH + "gt_01_trajectory.csv"
-    TEST_TRAJECTORY = conf.LOCAL_TEST_BAG_PATH + "test_01_trajectory.csv"
+    GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
+    TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "test_01_trajectory.csv"
     # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )

@@ -29,19 +29,19 @@ export ROS_IP=192.168.50.113;export ROS_MASTER_URI=http://192.168.50.113:11311;s
 """
 # ====================== 1 ======================
 import subprocess
-import auto_io.auto_test_io
+import common.auto_test_io
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 import time
 import os
-import common.planning.planning_conf as conf
 import errno
 from common.planning.command import *
 import logging
+import traceback
 
 logger = logging.getLogger()
 
-io = auto_io.auto_test_io
+io = common.auto_test_io
 import pandas as pd
 
 
@@ -112,7 +112,7 @@ def local_planning_start_test():
 
 def local_docker_start():
     "起planning_stimulator_launch"
-    time.sleep(30)
+    time.sleep(15)
     logger.info('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
     p2 = subprocess.Popen(START_PLANNING_DOCKER, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     logger.info(p2.stdout)
@@ -142,6 +142,7 @@ def local_planning_end(p1):
     "结束local planning子进程"
     time.sleep(10)
     ll = os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
+    ll_ros = os.system('kill -9 `ps -ef|grep "ros"|awk \'{{print $2}}\'`')
     logger.info('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info("end local planning env")
     p1.terminate()
@@ -159,33 +160,45 @@ def local_docker_end(p2):
 
 def add_start_end_point(start_postition, start_orientation, end_position, end_orientation):
     "position: [x,y,z], orientation: [x,y,z,w]"
-    io_class = io.AutoTestIO()
-    init_pose = PoseWithCovarianceStamped()  # 起点填充数据，事先用ros topic echo 记录下数据
-    init_pose.pose.pose.position.x = start_postition[0]
-    init_pose.pose.pose.position.y = start_postition[1]
-    init_pose.pose.pose.position.z = start_postition[2]
-    init_pose.pose.pose.orientation.x = start_orientation[0]
-    init_pose.pose.pose.orientation.y = start_orientation[1]
-    init_pose.pose.pose.orientation.z = start_orientation[2]
-    init_pose.pose.pose.orientation.w = start_orientation[3]
-    io_class.initialpose(init_pose)  # 发送起点
-    logger.info("start_point sent")
-    time.sleep(1)
-    goal_pose = PoseStamped()
-    goal_pose.pose.position.x = end_position[0]
-    goal_pose.pose.position.y = end_position[1]
-    goal_pose.pose.position.z = end_position[2]
-    goal_pose.pose.orientation.x = end_orientation[0]
-    goal_pose.pose.orientation.y = end_orientation[1]
-    goal_pose.pose.orientation.z = end_orientation[2]
-    goal_pose.pose.orientation.w = end_orientation[3]
-    io_class.goal(goal_pose)  # 发送终点
-    logger.info("end_point sent")
+    logger.info('enter add_start_end_point')
+    try:
+        io_class = io.AutoTestIO()
+        logger.info(io_class)
+        init_pose = PoseWithCovarianceStamped()  # 起点填充数据，事先用ros topic echo 记录下数据
+        init_pose.pose.pose.position.x = start_postition[0]
+        init_pose.pose.pose.position.y = start_postition[1]
+        init_pose.pose.pose.position.z = start_postition[2]
+        init_pose.pose.pose.orientation.x = start_orientation[0]
+        init_pose.pose.pose.orientation.y = start_orientation[1]
+        init_pose.pose.pose.orientation.z = start_orientation[2]
+        init_pose.pose.pose.orientation.w = start_orientation[3]
+        io_class.initialpose(init_pose)  # 发送起点
+        logger.info("start_point sent")
+        time.sleep(1)
+        goal_pose = PoseStamped()
+        goal_pose.pose.position.x = end_position[0]
+        goal_pose.pose.position.y = end_position[1]
+        goal_pose.pose.position.z = end_position[2]
+        goal_pose.pose.orientation.x = end_orientation[0]
+        goal_pose.pose.orientation.y = end_orientation[1]
+        goal_pose.pose.orientation.z = end_orientation[2]
+        goal_pose.pose.orientation.w = end_orientation[3]
+        io_class.goal(goal_pose)  # 发送终点
+        logger.info("end_point sent")
+        print("end_point sent")
+        io_class.engage_autoware(True)  # engage
+        logger.info("engage auto")
+        print("engage auto")
+        return True, ''
+    except Exception as e:
+        traceback.print_exc()
+        logger.exception(e)
+        return False, "set start end point except, {}".format(e)
 
-def engage_auto():
-    io_class = io.AutoTestIO()
-    io_class.engage_autoware(True)  # engage
-    logger.info("engage auto")
+# def engage_auto():
+#     io_class = io.AutoTestIO()
+#     io_class.engage_autoware(True)  # engage
+#     logger.info("engage auto")
 
 TOPICS_LIST = ["/planning/scenario_planning/trajectory", "/current_pose", "/vehicle/status/twist",
                "/vehicle/status/velocity"]
@@ -196,51 +209,81 @@ def start_record_bag(count_seconds, bag_name):
     # print(os.popen('env | grep ROS').read())
     cmd = 'rosbag record -O {} {} --duration {}'.format(bag_name, TOPICS, str(count_seconds))
     print("start recording")
-    logger.info(cmd)
-    subprocess.Popen(cmd, shell=True)
+    logger.info("the bag recorded address is {}".format(cmd))
+    p = subprocess.Popen(cmd, shell=True)
+    # # check record bag has finished or not
+    # time.sleep(count_seconds)
     logger.info("start recording")
+
     return bag_name
 
-def check_bag(bag_name):
+def check_bag(wait_time, bag_name):
     # rosbag.rosbag_main.info_cmd("/home/minwei/autotest/common/08.bag")
+    count = 0
+    logger.info("checkbag")
     try:
-        result = os.popen("rosbag info /home/minwei/autotest/" + bag_name)
-        print(result.read())
-        return True
-    except:
-        print(Exception)
-        return False
+        # result = os.popen("rosbag info " + bag_name)
+        # logger.info(result.read())
+        cmd = "ps -ef | grep record"
+        while count < wait_time:
+            result = os.popen(cmd)
+            logger.info(cmd,"the result is {}".format(result))
+            count += 1
+            logger.info("count: {}".format(count))
+            time.sleep(1)
+            logger.info("waiting record files {}s".count)
+            if "record" in result :
+                continue
+
+            else:
+                break
+
+        if count == wait_time:
+            return False, "waiting time is larger than count time"
+        return True, ""
+    except Exception as e:
+        logger.exception("There is an err in checking bag: {}".format(e))
+        return False, "There is an err in checking bag: {}".format(e)
 
 
 def topic_csv(bag_name, topic_name, result_file_name, path):
     # bag_name
-
-    process = len(os.popen(
-        "rostopic echo -b %s -p %s >  %s/%s.csv" % (
+    cmd = "rostopic echo -b %s -p %s >  %s/%s.csv" % (
             str(path + bag_name), topic_name, path, result_file_name)
-    ).readlines())
-    logger.info("the process=" + str(process))
-    if process == 0:
-        logger.info('CSV file loading complete: '+ topic_name)
-        print('CSV file loading complete: '+ topic_name)
-        return True
-    else:
-        return False
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    stderr = p.stderr.read().decode('utf-8')
+    stdout = p.stdout.read().decode('utf-8')
+    logger.info('exec cmd: {}, stdout: {}, stderrr: {}'.format(cmd, stdout, stderr))
+    if len(stderr) > 0:
+        return False, stderr
+    logger.info('CSV file loading complete: ' + topic_name)
+    return True, ''
+    # process = len(os.popen(
+    #     "rostopic echo -b %s -p %s >  %s/%s.csv" % (
+    #         str(path + bag_name), topic_name, path, result_file_name)
+    # ).readlines())
+    # logger.info("the process=" + str(process))
+    # if process == 0:
+    #     logger.info('CSV file loading complete: '+ topic_name)
+    #     print('CSV file loading complete: '+ topic_name)
+    #     return True
+    # else:
+    #     return False
 
 
 def bag_demo():
     # 录取一个含有/planning/scenario_planning/trajectory， /current_pose，/vehicle/status/twist，  /vehicle/status/velocity的bag
-    time.sleep(10)
-    p1 = local_planning_start()
-    time.sleep(30)
-    p2 = local_docker_start()
-    time.sleep(30)
+    # time.sleep(10)
+    # p1 = local_planning_start()
+    # time.sleep(10)
+    # p2 = local_docker_start()
+    # time.sleep(10)
     start_position_sample = [-815.500610352, -249.504760742, 0]
     start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
     end_position_sample = [-1130.37866211, -401.696289062, 0]
     end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
     add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample, end_orientation_sample)
-    time.sleep(45)
+    time.sleep(80)
     # topic_csv("/home/minwei/autotest/bags/05.bag", "/planning/scenario_planning/trajectory", "record_result")
     # time.sleep(10)
     local_planning_end(p1)
@@ -260,7 +303,7 @@ def save_csv_file(path,bag_name):
         time.sleep(2)
 if __name__ == '__main__':
     # save_csv_file(conf.LOCAL_TEST_BAG_PATH,"test_01")
-    save_csv_file(conf.LOCAL_GT_BAG_PATH, "gt_01")
+    bag_demo()
     # /home/minwei/autotest/bags/planning_bags/test_bags/test_01.bag
     # time.sleep(10)
     # p1 = local_planning_start()
