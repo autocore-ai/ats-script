@@ -11,10 +11,11 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 import mpl_toolkits.axisartist.axislines as axislines
+
 import logging
 logger = logging.getLogger()
 import common.planning.planning_conf as conf
-from common.planning.planning_command import *
+from common.planning.planning_action import *
 import re
 
 # csv to df
@@ -155,7 +156,7 @@ def extract(df1,df2):
     return df1_reuslt
 
 #plot两个速度
-def plot_twist(a,b):
+def plot_twist(a,b,address):
     df1_1 = a["field.twist.linear.x"]
     df2_1 = b["field.twist.linear.x"]
     fig, ax = plt.subplots(1, 1, figsize=(10, 8))
@@ -163,43 +164,45 @@ def plot_twist(a,b):
     ax.plot([i for i in range(1, len(df2_1) + 1)], list(np.array(df2_1)*3.6),label="2")
     ax.set_title('tests')
     ax.legend()
-    plt.savefig('./twist.png')
+    plt.savefig(address)
     # plt.show()
 
-def plot_pose(a,b):
-    fig = plt.figure(1, figsize=(20, 6))
+def plot_pose(a,b, pose_path):
+    fig , ax_list= plt.subplots(3,1, figsize=(6, 15))
     fig.subplots_adjust(bottom=0.2)
-    ax = axislines.Subplot(fig, 131)
-
+    # ax = axislines.Subplot(fig, 131)
+    ax = ax_list[0]
     ax.plot( list(a["field.pose.position.x"]), label="gt")
     ax.plot( list(b["field.pose.position.x"]), label="test")
     ax.set_title('field.pose.position.x')
     ax.legend()
 
-    ax2 = axislines.Subplot(fig, 132, sharex=ax)
+    ax2 = ax_list[1]
+    # ax2 = axislines.Subplot(fig, 132, sharex=ax)
     ax2.plot(list(a["field.pose.position.y"]), label="gt")
     ax2.plot(list(b["field.pose.position.y"]), label="test")
     ax2.set_title('field.pose.position.y')
     ax2.legend()
 
-    ax3 = axislines.Subplot(fig, 133,sharex=ax)
+    ax3 = ax_list[2]
+    # ax3 = axislines.Subplot(fig, 133,sharex=ax)
     ax3.plot(list(a["field.pose.position.z"]), label="gt")
     ax3.plot(list(b["field.pose.position.z"]), label="test")
     print(a["field.pose.position.z"])
     ax3.set_title('field.pose.position.z')
     ax3.legend()
+    #
+    # fig.add_subplot(ax)
+    # fig.add_subplot(ax2)
+    # fig.add_subplot(ax3)
+    # fig.subplots_adjust(bottom=0.2)
+    # upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
+    # upper_loc = upper_loc
+    # pic_loc = upper_loc + 'pose.png'
 
-    fig.add_subplot(ax)
-    fig.add_subplot(ax2)
-    fig.add_subplot(ax3)
-    upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc
-    pic_loc = upper_loc + 'pose.png'
-    pic_loc = conf.LOCAL_PLANNING_BAG_PATH+"pose.png"
-    print(pic_loc)
-    plt.savefig(pic_loc)
+    plt.savefig(pose_path)
 
-    return pic_loc
+    return True
 
 def velocity_not_zero(df):
     df_1 = df["field.twist.linear.x"]
@@ -315,10 +318,12 @@ def route_same(csv_a,csv_b):
     #a gt , b test
     a,b= csv_to_df(csv_a,csv_b)
     col = list(a.loc[0, :])
+    col = col[-18:]
     logger.info(col)
     logger.info("groundtruth bag planning_route info: {}".format(col))
     col1 = list(b.loc[0, :])
     logger.info(col1)
+    col1 = col1[-18:]
     logger.info("test bag planning_route info: {}".format(col1))
     if col == col1 :
         return True
@@ -326,7 +331,7 @@ def route_same(csv_a,csv_b):
         return False
 
 
-def plot_eu(csv_file, csv_file_1):
+def plot_eu(csv_file, csv_file_1, trajecoty_path):
 
     fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
     fig.subplots_adjust(wspace=0.4, hspace=0.4)
@@ -368,10 +373,10 @@ def plot_eu(csv_file, csv_file_1):
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(eur_df.columns[df_index + 21] + " std is {}".format(a))
     pic_loc1 = TEST_CASE_PATH + '/trajectory1.png'
-    logger.info(pic_loc1)
-    plt.savefig(pic_loc1)
+    logger.info(trajecoty_path)
+    plt.savefig(trajecoty_path)
 
-def trajectory_yaw_plot(a,b):
+def trajectory_yaw_plot(a,b, tr_yaw_add,tr_yaw_add1):
 
     yaw_df_sample = yaw_df(a,b)
     fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
@@ -389,7 +394,7 @@ def trajectory_yaw_plot(a,b):
             ax.plot([i for i in range(1, len(df_ex)+1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index]+" std is {}".format(a))
     pic_loc = TEST_CASE_PATH + '/delta_yaw.png'
-    plt.savefig(pic_loc)
+    plt.savefig(tr_yaw_add)
 
     fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
     fig1.subplots_adjust(wspace=0.4, hspace=0.4)
@@ -405,13 +410,13 @@ def trajectory_yaw_plot(a,b):
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
     pic_loc1 = TEST_CASE_PATH + '/delta_yaw1.png'
-    plt.savefig(pic_loc1)
+    plt.savefig(tr_yaw_add1)
 
 
 if __name__ == '__main__':
     # local = "/home/minwei/autotest/bags/planning_bags"
     # GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
-    # TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "test_01_trajectory.csv"
+    # TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
     # # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     # # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
     # a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )
@@ -431,11 +436,13 @@ if __name__ == '__main__':
     # df1 , df2 = csv_to_df(local + "/record_vehiclewist.csv", local + "/record_vehiclewist1.csv")
     # # plot_twist(df1,df2)
     "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv"
-    dfa, dfb = csv_to_df( "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv",  "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/test_01_current_pose.csv")
+    dfa, dfb = csv_to_df( "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv",  "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv")
     # dfb.drop(dfb.tail(3).index, inplace=True)
     # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
     # df_all.to_csv("./tzzs_data.csv")
     plot_pose(dfa,dfb)
+    a =[1,2,3,4,5,6,7,8]
+    print(a[-2:])
 
 
 

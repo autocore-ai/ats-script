@@ -36,10 +36,16 @@ if __name__ == "__main__":
     # "--durations=%s" % runConfig_dict["slowestNum"], "--reruns", reruns, "--reruns-delay", reruns_delay,
     #
     #         "--alluredir", xml_report_path, "--html=%s" % summary_report_path]
-
-    args = sys.argv
-    args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
+    case_type_dict = {
+        'open_source': 1,
+        'home': 2,
+    }
+    exec_case_flag = case_type_dict['open_source']
+    # args = sys.argv
+    # args = ['-v', '-s', '--allure-features', 'perception', '--alluredir', './allure_reports/result']
+    args = ['-v', '-s', '--allure-features', 'planning,perception', '--alluredir', './allure_reports/result']
     # args = ['-v', '-s', '--allure-features', 'planning', '--alluredir', './allure_reports/result']
+    # args = ['-v', '-s', '--alluredir', './allure_reports/result']
     # args = ['-v', '-s', '-k', 'child']
     print(args)
     # 根据参数生成执行命令，命令里包含了模块，用例等级等
@@ -51,4 +57,10 @@ if __name__ == "__main__":
     generate = 'allure serve ./allure_reports/result'
     print('generate allure_results: {}'.format(generate))
     os.system(generate)
+    """
+    cd ~/workspace/test_autoware/AutowareArchitectureProposal;screen -d -m -S autoware_test ./start_bag_test.sh
+    cd /home/adlink/workspace/autotest/common/script/;screen -d -m -S perception-test ./run_autoware4_perception.sh
+    export ROS_IP=127.0.0.1;export ROS_MASTER_URI=http://127.0.0.1:11311;rosbag play /home/adlink/workspace/autotest/bags/moving_p_inner_front_2020-10-13-16-37-15/moving_p_inner_front_2020-10-13-16-37-15.bag --clock
+    export ROS_IP=127.0.0.1;export ROS_MASTER_URI=http://127.0.0.1:11311;rosbag play /home/adlink/workspace/autotest/bags/moving_p_inner_front_2020-10-13-16-37-15/moving_p_inner_front_2020-10-13-16-37-15.bag --clock
+    """
 

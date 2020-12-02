@@ -24,7 +24,7 @@ from common.process import *
 import common.perception.perception_action as p_env
 import config
 import common.perception.perception_conf as p_conf
-from common.planning.planning_command import *
+from common.planning.planning_action import *
 
 logger = logging.getLogger()
 

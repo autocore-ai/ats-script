@@ -249,7 +249,7 @@ def check_bag(wait_time, bag_name):
 def topic_csv(bag_name, topic_name, result_file_name, path):
     # bag_name
     cmd = "rostopic echo -b %s -p %s >  %s/%s.csv" % (
-            str(path + bag_name), topic_name, path, result_file_name)
+            str(bag_name), topic_name, path, result_file_name)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     stderr = p.stderr.read().decode('utf-8')
     stdout = p.stdout.read().decode('utf-8')

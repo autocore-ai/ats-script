@@ -14,19 +14,22 @@ from common.perception.perception_bag_analysis import Analysis, compare_uuid, co
     compare_shape, compare_orientation, compare_prediction_paths
 import common.perception.perception_action as p_act
 import common.perception.perception_conf as conf
+import run
 
 logger = logging.getLogger()
-
+# if run.exec_case_flag == 1:
+#     CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases_open.csv'.format(TEST_CASE_PATH))
+#     BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH_OPEN
+# else:
+#     CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases.csv'.format(TEST_CASE_PATH))
+#     BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH
 CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases.csv'.format(TEST_CASE_PATH))
 BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH
-# CASE_CURRENT_DIR = os.path.split(__file__)[0].split('testcases/')[-1]
-# CASE_FILE_NAME = os.path.split(__file__)[-1].split('.')[0]
-# CASE_PATH = '{}{}/{}'.format(TEST_REPORT_LOG, CASE_CURRENT_DIR, CASE_FILE_NAME)
 logger.info('Perception case list: {}'.format(CASE_LIST))
 
 
-# 动态生成测试用例
-def make_test_case(story, case_data, case_level, case_desc, jira_id):
+# dynamic generate test case
+def make_test_case(story, case_data, case_level, case_desc):
 
     # 此处可以用变量装饰了
     @allure.feature('perception')
@@ -336,8 +339,7 @@ def make_test_case(story, case_data, case_level, case_desc, jira_id):
 for case_arg in CASE_LIST:
     logger.info(case_arg)
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
-                                                     case_arg['Priority'], case_arg['Title'],
-                                                     case_arg['Jira_ID'])
+                                                     case_arg['Priority'], case_arg['Title'])
 
 
 if __name__ == '__main__':

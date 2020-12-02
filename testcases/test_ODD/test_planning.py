@@ -7,7 +7,7 @@ planning 模块 case
 import allure
 from common.process import *
 import pytest
-from common.planning.planning_command import *
+from common.planning.planning_action import *
 import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
@@ -59,19 +59,26 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
         name = case_data['CaseName']
         gt_name = case_data['gt_name']
         bag_path= '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH,gt_name)
-        with allure.step("collect ground_truth bag data"):
-            #
-            # for topic in TOPICS.split(" "):
-            #     print(topic)
-            #     keyw = topic.split("/")
-            #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
-            #     time.sleep(2)
-            #
-            save_csv_file(bag_path,gt_name)
-            for i in range(3):
-                logger.info("Waiting.. {}s".format(i+1))
-                time.sleep(1)
-
+        # with allure.step("collect ground_truth bag data"):
+        #     #
+        #     # for topic in TOPICS.split(" "):
+        #     #     print(topic)
+        #     #     keyw = topic.split("/")
+        #     #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #     #     time.sleep(2)
+        #     #
+        #     # save_csv_file(bag_path,gt_name)
+        #     for i in range(3):
+        #         logger.info("Waiting.. {}s".format(i+1))
+        #         time.sleep(1)
+        #
+        #
+        #     for topic in TOPICS.split(" "):
+        #         print(topic)
+        #         keyw = topic.split("/")
+        #         assert topic_csv(bag_path+gt_name+".bag", topic, "gt_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
+        #         time.sleep(2)
+        #
         step_3 = "start_record bag"
         with allure.step(step_3):
             # start_position_sample = [-815.500610352, -249.504760742, 0]
@@ -123,21 +130,28 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
             for i in range(int(case_data['duration'])):
                 time.sleep(1)
                 logger.info("waitting {}s".format(i))
-            r_bool, msg = local_stop_process(bag_path+name, '-2')
-            logger.info(r_bool)
-            logger.info(msg)
+            # r_bool, msg = local_stop_process(bag_path+name, '-2')
+            # logger.info(r_bool)
+            # logger.info(msg)
             logger.info("end recording ")
 
-            time.sleep(3)
+            time.sleep(10)
 
         step_5 = "collect data"
         with allure.step(step_5):
 
+
+
             for topic in TOPICS.split(" "):
                 print(topic)
                 keyw = topic.split("/")
-                assert topic_csv(bag_path+name+".bag", topic, keyw[-1],bag_path), topic+" could not saved to csv file"
+                assert topic_csv(bag_path+name+".bag", topic, "test_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
                 time.sleep(2)
+
+
+            for i in range(3):
+                logger.info("Waiting bag record.. {}s".format(i+1))
+                time.sleep(1)
 
 
         BAG_VELOCITY_FILE_PATH = bag_path+"test_01_twist.csv"
@@ -165,6 +179,8 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
         with allure.step("Data analysis"):
             with allure.step("1. /current_twist is always zero  -> not pass"):
                 a = pd.read_csv(BAG_VELOCITY_FILE_PATH )
+                allure.attach.file(GROUNDTRUTH_VELOCITY_FILE_PATH,"gt velocity ")
+                allure.attach.file(BAG_VELOCITY_FILE_PATH, "test velocity")
                 assert velocity_not_zero(a)
 
             with allure.step("2. current_pose value has not changed -> not pass"):
@@ -173,11 +189,18 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
 
             with allure.step("3.current_pose: gt/test comparison： 1.eur distance larger than one range， not pass "):
                 df1, df2 = csv_to_df(GROUNDTRUTH_FILE_PATH, BAG_POSE_FILE_PATH)
-                logger.info(df1.shape[0])
-                logger.info(df2.shape[0])
-                count = df1.shape[0]-df2.shape[0]
-                df1.drop(df1.tail(count).index, inplace=True)
-                logger.info(df1.shape[0])
+                c = df1.shape[0]
+                d = df2.shape[0]
+                logger.info(c )
+                logger.info(d )
+                if c>d :
+
+                    count = df1.shape[0]-df2.shape[0]
+                    df1.drop(df1.tail(count).index, inplace=True)
+                else:
+                    count = df2.shape[0] - df1.shape[0]
+                    df2.drop(df2.tail(count).index, inplace=True)
+
                 logger.info("columns are {} , {}".format(df1.shape[0],df2.shape[0]))
                 # result, key_name, df_all , er_msg= current_pose_analysis_eur(50, df1, df2)
                 # df_all.to_csv("./1.csv")
@@ -186,46 +209,58 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
 
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(100, df1, df2)
-                assert result
+                # assert result
                 with open(bag_path+'1.txt', 'w') as f:
                     for i in range(len(c_yaw_list)):
                         f.write(str(c_yaw_list[i]))
-                plt.plot(c_yaw_list)
-                plt.savefig(bag_path+"current_pose.png")
+                logger.info("current pose list: {}".format(c_yaw_list))
 
-                allure.attach.file(bag_path+"1.txt","current_pose")
-                # allure.attach.file(bag_path+"current_pose.png")
+                fig ,ax = plt.subplots(1,1,figsize=(10,6))
+                ax.plot(c_yaw_list)
+                plt.savefig(bag_path+"current_pose.png")
+                logger.info("current pose pic address: {}".format(bag_path+"current_pose.png"))
+                allure.attach.file(bag_path+"1.txt","current_pose txt file ")
+                allure.attach.file(bag_path+"current_pose.png", "current_pose pic")
 
             with allure.step("5. current twist comparison： ×3.6 plot"):
                 dfc, dfd = csv_to_df(GROUNDTRUTH_VELOCITY_FILE_PATH, BAG_VELOCITY_FILE_PATH)
-                plot_twist(dfc, dfd)
-                allure.attach.file("./twist.png","current_twist")
+                add = bag_path+"twist.png"
+                plot_twist(dfc, dfd,add)
+                allure.attach.file(add ,"current_twist")
 
             with allure.step("6. plot pose"):
                 df1,df2 = csv_to_df(GROUNDTRUTH_POSE_FILE_PATH,BAG_POSE_FILE_PATH)
-                pic_loc = plot_pose(df1, df2)
-                allure.attach.file(pic_loc)
+                pose_pic_add = bag_path+"pose.png"
+                pic_loc = plot_pose(df1, df2, pose_pic_add)
+                assert pic_loc, "fail to plot current pose"
+                allure.attach.file(pose_pic_add,"plot pose for two bags")
 
             with allure.step("7.trajectory eur distance ，first 40 points"):
-                plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY)
-                logger.info(TEST_CASE_PATH+"/trajectory.png")
-                allure.attach.file(TEST_CASE_PATH + "/trajectory.png","trajectory_eu")
-                allure.attach.file(TEST_CASE_PATH+"/trajectory1.png","trajectory_eu_01")
+                trajectory_pic_add = bag_path + "trajectory.png"
+                plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY,trajectory_pic_add)
+                logger.info(trajectory_pic_add)
+                allure.attach.file(trajectory_pic_add,"trajectory_eu")
+                allure.attach.file(trajectory_pic_add,"trajectory_eu_01")
 
             with allure.step("8.trajectory yaw angle，first 40 points"):
                 a = pd.read_csv(GROUNDTRUTH_TRAJECTORY)
                 b = pd.read_csv(TEST_TRAJECTORY)
+                tr_yaw_add = bag_path + "delta_yaw.png"
+                tr_yaw_add1 = bag_path + "delta_yaw1.png"
                 count = a.shape[0] - b.shape[0]
                 a.drop(a.tail(count).index, inplace=True)
-                trajectory_yaw_plot(a,b)
-                allure.attach.file(TEST_CASE_PATH + "/delta_yaw.png","trajectory_delta_yaw")
-                allure.attach.file(TEST_CASE_PATH+"/delta_yaw1.png","trajectory_delta_yaw_01")
+                trajectory_yaw_plot(a,b,tr_yaw_add,tr_yaw_add1 )
+                allure.attach.file(tr_yaw_add,"trajectory_delta_yaw")
+                allure.attach.file(tr_yaw_add1,"trajectory_delta_yaw_01")
 
 
 
             with allure.step("9. /planning/mission_planning/route   info comparison"):
-                GROUNDTRUTH_ROUTE = conf.LOCAL_PLANNING_BAG_PATH+gt_name+"/"+ "gt_01_route.csv"
-                TEST_ROUTE = conf.LOCAL_PLANNING_BAG_PATH+gt_name+"/"+ "test_01_route.csv"
+                GROUNDTRUTH_ROUTE = bag_path+ "gt_01_route.csv"
+                TEST_ROUTE = bag_path+ "test_01_route.csv"
+                allure.attach.file(GROUNDTRUTH_ROUTE, "gt route info")
+                allure.attach.file(TEST_ROUTE , "test route info")
+
                 assert route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
 
     # 把生成的函数返回
