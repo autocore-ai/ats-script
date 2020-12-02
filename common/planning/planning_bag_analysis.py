@@ -167,24 +167,25 @@ def plot_twist(a,b):
     # plt.show()
 
 def plot_pose(a,b):
-    fig = plt.figure(1, figsize=(10, 6))
+    fig = plt.figure(1, figsize=(20, 6))
     fig.subplots_adjust(bottom=0.2)
     ax = axislines.Subplot(fig, 131)
 
-    ax.plot( list(a["field.pose.position.x"]), label="1")
-    ax.plot( list(b["field.pose.position.x"]), label="2")
+    ax.plot( list(a["field.pose.position.x"]), label="gt")
+    ax.plot( list(b["field.pose.position.x"]), label="test")
     ax.set_title('field.pose.position.x')
     ax.legend()
 
     ax2 = axislines.Subplot(fig, 132, sharex=ax)
-    ax2.plot(list(a["field.pose.position.y"]), label="1")
-    ax2.plot(list(b["field.pose.position.y"]), label="2")
+    ax2.plot(list(a["field.pose.position.y"]), label="gt")
+    ax2.plot(list(b["field.pose.position.y"]), label="test")
     ax2.set_title('field.pose.position.y')
     ax2.legend()
 
     ax3 = axislines.Subplot(fig, 133,sharex=ax)
-    ax3.plot(list(a["field.pose.position.z"]), label="1")
-    ax3.plot(list(b["field.pose.position.z"]), label="2")
+    ax3.plot(list(a["field.pose.position.z"]), label="gt")
+    ax3.plot(list(b["field.pose.position.z"]), label="test")
+    print(a["field.pose.position.z"])
     ax3.set_title('field.pose.position.z')
     ax3.legend()
 
@@ -192,8 +193,10 @@ def plot_pose(a,b):
     fig.add_subplot(ax2)
     fig.add_subplot(ax3)
     upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    upper_loc = upper_loc+"/autotest/bags/"
+    upper_loc = upper_loc
     pic_loc = upper_loc + 'pose.png'
+    pic_loc = conf.LOCAL_PLANNING_BAG_PATH+"pose.png"
+    print(pic_loc)
     plt.savefig(pic_loc)
 
     return pic_loc
@@ -406,17 +409,17 @@ def trajectory_yaw_plot(a,b):
 
 
 if __name__ == '__main__':
-    local = "/home/minwei/autotest/bags/planning_bags"
-    GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
-    TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "test_01_trajectory.csv"
-    # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )
-    b = pd.read_csv(TEST_TRAJECTORY)
-    count = a.shape[0] - b.shape[0]
-    a.drop(a.tail(count).index, inplace=True)
-    print(a.shape[0],b.shape[0])
-    trajectory_yaw_plot(a , b)
+    # local = "/home/minwei/autotest/bags/planning_bags"
+    # GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
+    # TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "test_01_trajectory.csv"
+    # # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
+    # # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
+    # a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )
+    # b = pd.read_csv(TEST_TRAJECTORY)
+    # count = a.shape[0] - b.shape[0]
+    # a.drop(a.tail(count).index, inplace=True)
+    # print(a.shape[0],b.shape[0])
+    # trajectory_yaw_plot(a , b)
     # print(current_pose_analysis_yaw(10,a,b))
     # trajectory_yaw_plot(a,b)
     # compare_analysis(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
@@ -427,11 +430,12 @@ if __name__ == '__main__':
 
     # df1 , df2 = csv_to_df(local + "/record_vehiclewist.csv", local + "/record_vehiclewist1.csv")
     # # plot_twist(df1,df2)
-    # dfa, dfb = csv_to_df(local + "/record_current_pose.csv", local + "/record_current_pose1.csv")
+    "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv"
+    dfa, dfb = csv_to_df( "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv",  "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/test_01_current_pose.csv")
     # dfb.drop(dfb.tail(3).index, inplace=True)
     # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
     # df_all.to_csv("./tzzs_data.csv")
-    # plot_pose(dfa,dfb)
+    plot_pose(dfa,dfb)
 
 
 
