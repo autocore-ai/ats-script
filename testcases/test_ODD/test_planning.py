@@ -7,165 +7,277 @@ planning 模块 case
 import allure
 from common.process import *
 import pytest
-from common.planning.planning_command import *
+from common.planning.planning_action import *
 import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
-
+from common.generate_case_data import generate_case_data
+import logging
 logger = logging.getLogger()
+import pandas as pd
+CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases.csv'.format(TEST_CASE_PATH))
 
 
-@allure.feature('planning')
-def test_planning_testcase(planning_env, name="test_01", gt_name="gt_01"):
-    """
-    1.起planning，本地AutowareA. setup.bash , roslaunch map
-    预计在这一步骤里头加上起点终点接口    会写进docker里面
+def make_test_case(story, case_data, case_level, case_desc, jira_id):
 
-    2.起本地docker （这块以后会有变动）
-    docker run --rm -i --gpus=all --net=host --name=test_docker_sim --privileged -v
-    /tmp/.X11-unix:/tmp/.X11-unix:rw -v $HOME/.Xauthority:$HOME/.Xauthority:rw -e ROS_MASTER_URI=$
-    {ROS_MASTER_URI} -e ROS_IP=${ROS_IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH}
-    autocore/simulator_for_sdk
+    @allure.feature('planning')
+    @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
+    @allure.story(story)
+    @allure.severity(case_level)
+    def test_planning(planning_env, case_data):
+    # def test_planning(case_data):
+        """
+1. Planning, local autowarea setup.bash , roslaunch map
 
-    3.起点终点检测是否存在， 不存在或者异常，报错， 退出
+It is expected that in this step, the interface will be written into docker
 
-    4.engage/ disengage ， 速度限速接口设置， 小车是否发生速度变动，若无， 报错退出
 
-    5.开始录bag 的/planning/scenario_planning/trajectory/ , vehicle/status/twist, 接口给的current pose
 
-    6.检测小车到达终点（追踪出来的位置）， 结束录bag
-    7.查看bag 信息， 大小， message 是否有异常
-    """
-    with allure.step("collect ground_truth bag data"):
+2. Local docker (this will change in the future)
+
+docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -v
+
+/tmp/.X11-unix:/tmp/.X11- unix:rw -v $HOME/.Xauthority:$HOME/.X authority:rw -e ROS_ MASTER_ URI=${ROS_ MASTER_ URI} -e ROS_ IP=${ROS_ IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH} autocore/simulator_ for_ SDK
+
+
+
+3. Check whether the starting and ending points exist, do not exist or are abnormal, report an error and exit
+
+
+
+4. Engage / disengage, speed limit interface settings, whether the car speed changes, if not, report an error exit
+
+
+
+5. Start recording / planning / scenario of bag_ Planning / trajectory /, vehicle / status / twist, current pose given by the interface
+
+
+
+6. Detect the car arriving at the destination (traced position) and finish recording bag
+
+7. Check whether the bag message, size and message are abnormal
+        """
+        name = case_data['CaseName']
+        gt_name = case_data['gt_name']
+        bag_path= '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH,gt_name)
+        # with allure.step("collect ground_truth bag data"):
+        #     #
+        #     # for topic in TOPICS.split(" "):
+        #     #     print(topic)
+        #     #     keyw = topic.split("/")
+        #     #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #     #     time.sleep(2)
+        #     #
+        #     # save_csv_file(bag_path,gt_name)
+        #     for i in range(3):
+        #         logger.info("Waiting.. {}s".format(i+1))
+        #         time.sleep(1)
         #
-        # for topic in TOPICS.split(" "):
-        #     print(topic)
-        #     keyw = topic.split("/")
-        #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],
-        #     conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
-        #     time.sleep(2)
         #
-        save_csv_file(conf.LOCAL_GT_BAG_PATH, gt_name)
-        for i in range(5):
-            logger.info("Waiting.. {}s".format(i + 1))
+        #     for topic in TOPICS.split(" "):
+        #         print(topic)
+        #         keyw = topic.split("/")
+        #         assert topic_csv(bag_path+gt_name+".bag", topic, "gt_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
+        #         time.sleep(2)
+        #
+        step_3 = "start_record bag"
+        with allure.step(step_3):
+            # start_position_sample = [-815.500610352, -249.504760742, 0]
+            # start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
+            # end_position_sample = [-1130.37866211, -401.696289062, 0]
+            # end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
+            bag_name_record = start_record_bag(90, bag_path+name)
+            logger.info("recording bag address".format(bag_path+name))
+            # assert check_bag(bag_path+name+".bag"), "bag has not recorded successfully"
+
+        step_4 = "add start end point， and engage"
+        with allure.step(step_4):
+            logger.info(step_4)
             time.sleep(1)
+            dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
+            dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
+            a_l = list(dict_start.values())
+            logger.info("start_point is {}".format(a_l))
+            b_l = list(dict_end.values())
+            logger.info("end_point is {}".format(b_l))
+            start_position_sample = a_l[0:3]
+            start_orientation_sample = a_l[3:]
+            end_position_sample = b_l[0:3]
+            end_orientation_sample = b_l[3:]
+            add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
+                                end_orientation_sample)
+            time.sleep(1)
+            logger.info("auto engage")
 
-    step_3 = "start_record bag"
-    with allure.step(step_3):
-        # start_position_sample = [-815.500610352, -249.504760742, 0]
-        # start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
-        # end_position_sample = [-1130.37866211, -401.696289062, 0]
-        # end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
-        bag_name = start_record_bag(90, name)
-        assert check_bag(name + ".bag"), "bag has not recorded successfully"
+            # assert r_bool, msg
 
-    step_4 = "add start end point， and engage"
-    with allure.step(step_4):
-        logger.info(step_4)
-        time.sleep(1)
-        dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
-        dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
-        a_l = list(dict_start.values())
-        logger.info("start_point is {}".format(a_l))
-        b_l = list(dict_end.values())
-        logger.info("end_point is {}".format(b_l))
-        start_position_sample = a_l[0:3]
-        start_orientation_sample = a_l[3:]
-        end_position_sample = b_l[0:3]
-        end_orientation_sample = b_l[3:]
-        add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
-                            end_orientation_sample)
-        time.sleep(1)
-        engage_auto()
-        logger.info("auto engage")
+        # step_check="check bag finished or not"
+        # with allure.step(step_check):
+        #     logger.info("step_check")
+        #     print('step check')
+        #     """
+        #     cd ~/workspace/test_autoware/AutowareArchitectureProposal;./start_planning_test.sh
+        #     export ROS_IP=127.0.0.1;export ROS_MASTER_URI=http://127.0.0.1:11311;/home/adlink/workspace/autotest/common/script/run_docker_sim.sh
+        #     """
+        #     check_result, msg = check_bag(90,bag_path+name)
+        #     logger.info(check_result,msg)
+        #     assert check_result, msg
 
-    step_6 = "6. end recording maunally"
-    with allure.step(step_6):
-        logger.info(step_6)
-        logger.info('record end, ready to kill -2')
-        r_bool, msg = local_stop_process(bag_name, '-2')
-        logger.info(r_bool)
-        logger.info(msg)
-        logger.info("end recording ")
-        time.sleep(3)
+        step_6 = "6. end recording maunally"
+        with allure.step(step_6):
+            logger.info(step_6)
+            logger.info('record end, ready to kill -2')
+            # time.sleep(90)
+            for i in range(int(case_data['duration'])):
+                time.sleep(1)
+                logger.info("waitting {}s".format(i))
+            # r_bool, msg = local_stop_process(bag_path+name, '-2')
+            # logger.info(r_bool)
+            # logger.info(msg)
+            logger.info("end recording ")
 
-    step_5 = "collect data"
-    with allure.step(step_5):
+            time.sleep(10)
 
-        for topic in TOPICS.split(" "):
-            print(topic)
-            keyw = topic.split("/")
-            topic_bag = bag_name + ".bag"
-            localb_address = conf.LOCAL_TEST_BAG_PATH
-            assert topic_csv(topic_bag, topic, keyw[-1], localb_address), topic + " could not saved to csv file"
-            time.sleep(2)
+        step_5 = "collect data"
+        with allure.step(step_5):
 
-    bag_v_path = conf.LOCAL_TEST_BAG_PATH + "test_01_twist.csv"
-    gt_v_path = conf.LOCAL_GT_BAG_PATH + "gt_01_twist.csv"
 
-    bag_pose_path = conf.LOCAL_TEST_BAG_PATH + "test_01_current_pose.csv"
-    gt_pose_path = conf.LOCAL_GT_BAG_PATH + "gt_01_current_pose.csv"
 
-    # BAG_VELOCITY_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_01_twist.csv"
-    # GROUNDTRUTH_VELOCITY_FILE_PATH =  conf.LOCAL_GT_BAG_PATH+"gt_01_twist.csv"
-    # BAG_POSE_FILE_PATH = conf.LOCAL_TEST_BAG_PATH+"test_01_current_pose.csv"
-    # GROUNDTRUTH_FILE_PATH = conf.LOCAL_GT_BAG_PATH+"gt_01_current_pose.csv"
+            for topic in TOPICS.split(" "):
+                print(topic)
+                keyw = topic.split("/")
+                assert topic_csv(bag_path+name+".bag", topic, "test_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
+                time.sleep(2)
 
-    gt_trajectory = conf.LOCAL_GT_BAG_PATH + "gt_01_trajectory.csv"
-    t_trajecotry = conf.LOCAL_TEST_BAG_PATH + "test_01_trajectory.csv"
 
-    gt_route = conf.LOCAL_GT_BAG_PATH + "gt_01_route.csv"
-    test_route = conf.LOCAL_TEST_BAG_PATH + "test_01_route.csv"
+            for i in range(3):
+                logger.info("Waiting bag record.. {}s".format(i+1))
+                time.sleep(1)
 
-    with allure.step("Data analysis"):
-        with allure.step("1. 如果输出文档速度一直为 0   -> not pass"):
-            a_file = pd.read_csv(bag_v_path)
-            assert velocity_not_zero(a_file)
 
-        with allure.step("2. current_pose 值一直没有变 -> not pass"):
-            b_file = pd.read_csv(bag_pose_path)
-            assert current_pose_change(b_file)
+        BAG_VELOCITY_FILE_PATH = bag_path+"test_01_twist.csv"
+        GROUNDTRUTH_VELOCITY_FILE_PATH =  bag_path+"/"+"gt_01_twist.csv"
 
-        with allure.step("3.current_pose: 两值比较： 1.欧式距离之差 -》 超过一个range， 不pass "):
-            df1, df2 = csv_to_df(gt_pose_path, bag_pose_path)
-            logger.info(df1.shape[0])
-            logger.info(df2.shape[0])
-            count_shape = df1.shape[0] - df2.shape[0]
-            df1.drop(df1.tail(count_shape).index, inplace=True)
-            logger.info(df1.shape[0])
-            logger.info("columns are {} , {}".format(df1.shape[0], df2.shape[0]))
-            # result, key_name, df_all , er_msg= current_pose_analysis_eur(50, df1, df2)
-            # df_all.to_csv("./1.csv")
-            # allure.attach.file(TEST_CASE_PATH+"/1.csv")
-            # assert result, er_msg
+        BAG_POSE_FILE_PATH = bag_path+"test_01_current_pose.csv"
+        GROUNDTRUTH_POSE_FILE_PATH = bag_path+"gt_01_current_pose.csv"
 
-        with allure.step("4.current pose: 两值比较： 2. 偏航角之差  -》 超过一个range， 不pass "):
-            result, c_yaw_list = current_pose_analysis_yaw(100, df1, df2)
-            assert result
-            with open('1.txt', 'w') as f:
-                for i in range(len(c_yaw_list)):
-                    f.write(str(c_yaw_list[i]))
-            allure.attach.file(TEST_CASE_PATH + "/1.txt")
 
-        with allure.step("5. current twist 两值比较： ×3.6 画图"):
-            dfc, dfd = csv_to_df(gt_v_path, bag_v_path)
-            plot_twist(dfc, dfd)
-            allure.attach.file(TEST_CASE_PATH + "/twist.png")
+        BAG_VELOCITY_FILE_PATH = bag_path+"test_01_twist.csv"
+        logger.info("BAG VELOCITY bag path : {}".format(BAG_VELOCITY_FILE_PATH))
+        GROUNDTRUTH_VELOCITY_FILE_PATH =  bag_path+"gt_01_twist.csv"
 
-        with allure.step("6.trajectory 欧式距离之差 做图，前40的points"):
-            plot_eu(gt_trajectory, t_trajecotry)
-            allure.attach.file(TEST_CASE_PATH + "/common/trajectory.png", TEST_CASE_PATH + "/common/trajectory1.png")
+        BAG_POSE_FILE_PATH = bag_path+"test_01_current_pose.csv"
+        GROUNDTRUTH_FILE_PATH = bag_path+"gt_01_current_pose.csv"
 
-        with allure.step("6.trajectory 偏航角之差 做图，前40的points"):
-            trajectory_yaw_plot(gt_trajectory, t_trajecotry)
-            allure.attach.file(TEST_CASE_PATH + "/common/delta_yaw.png", TEST_CASE_PATH + "/common/delta_yaw1.png")
 
-        with allure.step("7. plot pose"):
-            pic_loc = plot_pose(df1, df2)
-            allure.attach.file(pic_loc)
+        GROUNDTRUTH_TRAJECTORY = bag_path+ "gt_01_trajectory.csv"
+        TEST_TRAJECTORY = bag_path+ "test_01_trajectory.csv"
+        logger.info("trajectory bag path {}".format(TEST_TRAJECTORY))
 
-        with allure.step("8. /planning/mission_planning/route   信息匹配"):
-            assert route_same(gt_route, test_route), "planning_route msg is not the same "
+        GROUNDTRUTH_ROUTE = bag_path +"gt_01_route.csv"
+        TEST_ROUTE = bag_path+ "test_01_route.csv"
 
+        with allure.step("Data analysis"):
+            with allure.step("1. /current_twist is always zero  -> not pass"):
+                a = pd.read_csv(BAG_VELOCITY_FILE_PATH )
+                allure.attach.file(GROUNDTRUTH_VELOCITY_FILE_PATH,"gt velocity ")
+                allure.attach.file(BAG_VELOCITY_FILE_PATH, "test velocity")
+                assert velocity_not_zero(a)
+
+            with allure.step("2. current_pose value has not changed -> not pass"):
+                b = pd.read_csv(BAG_POSE_FILE_PATH)
+                assert current_pose_change(b)
+
+            with allure.step("3.current_pose: gt/test comparison： 1.eur distance larger than one range， not pass "):
+                df1, df2 = csv_to_df(GROUNDTRUTH_FILE_PATH, BAG_POSE_FILE_PATH)
+                c = df1.shape[0]
+                d = df2.shape[0]
+                logger.info(c )
+                logger.info(d )
+                if c>d :
+
+                    count = df1.shape[0]-df2.shape[0]
+                    df1.drop(df1.tail(count).index, inplace=True)
+                else:
+                    count = df2.shape[0] - df1.shape[0]
+                    df2.drop(df2.tail(count).index, inplace=True)
+
+                logger.info("columns are {} , {}".format(df1.shape[0],df2.shape[0]))
+                # result, key_name, df_all , er_msg= current_pose_analysis_eur(50, df1, df2)
+                # df_all.to_csv("./1.csv")
+                # allure.attach.file(TEST_CASE_PATH+"/1.csv")
+                # assert result, er_msg
+
+            with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
+                result, c_yaw_list = current_pose_analysis_yaw(100, df1, df2)
+                # assert result
+                with open(bag_path+'1.txt', 'w') as f:
+                    for i in range(len(c_yaw_list)):
+                        f.write(str(c_yaw_list[i]))
+                logger.info("current pose list: {}".format(c_yaw_list))
+
+                fig ,ax = plt.subplots(1,1,figsize=(10,6))
+                ax.plot(c_yaw_list)
+                plt.savefig(bag_path+"current_pose.png")
+                logger.info("current pose pic address: {}".format(bag_path+"current_pose.png"))
+                allure.attach.file(bag_path+"1.txt","current_pose txt file ")
+                allure.attach.file(bag_path+"current_pose.png", "current_pose pic")
+
+            with allure.step("5. current twist comparison： ×3.6 plot"):
+                dfc, dfd = csv_to_df(GROUNDTRUTH_VELOCITY_FILE_PATH, BAG_VELOCITY_FILE_PATH)
+                add = bag_path+"twist.png"
+                plot_twist(dfc, dfd,add)
+                allure.attach.file(add ,"current_twist")
+
+            with allure.step("6. plot pose"):
+                df1,df2 = csv_to_df(GROUNDTRUTH_POSE_FILE_PATH,BAG_POSE_FILE_PATH)
+                pose_pic_add = bag_path+"pose.png"
+                pic_loc = plot_pose(df1, df2, pose_pic_add)
+                assert pic_loc, "fail to plot current pose"
+                allure.attach.file(pose_pic_add,"plot pose for two bags")
+
+            with allure.step("7.trajectory eur distance ，first 40 points"):
+                trajectory_pic_add = bag_path + "trajectory.png"
+                plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY,trajectory_pic_add)
+                logger.info(trajectory_pic_add)
+                allure.attach.file(trajectory_pic_add,"trajectory_eu")
+                allure.attach.file(trajectory_pic_add,"trajectory_eu_01")
+
+            with allure.step("8.trajectory yaw angle，first 40 points"):
+                a = pd.read_csv(GROUNDTRUTH_TRAJECTORY)
+                b = pd.read_csv(TEST_TRAJECTORY)
+                tr_yaw_add = bag_path + "delta_yaw.png"
+                tr_yaw_add1 = bag_path + "delta_yaw1.png"
+                count = a.shape[0] - b.shape[0]
+                a.drop(a.tail(count).index, inplace=True)
+                trajectory_yaw_plot(a,b,tr_yaw_add,tr_yaw_add1 )
+                allure.attach.file(tr_yaw_add,"trajectory_delta_yaw")
+                allure.attach.file(tr_yaw_add1,"trajectory_delta_yaw_01")
+
+
+
+            with allure.step("9. /planning/mission_planning/route   info comparison"):
+                GROUNDTRUTH_ROUTE = bag_path+ "gt_01_route.csv"
+                TEST_ROUTE = bag_path+ "test_01_route.csv"
+                allure.attach.file(GROUNDTRUTH_ROUTE, "gt route info")
+                allure.attach.file(TEST_ROUTE , "test route info")
+
+                assert route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
+
+    # 把生成的函数返回
+    return test_planning
+
+
+
+for case_arg in CASE_LIST:
+    logger.info(case_arg)
+    print(case_arg)
+    globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
+                                                     case_arg['Priority'], case_arg['Title'],
+                                                     case_arg['Jira_ID'])
+
+
+
+# 局限于只有一条路经， 无障碍物
 
 if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -179,6 +291,7 @@ if __name__ == '__main__':
     # pytest.main(args)
 
     # test_make_planning_testcase()
+
     args = ['-v', '-s', '--alluredir', '/home/minwei/autotest/allure_reports/result']
     # args = ['-v', '-s', '-k', 'child']
     print(args)
@@ -188,7 +301,6 @@ if __name__ == '__main__':
 
     # 生成报告
     print('=' * 20)
-    # generate = 'allure generate /home/minwei/autotest/allure_reports/
-    # result/ -o /home/minwei/autotest/allure_reports/report/ --clean'
+    # generate = 'allure generate /home/minwei/autotest/allure_reports/result/ -o /home/minwei/autotest/allure_reports/report/ --clean'
     # print('generate allure_results: {}'.format(generate))
     # os.system(generate)

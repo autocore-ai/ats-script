@@ -17,8 +17,7 @@ id_simple_format = '[%(levelname)s][%(asctime)s] %(message)s'
 
 
 def md_logger(log_path):
-    logfile_path_staff = '{}logs/{}.log'.format(TEST_CASE_PATH, log_path)
-    # print(logfile_path_staff)
+    logfile_path_staff = '{}/logs/{}.log'.format(TEST_CASE_PATH, log_path)
     log_path = '/'.join(logfile_path_staff.split('/')[:-1])
     # print(log_path)
     # print('1'*50)

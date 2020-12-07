@@ -89,6 +89,7 @@ def log(request, name='日志'):
     else:
         cls_name = request.cls.__name__
         log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
+    print("+++++++++++++++++++++++"+log_path)
     return md_logger(log_path)  # 初始话日志路径
 
 

@@ -1,11 +1,14 @@
 import _thread
 import time
 import rospy
-
 from std_msgs.msg import Bool
 from std_msgs.msg import Float32
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
+import copy
+import logging
+logger = logging.getLogger()
+
 
 class AutoTestIO:
     """
@@ -13,20 +16,27 @@ class AutoTestIO:
     """
     def __init__(self, args=None):
         self.current_pose = None
-        rospy.init_node('io', argv=args, anonymous=True)
-        rospy.Subscriber('current_pose', PoseStamped,
-                         self.callback_current_pose)
-        self.pub_initialpose = rospy.Publisher(
-            'initialpose', PoseWithCovarianceStamped, queue_size=1, latch=True)
-        self.pub_goal = rospy.Publisher(
-            'move_base_simple/goal', PoseStamped, queue_size=1, latch=True)
-        self.pub_autoware_engage = rospy.Publisher(
-            'autoware/engage', Bool, queue_size=1, latch=True)
-        self.pub_vehicle_engage = rospy.Publisher(
-            'vehicle/engage', Bool, queue_size=1, latch=True)
-        self.pub_velocity_limit = rospy.Publisher(
-            'planning/scenario_planning/max_velocity', Float32, queue_size=1)
-        _thread.start_new_thread(rospy.spin, ())
+        try:
+
+            my_handlers = copy.copy(logger.handlers)
+            rospy.init_node('io', argv=args, anonymous=True)
+            logger.handlers = my_handlers
+            rospy.Subscriber('current_pose', PoseStamped,
+                             self.callback_current_pose)
+            self.pub_initialpose = rospy.Publisher(
+                'initialpose', PoseWithCovarianceStamped, queue_size=1, latch=True)
+            self.pub_goal = rospy.Publisher(
+                'move_base_simple/goal', PoseStamped, queue_size=1, latch=True)
+            self.pub_autoware_engage = rospy.Publisher(
+                'autoware/engage', Bool, queue_size=1, latch=True)
+            self.pub_vehicle_engage = rospy.Publisher(
+                'vehicle/engage', Bool, queue_size=1, latch=True)
+            self.pub_velocity_limit = rospy.Publisher(
+                'planning/scenario_planning/max_velocity', Float32, queue_size=1)
+            _thread.start_new_thread(rospy.spin, ())
+        except Exception as e:
+            logger.exception(e)
+            raise e
 
     def callback_current_pose(self, msg):
         self.current_pose = msg

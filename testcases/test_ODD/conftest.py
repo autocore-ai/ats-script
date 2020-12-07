@@ -24,7 +24,7 @@ from common.process import *
 import common.perception.perception_action as p_env
 import config
 import common.perception.perception_conf as p_conf
-from common.planning.planning_command import *
+from common.planning.planning_action import *
 
 logger = logging.getLogger()
 
@@ -109,7 +109,7 @@ def perception_env(scope='function'):
         assert status, 'Autoware is not running after wait {}s'.format(wait_time)
 
     # need to enter docker to check
-    step_desc = '4. Check perception status, if running, to stop it'
+    step_desc = '4. Check perception status, if running, stop it'
     with allure.step(step_desc):
         logger.info('=' * 20 + step_desc + '=' * 20)
         r_bool, ret = p_env.check_perception()
