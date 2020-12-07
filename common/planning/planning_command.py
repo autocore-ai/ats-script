@@ -4,8 +4,6 @@
 预计在这一步骤里头加上起点终点接口    会写进docker里面
 
 2.起本地docker （这块以后会有变动）
-docker run --rm -i --gpus=all --net=host --name=test_docker_sim --privileged -v
-/tmp/.X11-unix:/tmp/.X11-unix:rw -v $HOME/.Xauthority:$HOME/.Xauthority:rw -e ROS_MASTER_URI=${ROS_MASTER_URI} -e ROS_IP=${ROS_IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH} autocore/simulator_for_sdk
 
 3.起点终点检测是否存在， 不存在或者异常，报错， 退出
 
@@ -22,7 +20,7 @@ planning 验证过程：（先提条件：已经拿到ground truth bag和待验�
 
 1.两个bags 的/planning/scenario_planning/trajectory,vehicle/status/twist, 接口给的current pose 存入csv文件里
 eg:
-export ROS_IP=192.168.50.113;export ROS_MASTER_URI=http://192.168.50.113:11311;source /home/minwei/AutowareArchitectureProposal/devel/setup.bash; rostopic echo -b 1.bag -p /planning/scenario_planning/trajectory >  record_trajectory.csv
+rostopic echo -b 1.bag -p /planning/scenario_planning/trajectory >  record_trajectory.csv
 
 2.取出pose 进行比较， 计算方差
 3.得出vehicle/status/twist结果来测试规划模块速度， 方位是否一致
@@ -35,14 +33,12 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 import time
 import os
 import common.planning.planning_conf as conf
-import errno
 from common.planning.command import *
 import logging
+import pandas as pd
 
 logger = logging.getLogger()
-
 io = auto_io.auto_test_io
-import pandas as pd
 
 
 def read_jira_file(file_path, keyword):
@@ -91,8 +87,11 @@ def read_jira_file(file_path, keyword):
     else:
         return dict_df[keyword][0]
 
+
 def local_planning_start():
-    "起planning_stimulator_launch， 子进程"
+    """
+    起planning_stimulator_launch， 子进程
+    """
     logger.info(START_AUTOWARE_4_PLANNING)
     p1 = subprocess.Popen(START_AUTOWARE_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     logger.info(p1.stdout)
@@ -109,46 +108,52 @@ def local_planning_start_test():
     return False
 
 
-
 def local_docker_start():
+    """
     "起planning_stimulator_launch"
+    """
     time.sleep(30)
     logger.info('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
     p2 = subprocess.Popen(START_PLANNING_DOCKER, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     logger.info(p2.stdout)
     return p2
 
-
-def pid_exists(pid):
-    """Check whether pid exists in the current process table.
-    """
-    if pid < 0:
-        return False
-    if pid == 0:
-        raise ValueError('invalid PID 0')
-        return False
-    try:
-        os.kill(pid, 0)
-    except OSError as err:
-        if err.errno == errno.ESRCH:
-            return False
-        elif err.errno == errno.EPERM:
-            return True
-    else:
-        return True
+#
+# def pid_exists(pid):
+#     """Check whether pid exists in the current process table.
+#     """
+#     if pid < 0:
+#         return False
+#     if pid == 0:
+#         raise ValueError('invalid PID 0')
+#         return False
+#     try:
+#         os.kill(pid, 0)
+#     except OSError as err:
+#         if err.errno == errno.ESRCH:
+#             return False
+#         elif err.errno == errno.EPERM:
+#             return True
+#     else:
+#         return True
+#
 
 
 def local_planning_end(p1):
+    """
     "结束local planning子进程"
+    """
     time.sleep(10)
-    ll = os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
+    os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info("end local planning env")
     p1.terminate()
 
 
 def local_docker_end(p2):
+    """
     "结束docker进程"
+    """
     time.sleep(10)
     p2.terminate()
     print("local docker end")
@@ -158,7 +163,9 @@ def local_docker_end(p2):
 
 
 def add_start_end_point(start_postition, start_orientation, end_position, end_orientation):
+    """
     "position: [x,y,z], orientation: [x,y,z,w]"
+    """
     io_class = io.AutoTestIO()
     init_pose = PoseWithCovarianceStamped()  # 起点填充数据，事先用ros topic echo 记录下数据
     init_pose.pose.pose.position.x = start_postition[0]
@@ -182,14 +189,18 @@ def add_start_end_point(start_postition, start_orientation, end_position, end_or
     io_class.goal(goal_pose)  # 发送终点
     logger.info("end_point sent")
 
+
 def engage_auto():
     io_class = io.AutoTestIO()
     io_class.engage_autoware(True)  # engage
     logger.info("engage auto")
 
+
 TOPICS_LIST = ["/planning/scenario_planning/trajectory", "/current_pose", "/vehicle/status/twist",
                "/vehicle/status/velocity"]
+
 TOPICS = "/planning/scenario_planning/trajectory /current_pose /vehicle/status/twist /vehicle/status/velocity /planning/mission_planning/route"
+
 
 def start_record_bag(count_seconds, bag_name):
     """record bag,  放入当前目录"""
@@ -200,6 +211,7 @@ def start_record_bag(count_seconds, bag_name):
     subprocess.Popen(cmd, shell=True)
     logger.info("start recording")
     return bag_name
+
 
 def check_bag(bag_name):
     # rosbag.rosbag_main.info_cmd("/home/minwei/autotest/common/08.bag")
@@ -221,8 +233,8 @@ def topic_csv(bag_name, topic_name, result_file_name, path):
     ).readlines())
     logger.info("the process=" + str(process))
     if process == 0:
-        logger.info('CSV file loading complete: '+ topic_name)
-        print('CSV file loading complete: '+ topic_name)
+        logger.info('CSV file loading complete: ' + topic_name)
+        print('CSV file loading complete: ' + topic_name)
         return True
     else:
         return False
@@ -249,15 +261,17 @@ def bag_demo():
 
 
 #     complete
-def save_csv_file(path,bag_name):
+def save_csv_file(path, bag_name):
     for topic in TOPICS.split(" "):
-        logger.info("Saving "+ topic)
+        logger.info("Saving " + topic)
         keyw = topic.split("/")
-        logger.info("saving "+ keyw[-1] + " ...")
+        logger.info("saving " + keyw[-1] + " ...")
         assert topic_csv(bag_name + ".bag", topic, bag_name+"_" + keyw[-1],
                          path), topic + " could not saved to csv file"
-        logger.info("saving address: "+ path)
+        logger.info("saving address: " + path)
         time.sleep(2)
+
+
 if __name__ == '__main__':
     # save_csv_file(conf.LOCAL_TEST_BAG_PATH,"test_01")
     save_csv_file(conf.LOCAL_GT_BAG_PATH, "gt_01")
@@ -289,11 +303,13 @@ if __name__ == '__main__':
     # check_bag("08")
     # bag_demo()
     # time.sleep(10)
-    # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag", "/planning/scenario_planning/trajectory", "record_result")
+    # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag",
+    # "/planning/scenario_planning/trajectory", "record_result")
     # time.sleep(10)
     # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag", "/current_pose", "record_current_pose")
     # time.sleep(10)
     # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag", "/vehicle/status/twist", "record_vehiclewist")
     # time.sleep(10)
-    # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag", "/vehicle/status/velocity", "record_vehiclevelocity")
+    # topic_csv("/home/minwei/autotest/common/2020-11-18-15-47-44.bag",
+    # "/vehicle/status/velocity", "record_vehiclevelocity")
     #
