@@ -7,64 +7,65 @@ planning 模块 case
 import allure
 from common.process import *
 import pytest
-from common.planning.planning_action import *
 import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
 import logging
 logger = logging.getLogger()
-import pandas as pd
 CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases.csv'.format(TEST_CASE_PATH))
 
 
-def make_test_case(story, case_data, case_level, case_desc, jira_id):
+def make_test_case(story, case_data, case_level, case_desc):
 
     @allure.feature('planning')
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
     @allure.severity(case_level)
     def test_planning(planning_env, case_data):
-    # def test_planning(case_data):
         """
-1. Planning, local autowarea setup.bash , roslaunch map
+        1. Planning, local autowarea setup.bash , roslaunch map
 
-It is expected that in this step, the interface will be written into docker
-
-
-
-2. Local docker (this will change in the future)
-
-docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -v
-
-/tmp/.X11-unix:/tmp/.X11- unix:rw -v $HOME/.Xauthority:$HOME/.X authority:rw -e ROS_ MASTER_ URI=${ROS_ MASTER_ URI} -e ROS_ IP=${ROS_ IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH} autocore/simulator_ for_ SDK
+        It is expected that in this step, the interface will be written into docker
 
 
 
-3. Check whether the starting and ending points exist, do not exist or are abnormal, report an error and exit
+        2. Local docker (this will change in the future)
+
+        docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -v
+
+        /tmp/.X11-unix:/tmp/.X11- unix:rw -v $HOME/.Xauthority:$HOME/.X authority:rw -e ROS_ MASTER_ URI=${ROS_ MASTER_
+        URI} -e ROS_ IP=${ROS_ IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH} autocore/simulator_ for_ SDK
 
 
 
-4. Engage / disengage, speed limit interface settings, whether the car speed changes, if not, report an error exit
+        3. Check whether the starting and ending points exist, do not exist or are abnormal, report an error and exit
 
 
 
-5. Start recording / planning / scenario of bag_ Planning / trajectory /, vehicle / status / twist, current pose given by the interface
+        4. Engage / disengage, speed limit interface settings,
+        whether the car speed changes, if not, report an error exit
 
 
 
-6. Detect the car arriving at the destination (traced position) and finish recording bag
+        5. Start recording / planning / scenario of bag_ Planning / trajectory /,
+        vehicle / status / twist, current pose given by the interface
 
-7. Check whether the bag message, size and message are abnormal
+
+
+        6. Detect the car arriving at the destination (traced position) and finish recording bag
+
+        7. Check whether the bag message, size and message are abnormal
         """
         name = case_data['CaseName']
         gt_name = case_data['gt_name']
-        bag_path= '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH,gt_name)
+        bag_path = '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH, gt_name)
         # with allure.step("collect ground_truth bag data"):
         #     #
         #     # for topic in TOPICS.split(" "):
         #     #     print(topic)
         #     #     keyw = topic.split("/")
-        #     #     assert topic_csv(gt_name+".bag", topic, "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #     #     assert topic_csv(gt_name+".bag", topic,
+        #     "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
         #     #     time.sleep(2)
         #     #
         #     # save_csv_file(bag_path,gt_name)
@@ -76,7 +77,8 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
         #     for topic in TOPICS.split(" "):
         #         print(topic)
         #         keyw = topic.split("/")
-        #         assert topic_csv(bag_path+gt_name+".bag", topic, "gt_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
+        #         assert topic_csv(bag_path+gt_name+".bag", topic,
+        #         "gt_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
         #         time.sleep(2)
         #
         step_3 = "start_record bag"
@@ -86,7 +88,7 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
             # end_position_sample = [-1130.37866211, -401.696289062, 0]
             # end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
             bag_name_record = start_record_bag(90, bag_path+name)
-            logger.info("recording bag address".format(bag_path+name))
+            logger.info("recording bag address".format(bag_name_record))
             # assert check_bag(bag_path+name+".bag"), "bag has not recorded successfully"
 
         step_4 = "add start end point， and engage"
@@ -116,7 +118,7 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
         #     print('step check')
         #     """
         #     cd ~/workspace/test_autoware/AutowareArchitectureProposal;./start_planning_test.sh
-        #     export ROS_IP=127.0.0.1;export ROS_MASTER_URI=http://127.0.0.1:11311;/home/adlink/workspace/autotest/common/script/run_docker_sim.sh
+        #     /home/adlink/workspace/autotest/common/script/run_docker_sim.sh
         #     """
         #     check_result, msg = check_bag(90,bag_path+name)
         #     logger.info(check_result,msg)
@@ -139,73 +141,52 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
 
         step_5 = "collect data"
         with allure.step(step_5):
-
-
-
             for topic in TOPICS.split(" "):
                 print(topic)
                 keyw = topic.split("/")
-                assert topic_csv(bag_path+name+".bag", topic, "test_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
+                assert topic_csv(bag_path+name+".bag", topic, "test_01_"+keyw[-1], bag_path), topic + " could not saved to csv file"
                 time.sleep(2)
-
-
             for i in range(3):
                 logger.info("Waiting bag record.. {}s".format(i+1))
                 time.sleep(1)
 
+        gt_pose_path = bag_path+"gt_01_current_pose.csv"
+        t_v_path = bag_path+"test_01_twist.csv"
+        logger.info("BAG VELOCITY bag path : {}".format(t_v_path))
+        gt_v_path = bag_path+"gt_01_twist.csv"
 
-        BAG_VELOCITY_FILE_PATH = bag_path+"test_01_twist.csv"
-        GROUNDTRUTH_VELOCITY_FILE_PATH =  bag_path+"/"+"gt_01_twist.csv"
+        t_pose_path = bag_path + "test_01_current_pose.csv"
+        gt_pose_file = bag_path + "gt_01_current_pose.csv"
 
-        BAG_POSE_FILE_PATH = bag_path+"test_01_current_pose.csv"
-        GROUNDTRUTH_POSE_FILE_PATH = bag_path+"gt_01_current_pose.csv"
-
-
-        BAG_VELOCITY_FILE_PATH = bag_path+"test_01_twist.csv"
-        logger.info("BAG VELOCITY bag path : {}".format(BAG_VELOCITY_FILE_PATH))
-        GROUNDTRUTH_VELOCITY_FILE_PATH =  bag_path+"gt_01_twist.csv"
-
-        BAG_POSE_FILE_PATH = bag_path+"test_01_current_pose.csv"
-        GROUNDTRUTH_FILE_PATH = bag_path+"gt_01_current_pose.csv"
-
-
-        GROUNDTRUTH_TRAJECTORY = bag_path+ "gt_01_trajectory.csv"
-        TEST_TRAJECTORY = bag_path+ "test_01_trajectory.csv"
-        logger.info("trajectory bag path {}".format(TEST_TRAJECTORY))
-
-        GROUNDTRUTH_ROUTE = bag_path +"gt_01_route.csv"
-        TEST_ROUTE = bag_path+ "test_01_route.csv"
+        gt_tra_path = bag_path + "gt_01_trajectory.csv"
+        t_tra_path = bag_path + "test_01_trajectory.csv"
+        logger.info("trajectory bag path {}".format(t_tra_path))
 
         with allure.step("Data analysis"):
             with allure.step("1. /current_twist is always zero  -> not pass"):
-                a = pd.read_csv(BAG_VELOCITY_FILE_PATH )
-                allure.attach.file(GROUNDTRUTH_VELOCITY_FILE_PATH,"gt velocity ")
-                allure.attach.file(BAG_VELOCITY_FILE_PATH, "test velocity")
-                assert velocity_not_zero(a)
+                a_df = pd.read_csv(t_v_path)
+                allure.attach.file(gt_v_path, "gt velocity ")
+                allure.attach.file(t_v_path, "test velocity")
+                assert velocity_not_zero(a_df)
 
             with allure.step("2. current_pose value has not changed -> not pass"):
-                b = pd.read_csv(BAG_POSE_FILE_PATH)
-                assert current_pose_change(b)
+                b_df = pd.read_csv(t_pose_path)
+                assert current_pose_change(b_df)
 
             with allure.step("3.current_pose: gt/test comparison： 1.eur distance larger than one range， not pass "):
-                df1, df2 = csv_to_df(GROUNDTRUTH_FILE_PATH, BAG_POSE_FILE_PATH)
+                df1, df2 = csv_to_df(gt_pose_file, t_pose_path)
                 c = df1.shape[0]
                 d = df2.shape[0]
-                logger.info(c )
-                logger.info(d )
-                if c>d :
-
+                logger.info(c)
+                logger.info(d)
+                if c > d:
                     count = df1.shape[0]-df2.shape[0]
                     df1.drop(df1.tail(count).index, inplace=True)
                 else:
                     count = df2.shape[0] - df1.shape[0]
                     df2.drop(df2.tail(count).index, inplace=True)
 
-                logger.info("columns are {} , {}".format(df1.shape[0],df2.shape[0]))
-                # result, key_name, df_all , er_msg= current_pose_analysis_eur(50, df1, df2)
-                # df_all.to_csv("./1.csv")
-                # allure.attach.file(TEST_CASE_PATH+"/1.csv")
-                # assert result, er_msg
+                logger.info("columns are {} , {}".format(df1.shape[0], df2.shape[0]))
 
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(100, df1, df2)
@@ -215,57 +196,54 @@ docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -
                         f.write(str(c_yaw_list[i]))
                 logger.info("current pose list: {}".format(c_yaw_list))
 
-                fig ,ax = plt.subplots(1,1,figsize=(10,6))
+                fig, ax = plt.subplots(1, 1, figsize=(10, 6))
                 ax.plot(c_yaw_list)
                 plt.savefig(bag_path+"current_pose.png")
                 logger.info("current pose pic address: {}".format(bag_path+"current_pose.png"))
-                allure.attach.file(bag_path+"1.txt","current_pose txt file ")
+                allure.attach.file(bag_path+"1.txt", "current_pose txt file ")
                 allure.attach.file(bag_path+"current_pose.png", "current_pose pic")
 
             with allure.step("5. current twist comparison： ×3.6 plot"):
-                dfc, dfd = csv_to_df(GROUNDTRUTH_VELOCITY_FILE_PATH, BAG_VELOCITY_FILE_PATH)
+                dfc, dfd = csv_to_df(gt_v_path, t_v_path)
                 add = bag_path+"twist.png"
-                plot_twist(dfc, dfd,add)
-                allure.attach.file(add ,"current_twist")
+                plot_twist(dfc, dfd, add)
+                allure.attach.file(add, "current_twist")
 
             with allure.step("6. plot pose"):
-                df1,df2 = csv_to_df(GROUNDTRUTH_POSE_FILE_PATH,BAG_POSE_FILE_PATH)
+                df1, df2 = csv_to_df(gt_pose_path, t_pose_path)
                 pose_pic_add = bag_path+"pose.png"
                 pic_loc = plot_pose(df1, df2, pose_pic_add)
                 assert pic_loc, "fail to plot current pose"
-                allure.attach.file(pose_pic_add,"plot pose for two bags")
+                allure.attach.file(pose_pic_add, "plot pose for two bags")
 
             with allure.step("7.trajectory eur distance ，first 40 points"):
                 trajectory_pic_add = bag_path + "trajectory.png"
-                plot_eu(GROUNDTRUTH_TRAJECTORY,TEST_TRAJECTORY,trajectory_pic_add)
+                plot_eu(gt_tra_path, t_tra_path, trajectory_pic_add)
                 logger.info(trajectory_pic_add)
-                allure.attach.file(trajectory_pic_add,"trajectory_eu")
-                allure.attach.file(trajectory_pic_add,"trajectory_eu_01")
+                allure.attach.file(trajectory_pic_add, "trajectory_eu")
+                allure.attach.file(trajectory_pic_add, "trajectory_eu_01")
 
             with allure.step("8.trajectory yaw angle，first 40 points"):
-                a = pd.read_csv(GROUNDTRUTH_TRAJECTORY)
-                b = pd.read_csv(TEST_TRAJECTORY)
+                gt_tra_df = pd.read_csv(gt_tra_path)
+                t_tra_df = pd.read_csv(t_tra_path)
                 tr_yaw_add = bag_path + "delta_yaw.png"
                 tr_yaw_add1 = bag_path + "delta_yaw1.png"
-                count = a.shape[0] - b.shape[0]
-                a.drop(a.tail(count).index, inplace=True)
-                trajectory_yaw_plot(a,b,tr_yaw_add,tr_yaw_add1 )
-                allure.attach.file(tr_yaw_add,"trajectory_delta_yaw")
-                allure.attach.file(tr_yaw_add1,"trajectory_delta_yaw_01")
-
-
+                count = gt_tra_df.shape[0] - t_tra_df.shape[0]
+                gt_tra_df.drop(gt_tra_df.tail(count).index, inplace=True)
+                trajectory_yaw_plot(gt_tra_df, t_tra_df, tr_yaw_add, tr_yaw_add1)
+                allure.attach.file(tr_yaw_add, "trajectory_delta_yaw")
+                allure.attach.file(tr_yaw_add1, "trajectory_delta_yaw_01")
 
             with allure.step("9. /planning/mission_planning/route   info comparison"):
-                GROUNDTRUTH_ROUTE = bag_path+ "gt_01_route.csv"
-                TEST_ROUTE = bag_path+ "test_01_route.csv"
-                allure.attach.file(GROUNDTRUTH_ROUTE, "gt route info")
-                allure.attach.file(TEST_ROUTE , "test route info")
+                gt_route = bag_path + "gt_01_route.csv"
+                t_route = bag_path + "test_01_route.csv"
+                allure.attach.file(gt_route, "gt route info")
+                allure.attach.file(t_route, "test route info")
 
-                assert route_same(GROUNDTRUTH_ROUTE,TEST_ROUTE), "planning_route msg is not the same "
+                assert route_same(gt_route, t_route), "planning_route msg is not the same "
 
     # 把生成的函数返回
     return test_planning
-
 
 
 for case_arg in CASE_LIST:
@@ -273,12 +251,9 @@ for case_arg in CASE_LIST:
     print(case_arg)
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
                                                      case_arg['Priority'], case_arg['Title'],
-                                                     case_arg['Jira_ID'])
+                                                     )
 
-
-
-# 局限于只有一条路经， 无障碍物
-
+#  局限于只有一条路经， 无障碍物
 if __name__ == '__main__':
     # logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     # logger = logging.getLogger(__name__)
@@ -301,6 +276,7 @@ if __name__ == '__main__':
 
     # 生成报告
     print('=' * 20)
-    # generate = 'allure generate /home/minwei/autotest/allure_reports/result/ -o /home/minwei/autotest/allure_reports/report/ --clean'
+    # generate = 'allure generate /home/minwei/autotest/allure_rep
+    # orts/result/ -o /home/minwei/autotest/allure_reports/report/ --clean'
     # print('generate allure_results: {}'.format(generate))
     # os.system(generate)
