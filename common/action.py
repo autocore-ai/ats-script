@@ -17,7 +17,7 @@ def check_docker(d_name: str) -> bool:
     :param d_name: docker name
     :return: bool
     """
-    cmd = 'docker ps | grp {d_name}'.format(d_name=d_name)
+    cmd = 'docker ps | grep {d_name}'.format(d_name=d_name)
     logger.debug('check docker cmd: {cmd}'.format(cmd=cmd))
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = p.stdout.read().decode('utf-8')
@@ -31,7 +31,7 @@ def check_docker(d_name: str) -> bool:
     return False
 
 
-def check_node_list(exp_n_list: list, real_n_list: list) -> (bool, str):
+def check_node_list(exp_n_list: list, real_n_list: str) -> (bool, str):
     """
     check node list
 
@@ -41,12 +41,22 @@ def check_node_list(exp_n_list: list, real_n_list: list) -> (bool, str):
     """
     if sorted(exp_n_list) == sorted(real_n_list):
         return True, ''
-
     for node in exp_n_list:
         if node not in real_n_list:
             return False, '{} not in expect nodes list'.format(node)
     return True, ''
 
+
+def get_node_list(node_list_cmd: str) -> (bool, list):
+    """
+    1. get node list from current docker
+    2. if successful, return list
+    3. if not, return error
+    :param node_list_cmd:
+    :return: bool, list
+    """
+
+    pass
 
 if __name__ == '__main__':
     # print(check_docker('test'))

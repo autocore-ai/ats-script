@@ -11,6 +11,7 @@ import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
 import logging
+from common.action import *
 logger = logging.getLogger()
 CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases.csv'.format(TEST_CASE_PATH))
 
@@ -24,17 +25,9 @@ def make_test_case(story, case_data, case_level, case_desc):
     def test_planning(planning_env, case_data):
         """
         1. Planning, local autowarea setup.bash , roslaunch map
-
         It is expected that in this step, the interface will be written into docker
 
-
-
         2. Local docker (this will change in the future)
-
-        docker run --rm -i --gpus=all --net=host --name=test_ docker_ sim --privileged -v
-
-        /tmp/.X11-unix:/tmp/.X11- unix:rw -v $HOME/.Xauthority:$HOME/.X authority:rw -e ROS_ MASTER_ URI=${ROS_ MASTER_
-        URI} -e ROS_ IP=${ROS_ IP} -e DISPLAY=${DISPLAY} -e XAUTHORITY=${XAUTH} autocore/simulator_ for_ SDK
 
 
 

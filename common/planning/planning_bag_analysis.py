@@ -9,11 +9,10 @@
 import numpy as np
 import logging
 import math
-import matplotlib.pyplot as plt
-
-logger = logging.getLogger()
 from common.planning.planning_action import *
 import re
+import matplotlib.pyplot as plt
+logger = logging.getLogger()
 
 
 # csv to df
