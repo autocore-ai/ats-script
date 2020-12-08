@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Perception 模块 case
+Perception module case
 """
 
 import allure
@@ -14,15 +14,9 @@ from common.perception.perception_bag_analysis import Analysis, compare_uuid, co
     compare_shape, compare_orientation, compare_prediction_paths
 import common.perception.perception_action as p_act
 import common.perception.perception_conf as conf
-import run
 
 logger = logging.getLogger()
-# if run.exec_case_flag == 1:
-#     CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases_open.csv'.format(TEST_CASE_PATH))
-#     BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH_OPEN
-# else:
-#     CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases.csv'.format(TEST_CASE_PATH))
-#     BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH
+
 CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases.csv'.format(TEST_CASE_PATH))
 BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH
 logger.info('Perception case list: {}'.format(CASE_LIST))
@@ -31,15 +25,11 @@ logger.info('Perception case list: {}'.format(CASE_LIST))
 # dynamic generate test case
 def make_test_case(story, case_data, case_level, case_desc):
 
-    # 此处可以用变量装饰了
     @allure.feature('perception')
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
     @allure.severity(case_level)
-    # @allure.link('{}/{}/{}_JiraID_{}.log'.format(CASE_PATH, 'test_perception', 'test_perception', jira_id), name='case log')
-    # @allure.testcase("https://autocore.atlassian.net/plugins/servlet/ac/com.infostretch.QmetryTestManager/qtm4j-test-management?project.key=AO&project.id=10005")  # 用例连接地址
     def test_perception(perception_env, case_data):
-    # def test_perception(case_data):
         """
         Step：
         1. start env

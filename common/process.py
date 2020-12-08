@@ -1,8 +1,8 @@
 # -*- coding:utf8 -*-
 """
-进程操作
-1. 启动进程，并检测
-2. 杀掉进程，并检测
+Process operation
+1. Start the process and detect
+2. Kill the process and detect it
 """
 import os
 import time
@@ -15,21 +15,20 @@ logger = logging.getLogger()
 
 def local_start_process(command, check_key, start_time=2):
     """
-    本地启动进程
-    :param command:  启动命令
-    :param check_key:  检测启动命令key
-    :param start_time:  进程启动时间
+    local start process
+    :param command:  start command
+    :param check_key:  check start cmd
+    :param start_time:  process start time
     :return:
     """
     logger.info('exec local command: {}'.format(command))
-    # os.popen(command)
     proc = subprocess.Popen(command, shell=True)
 
-    # 等待进程启动
+    # waiting process start time
     logger.info('wait time: {}'.format(start_time))
     time.sleep(start_time)
 
-    # 检查启动结果
+    # check start ret
     cmd = 'ps -ef | grep {} | grep -v grep'.format(check_key)
     logger.info('check process, check key: {}, check command: {}'.format(check_key, cmd))
     ret_obj = os.popen(cmd)
@@ -170,4 +169,3 @@ def remote_check_rosnode_list():
     r_bool, ret = str(server.exec_comm(check_cmd))
     logger.info('check result: {}'.format(ret))
     return True
-

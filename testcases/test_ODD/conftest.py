@@ -1,56 +1,73 @@
 # -*- coding:utf8 -*-
 """
-专门存放fixture的配置文件
-pytest 会在执行测试函数之前（或之后）加载运行它们
-Pytest 使用 yield 关键词将固件分为两部分，yield 之前的代码属于预处理，会在测试前执行；yield 之后的代码属于后处理，将在测试完成后执行。
-比如每个用例都要ssh到PCU环境上，就可以把fixture放到这里
-pytest会默认读取conftest.py中的所有fixture
-conftest.py只有一个package下的所有测试用例生效
-不同目录可以有自己的conftest.py
-测试用例不需要手动导入conftest.py，pytest会自己找
-在定义固件时，通过 scope 参数声明作用域，可选项有：
+The configuration file for storing fixture
 
-    function: 函数级，每个测试函数都会执行一次固件；
-    class: 类级别，每个测试类执行一次，所有方法都可以使用；
-    module: 模块级，每个模块执行一次，模块内函数和方法都可使用；
-    session: 会话级，一次测试只执行一次，所有被找到的函数和方法都可用。
+Pytest loads and runs test functions before (or after) executing them
 
+Pytest uses the yield keyword to divide the firmware into two parts. The code before yield belongs to preprocessing and will be executed before testing; the code after yield belongs to post-processing and will be executed after the test is completed.
+
+For example, if each use case needs to be SSH to the PCU environment, you can put the fixture here
+
+Pytest will read by default conftest.py All fixtures in
+
+conftest.py Only all test cases under one package are valid
+
+Different directories can have their own conftest.py
+
+Test cases do not need to be imported manually conftest.py , pytest will find it by itself
+
+When defining the firmware, declare the scope through the scope parameter. The options are:
+
+    Function: function level, each test function will execute firmware once;
+
+    Class: class level. Each test class is executed once, and all methods can be used;
+
+    Module: module level, each module is executed once, and the functions and methods in the module can be used;
+
+    Session: at the session level, a test is executed only once, and all the functions and methods found are available.
 """
 
 import pytest
 import allure
-from utils import remote
 from common.process import *
 import common.perception.perception_action as p_env
-import config
 import common.perception.perception_conf as p_conf
 from common.planning.planning_action import *
 
 logger = logging.getLogger()
 
 
-@allure.step('1. 连接PCU环境')
-@allure.title('1. 连接PCU环境')
 @pytest.fixture
-def connect_pcu():
-    logger.info('================= 1. connect to PCU env =================')
-    logger.info('IP: {}, USER: {}, PWD: {}'.format(config.PCU_IP, config.PCU_USER, config.PCU_PWD))
-    remote_server = remote.Remote(config.PCU_IP, config.PCU_USER, config.PCU_PWD)
-    r_bool, desc = remote_server.check_is_connect()
-    assert r_bool, desc
-    logger.info('=============== set up connect PCU OK ===============')
-    return remote_server
+def perception_open_env():
+    """
+    1. set up
+        check autoware4 docker status, if running, stop it, then check docker stopped
+        start autoware4 docker
+        check autoware4 docker started successful
 
+    2. tear down
+        stop docker
+        check docker stopped
 
-def clean_env(remote_server):
-    """清理环境"""
-    remote_server.exec_comm('rm -rf /opt/autocore/test_data/map/*')
-    # os.system('rm -rf {}/test_data/map/*'.format(config.TEST_CASE_PATH))
-    logger.info('clean ok')
+    check autoware4 status steps:
+        1. check screen
+        2.
+    """
+    start_time = time.time()
+    step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(
+        p_conf.PERCEPTION_AUTOWARE4_IP)
+    with allure.step(step_desc):
+        logger.info('=' * 20 + step_desc + '=' * 20)
+        r_bool, status = p_env.check_autoware_status()
+        logger.info('check_autoware_status, return: {}, {}'.format(r_bool, status))
+        assert r_bool, str(status)
+    yield
+    end_time = time.time()
+    allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
 
 
 @pytest.fixture
-def perception_env(scope='function'):
+def perception_env():
     """
     1. set up
     Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
@@ -59,8 +76,8 @@ def perception_env(scope='function'):
         2. start perception
 
     1. tear down
-    1. close perception
-    2. close Autoware.4
+        1. close perception
+        2. close Autoware.4
     """
     start_time = time.time()
     step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(p_conf.PERCEPTION_AUTOWARE4_IP)
@@ -229,29 +246,4 @@ def planning_env(scope='function'):
 
 
 if __name__ == '__main__':
-    # r_bool, msg = local_start_process(START_AUTOWARE_4, 'AutowareArchitectureProposa', start_time=30)
-    # perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-    # r_bool, desc = perc_server.check_is_connect()
-    # perc_key = 'ros'
-    # perc_key2 = 'autoware'
-    # perc_bool = remote_check_process(perc_server, perc_key)
-    # perc_bool2 = remote_check_process(perc_server, perc_key2)
-    # print(r_bool)
-    # print(desc)
-    # r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
-
-    # perc_server = remote.Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-    # perc_key = 'ros'
-    # perc_key2 = 'autoware'
-    # perc_bool = remote_check_process(perc_server, perc_key)
-    # perc_bool2 = remote_check_process(perc_server, perc_key2)
-    # if perc_bool or perc_bool2:
-    #     logger.warning('Perception is running still, now to kill it.')
-    #     c_bool, msg = remote_stop_process(perc_server, perc_key, stop_time=5)
-    #     assert c_bool, msg
-    #     c_bool, msg = remote_stop_process(perc_server, perc_key2, stop_time=5)
-    #     assert c_bool, msg
-    # r_bool, msg = remote_start_process(perc_server, START_PERCEPTION, 'autoware', start_time=30)
-    # assert r_bool, msg
     pass
-

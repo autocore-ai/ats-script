@@ -1,4 +1,22 @@
 # -*- coding:utf8 -*-
+"""
+1. Number of obstacles UUID_ The detection rate was UUID_ Count / T, give the number of UUIDs detected per second, and draw a line graph
+
+2. The correct semantic, the type and number of semantics, the percentage of correct semantics, the semantic pie chart, the line chart of semantics per second, and the broken line chart with different semantics
+
+3. Position of obstacles, take x, Y values, form a two-dimensional list in chronological order, and draw a broken line diagram
+
+List and draw the angle of the obstacle according to the time order
+
+5. The linear velocity line of obstacles, only the values of X and y are taken. The x-axis data forms a list according to the time sequence and draws a broken line graph. The y-axis data forms a list according to the time order, and draws the broken line diagram, and gives the average speed of X and Y
+
+6. The second value of prediction information of each point is taken out from the prediction data of obstacles. The second value predicts the position and direction of the current obstacle after 0.5s. Get the list like the second and third, and then draw a line chart comparing with 3 and 4. The starting point of X axis is 0.5s later than that of 3 and 4.
+
+In the later stage, Euclidean distance and cosine similarity processing can be done for the predicted data and the data of 3 and 4, and the standard deviation can be calculated for data reference
+
+7. The shape of the obstacle, the shape type and corresponding number, the percentage of the correct type, and the shape pie chart. The list of X and Y is formed in chronological order, and a broken line chart is drawn. Calculate the standard deviation of X and Y respectively
+"""
+
 import rosbag
 import hashlib
 import math
@@ -11,17 +29,6 @@ from utils.calculate import cal_std, cal_euc_distance
 import logging
 logger = logging.getLogger()
 
-
-"""
-1. 障碍物UUID数量uuid_count，检出率: uuid_count/t，给出每秒检出UUID的数量，并画出折线图
-2. 障碍物正确的semantic，出现的semantic类型和分别对应的数量，正确语义所占的百分比，语义饼状图，语义每秒的折线图，不同的语义不同的折线图
-3. 障碍物的position，取x,y的值，按照时间顺序组成二维list，并画出折线图
-4. 障碍物的orientation，计算偏航角，按照时间顺序组成list，并画出折线图
-5. 障碍物的线速度line，只取x和y的值，X轴数据按照时间顺序组成list，并画出折线图, Y轴数据按照时间顺序组成list，并画出折线图，并给出X和Y的平均速度
-6. 障碍物的预测数据，取出每个点预测信息的第二个值，第二个值预测的是当前障碍物在0.5s后，所在的位置和方向。像第2和3一样获取list，然后画出和3,4相比较的折线图，预测数据的折线图，X轴的起点较3和4的要晚0.5s。
-    后期可将预测的数据和3和4的数据分别做欧氏距离和余弦相似性处理，并计算标准方差，以做数据参考
-7. 障碍物的shape, 出现的shape类型和对应的数量，正确类型所占的百分比，shape饼状图。按照时间顺序分别组成X和Y的list，并画出折线图。分别计算X和Y的标准方差
-"""
 SEMANTIC = {
     0: 'UNKNOWN',
     1: 'CAR',
@@ -41,8 +48,8 @@ SHAPE = {
 
 
 class Analysis:
-    def __init__(self, bag_path):
-        self.bag_path = bag_path
+    def __init__(self, b_path):
+        self.bag_path = b_path
         self._sect_len = 0
         self.bag = rosbag.Bag(self.bag_path)
         self.msg_count = self.bag.get_message_count()
@@ -50,7 +57,7 @@ class Analysis:
         end_time = self.bag.get_end_time()
         # self.time_list = np.linspace(start_time, end_time, num=1).data
         self.time_list = []
-        self.time_split(start_time, end_time)  # 对时间进行切片
+        self.time_split(start_time, end_time)  # Slice the time
         self.data_dict = {}  # key: uuid, value: object's sum data
 
     def analysis(self):
@@ -80,20 +87,9 @@ class Analysis:
                 ans_list.append(self.obj_deal(obj, sect, mt.to_sec()))
         return True
 
-    def uuid_md5(self, uuid):
-        """对uuid进行md5加密"""
-        print(dir(uuid))
-        print(type(uuid))
-        print(uuid)
-        src = str(uuid, encoding='utf-8')
-        print(src)
-        m2 = hashlib.md5()
-        m2.update(src)
-        return m2.hexdigest()
-
     def time_split(self, start, end):
         """
-        开始和结束时间分割，间隔为1s
+        The start time and end time are divided with an interval of 1 s
         """
         num = end-start
         self._sect_len = math.ceil(num)
@@ -102,8 +98,8 @@ class Analysis:
 
     def time_section(self, t):
         """
-        判断当前时间处在哪一段位
-        按秒分割的时间，段位从0开始
+        Judge where the current time is in
+        Time divided in seconds, with segments starting from 0
         """
         l = len(self.time_list) - 1
         sect = 0
@@ -150,7 +146,7 @@ class Analysis:
             shape_dict = {shape: {'sect': [0] * self._sect_len, 't_size': {}}}
 
         else:
-            # UUID 已经存在的情况处理
+            # Handling the existing UUID
             data_struct = self.data_dict[uuid]
 
             # semantic 处理 'semantic': {'type_1': [1, 2, 3, 1], 'type_2': [1, 2, 3, 1] },  # uuid对应的语义，以及每秒出现的次数
@@ -159,53 +155,41 @@ class Analysis:
             if semantic not in semantic_dict:
                 semantic_dict[semantic] = [0] * self._sect_len
 
-            # shape 处理
+            # shape
             shape = SHAPE[obj.shape.type]
             shape_dict = data_struct['shape']
             if shape not in shape_dict:
                 shape_dict[shape] = {'sect': [0] * self._sect_len, 't_size': {}}
 
-        # 公共处理方式
-        # uuid 处理
+        # uuid
         data_struct['uuid_sec'][sect] += 1
 
-        # semantic 处理
+        # semantic
         semantic_dict[semantic][sect] += 1
         data_struct['semantic'] = semantic_dict
 
-        # position 处理
+        # position
         data_struct['position'][mt] = (obj.state.pose_covariance.pose.position.x, obj.state.pose_covariance.pose.position.y)
         # data_struct['position'].append((obj.state.pose_covariance.pose.position.x, obj.state.pose_covariance.pose.position.y))
 
-        # orientation 处理, 此处需要计算偏向角
+        # orientation
         data_struct['orientation'][mt] = self.to_euler_angles(obj.state.pose_covariance.pose.orientation)
 
-        # line 处理
+        # line
         data_struct['line'][mt] = (obj.state.twist_covariance.twist.linear.x, obj.state.twist_covariance.twist.linear.y)
         # data_struct['line']['x'].append(obj.state.twist_covariance.twist.linear.x)
         # data_struct['line']['y'].append(obj.state.twist_covariance.twist.linear.y)
 
-        # prediction_paths 处理 'prediction_paths': [{'pose_x': [], 'pose_y': [], 'orientation': []}] * 21,
         data_struct['prediction_paths'][mt] = []
         for i, path in enumerate(obj.state.predicted_paths[0].path):
             path_obj = path.pose
             data_struct['prediction_paths'][mt].append((path_obj.pose.position.x, path_obj.pose.position.y, self.to_euler_angles(path_obj.pose.orientation)))
-            # data_struct['prediction_paths'][i]['pose_x'].append(path_obj.pose.position.x)
-            # data_struct['prediction_paths'][i]['pose_y'].append(path_obj.pose.position.y)
-            # data_struct['prediction_paths'][i]['orientation'].append(self.to_euler_angles(path_obj.pose.orientation))
-        # print(shape_dict[shape]['sect'])
+
         shape_dict[shape]['sect'][sect] += 1
         shape_dict[shape]['t_size'][mt] = (obj.shape.dimensions.x, obj.shape.dimensions.y)
-        # shape_dict[shape]['x'].append(obj.shape.dimensions.x)
-        # shape_dict[shape]['y'].append(obj.shape.dimensions.y)
         data_struct['shape'] = shape_dict
 
         self.data_dict[uuid] = data_struct
-
-    def p_cal(self, orientation):
-        """计算偏向角"""
-        # return euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])
-        return 0
 
     def to_euler_angles(self, orientation):
         """w、x、y、z to euler angles"""
@@ -225,14 +209,14 @@ class Analysis:
 
     def sum_data(self, cat_type=1):
         """
-        目前仅支持按照语义分类
-        将分析的数据汇总
-        1. uuid 汇总为每秒检出的所有uuid的数量，不区分障碍物
-        2. semantic 汇总为每秒每种semantic的数量
-        3. position 根据轨迹图得出的障碍物位置数组，此处需要手动操作，将障碍物分类物体分类，可分局shape和位置分类，具体值需要传入进来cat_type=1，shape，2，位置，目前仅支持1
-        4. orientation 暂不分解
-        5. line 根据分类情况（同3），将速度分成数组
-        6. shape 汇总每秒每种语义对应的shape类型和size
+        At present, it only supports semantic classification
+        Summarize the analyzed data
+        1. UUID is the total number of UUIDs detected per second, regardless of obstacles
+        2. Semantics are summarized as the number of semantics per second
+        3. Position the obstacle position array obtained according to the trajectory diagram. Manual operation is required here to classify the obstacles, objects, shapes and positions. The specific values need to be passed into cat_ Type = 1, shape, 2, position, currently only 1 is supported
+        4. Orientation will not be decomposed for the time being
+        5. Line divide the speed into arrays according to the classification (the same as 3)
+        6. Shape summarizes the shape type and size corresponding to each semantics per second
         'uuid_0': {
                         'uuid_sec': [2, 3, 4, 5],  # uuid count per second for checking out object percent
                         'semantic': {'CAR': [1, 2, 3, 1], 'BUS': [1, 2, 3, 1] },  # semantic dict, key: semantic, value: count per second
@@ -244,12 +228,12 @@ class Analysis:
                         },
         return data_struct
         {
-            'uuid': np.array([0]*self._sect_len),  汇总为每秒检出的所有uuid的数量，不区分障碍物
-            'semantic': {},  汇总为每秒每种semantic的数量
+            'uuid': np.array([0]*self._sect_len),  Sum up the number of all UUIDs detected per second, regardless of obstacles
+            'semantic': {},  Sum up to the number of each semantic per second
             'position': {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},
             'orientation': {t1: yaw1, t2: yaw2} # t: yaw
-            'line':{CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},  根据分类情况（同3），将速度分成数组
-            'shape': {CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}}  汇总每种类型下shape的大小
+            'line':{CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},
+            'shape': {CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}}
         }
         """
         if cat_type == 1:  # according to semantic
@@ -257,11 +241,9 @@ class Analysis:
                         'orientation': {}, 'prediction_paths': {}}
         else:
             ret_dict = {}
-        # 循环数据
+
         for uuid, data in self.data_dict.items():
-            # uuid 汇总为每秒检出的所有uuid的数量，不区分障碍物
             ret_dict['uuid'] += np.array(data['uuid_sec'])
-            # 语义,位置，线速度，shape 汇总
             # sum data by semantic
             for sem, sec_data in data['semantic'].items():
                 if sem in ret_dict['semantic']:
@@ -270,7 +252,7 @@ class Analysis:
                     ret_dict['orientation'][sem].update(data['orientation'])
                     ret_dict['line'][sem].update(data['line'])
                     ret_dict['prediction_paths'][sem].update(data['prediction_paths'])
-                    for shape, shape_data in data['shape'].items():  # 忽略掉形状
+                    for shape, shape_data in data['shape'].items():
                         ret_dict['shape'][sem].update(data['shape'][shape]['t_size'])
 
                 else:
@@ -281,52 +263,49 @@ class Analysis:
                     ret_dict['line'][sem] = data['line']
                     ret_dict['prediction_paths'][sem] = data['prediction_paths']
 
-                    # print(ret_dict['position'])
                     ret_dict['shape'][sem] = {}
-                    for shape, shape_data in data['shape'].items():  # 忽略掉形状
+                    for shape, shape_data in data['shape'].items():
                         ret_dict['shape'][sem].update(data['shape'][shape]['t_size'])
 
         return ret_dict
 
     def show_graph(self):
         """
-        将数据画图，并将图片保存到bag所在路径
-        1. 障碍物UUID数量uuid_count，检出率: uuid_count/t，给出每秒检出UUID的数量，并画出折线图
-        2. 障碍物正确的semantic，出现的semantic类型和分别对应的数量，正确语义所占的百分比，语义饼状图，语义每秒的折线图，不同的语义不同的折线图
-        3. 障碍物的position，取x,y的值，按照时间顺序组成二维list，并画出折线图
-        4. 障碍物的orientation，计算偏航角，按照时间顺序组成list，并画出折线图
-        5. 障碍物的线速度line，只取x和y的值，X轴数据按照时间顺序组成list，并画出折线图, Y轴数据按照时间顺序组成list，并画出折线图，并给出X和Y的平均速度
-        6. 障碍物的预测数据，取出每个点预测信息的第二个值，第二个值预测的是当前障碍物在0.5s后，所在的位置和方向。像第2和3一样获取list，然后画出和3,4相比较的折线图，预测数据的折线图，X轴的起点较3和4的要晚0.5s。
-            后期可将预测的数据和3和4的数据分别做欧氏距离和余弦相似性处理，并计算标准方差，以做数据参考
-        7. 障碍物的shape, 出现的shape类型和对应的数量，正确类型所占的百分比，shape饼状图。按照时间顺序分别组成X和Y的list，并画出折线图。分别计算X和Y的标准方差
+        1. Number of obstacles UUID_ The detection rate was UUID_ Count / T, give the number of UUIDs detected per second, and draw a line graph
+        2. The correct semantic, the type and number of semantics, the percentage of correct semantics, the semantic pie chart, the line chart of semantics per second, and the broken line chart with different semantics
+        3. Position of obstacles, take x, Y values, form a two-dimensional list in chronological order, and draw a broken line diagram
+        List and draw the angle of the obstacle according to the time order
+        5. The linear velocity line of obstacles, only the values of X and y are taken. The x-axis data forms a list according to the time sequence and draws a broken line graph. The y-axis data forms a list according to the time order, and draws the broken line diagram, and gives the average speed of X and Y
+        6. The second value of prediction information of each point is taken out from the prediction data of obstacles. The second value predicts the position and direction of the current obstacle after 0.5s. Get the list like the second and third, and then draw a line chart comparing with 3 and 4. The starting point of X axis is 0.5s later than that of 3 and 4.
+            In the later stage, Euclidean distance and cosine similarity processing can be done for the predicted data and the data of 3 and 4, and the standard deviation can be calculated for data reference
+        7. The shape of the obstacle, the shape type and corresponding number, the percentage of the correct type, and the shape pie chart. The list of X and Y is formed in chronological order, and a broken line chart is drawn. Calculate the standard deviation of X and Y respectively
         """
         graph_path_dir = self.bag_path.split('.bag')[0]
         os.makedirs(graph_path_dir, exist_ok=True)
 
-        # 分析数据画图
+        # analysis data and make pic
         t_x = range(1, self._sect_len + 1)
-        fig_line, ax_line = plt.subplots(figsize=(10, 5))  # uuid 折线图
+        fig_line, ax_line = plt.subplots(figsize=(10, 5))
         uuid_line_path = '{}/uuid.png'.format(graph_path_dir)
 
-        fig_se, (ax0_se, ax1_se) = plt.subplots(2, 1, figsize=(10, 16))  # 语义
-        semantic_count_dict = {}   # semantic 数据统计
-        semantic_path = '{}/semantic.png'.format(graph_path_dir)  # 图片位置
+        fig_se, (ax0_se, ax1_se) = plt.subplots(2, 1, figsize=(10, 16))
+        semantic_count_dict = {}   # semantic sum
+        semantic_path = '{}/semantic.png'.format(graph_path_dir)
 
-        # position 轨迹图
-        fig_position, ax_position = plt.subplots(figsize=(10, 5))  # 位置 轨迹图
-        position_path = '{}/position.png'.format(graph_path_dir)  # 图片位置
+        # position trace
+        fig_position, ax_position = plt.subplots(figsize=(10, 5))
+        position_path = '{}/position.png'.format(graph_path_dir)
 
-        # twist line 折线图
-        fig_t, (axx_t, axy_t) = plt.subplots(2, 1, figsize=(10, 16))  # 速度
-        twist_path = '{}/twist.png'.format(graph_path_dir)  # 图片位置
+        # twist line
+        fig_t, (axx_t, axy_t) = plt.subplots(2, 1, figsize=(10, 16))
+        twist_path = '{}/twist.png'.format(graph_path_dir)
 
-        # shape 饼状图，X折线图，Y折线图
-        fig_shape, (ax_sec, ax_x, ax_y) = plt.subplots(3, 1, figsize=(10, 24))  # 速度
-        shape_path = '{}/shape.png'.format(graph_path_dir)  # 图片位置
-        # 循环数据
+        # shape
+        fig_shape, (ax_sec, ax_x, ax_y) = plt.subplots(3, 1, figsize=(10, 24))
+        shape_path = '{}/shape.png'.format(graph_path_dir)
+
         for uuid, data in self.data_dict.items():
-            label_semantic_list = []  # semantic 列表组
-            # semantic 折线图
+            label_semantic_list = []  # semantic
             for s_type, sec_data in data['semantic'].items():
                 ax0_se.plot(range(1, self._sect_len + 1), sec_data, label=s_type)
                 if s_type in semantic_count_dict:
@@ -336,22 +315,21 @@ class Analysis:
                 if s_type not in label_semantic_list:
                     label_semantic_list.append(s_type)
 
-            # label, 每个uuid 对应的语义拼接
+            # label
             label_semantic = '_'.join(label_semantic_list)
 
             uuid_sec_list = data['uuid_sec']
-            # uuid 折线图
+            # uuid
             ax_line.plot(t_x, uuid_sec_list, label='{}_{}'.format(uuid, label_semantic))
 
-            # position 轨迹图
+            # position trace
             Path = mpath.Path
             path_data = []
             c_f = 0
-            # 生成path
+            # make path
             for t in sorted(data['position'].keys()):
                 x = data['position'][t][0]
                 y = data['position'][t][1]
-                # print((x, y))
                 if c_f == 0:
                     path_data.append((Path.MOVETO, (x, y)))
                 elif c_f == len(data['position']):
@@ -368,14 +346,10 @@ class Analysis:
             # patch = mpatches.PathPatch(path, facecolor='r', alpha=0.5)
             # ax_position.add_patch(patch)
             x, y = zip(*path.vertices)
-            ax_position.plot(x, y, marker=mpath.Path(verts, codes), label=label_semantic)  # 画轨迹
-            ax_position.text(x[-1], y[-1], label_semantic)  # 最后一个点显示文字
+            ax_position.plot(x, y, marker=mpath.Path(verts, codes), label=label_semantic)
+            ax_position.text(x[-1], y[-1], label_semantic)
 
-            # 偏航角
-            # print(data['orientation'])
-
-            # 速度图
-            # print(sorted(data['line'].keys()))
+            # speed
             twist_x = [data['line'][item][0] for item in sorted(data['line'].keys())]
             twist_y = [data['line'][item][1] for item in sorted(data['line'].keys())]
             # twist_y = data['line']['y']
@@ -385,10 +359,6 @@ class Analysis:
             axx_t.text(line_x[-1], twist_x[-1], label_semantic)
             axy_t.text(line_x[-1], twist_y[-1], label_semantic)
 
-            # 预测路径图
-            # print(data['prediction_paths'])
-
-            # 形状图
             # ax_sec, ax_x, ax_y
             for shape, dt in data['shape'].items():
                 ax_sec.plot(t_x, dt['sect'], label='{}_{}'.format(shape, label_semantic))
@@ -398,12 +368,10 @@ class Analysis:
                 ax_x.plot([i for i in range(x_v)], x_size, label='{}_{}'.format(shape, label_semantic))
                 ax_y.plot([i for i in range(x_v)], y_size, label='{}_{}'.format(shape, label_semantic))
 
-        # 折线图
         ax_line.set_title('uuid sec graph')
         ax_line.legend()
         fig_line.savefig(uuid_line_path, dpi=600)
 
-        # semantic 饼状图
         labels = semantic_count_dict.keys()
         semantic_sum = sum(semantic_count_dict.values())
         semantic_per_dict = {key: val/semantic_sum*0.1*100 for key, val in semantic_count_dict.items()}
@@ -419,21 +387,18 @@ class Analysis:
         ax0_se.set_title('semantic sec graph')
         fig_se.savefig(semantic_path, dpi=600)
 
-        # 保存位置轨迹图
         ax_position.grid()
         ax_position.axis('equal')
         ax_position.set_title('position line graph')
         ax_position.legend()
         fig_position.savefig(position_path, dpi=600)
 
-        # 保存速度折线图
         axx_t.set_title('twist line x graph')
         axx_t.legend()
         axy_t.set_title('twist line y graph')
         axy_t.legend()
         fig_t.savefig(twist_path, dpi=600)
 
-        # 保存形状图
         ax_sec.set_title('shape second count graph')
         ax_x.set_title('shape size x')
         ax_y.set_title('shape size y')
@@ -446,11 +411,11 @@ class Analysis:
 
 def compare_uuid(uuid_exp, uuid_rel, save_path):
     """
-    两个bag的uuid比较，并生成图片
-    uuid_exp: [2, 4], 期望每秒UUID数量
-    uuid_rel: [3, 5], 实际每秒UUID数量
+    Compare the UUID of two bags and generate pictures
+    uuid_ Exp: [2,4], expected UUIDs per second
+    uuid_ Rel: [3, 5], the actual number of UUIDs per second
     generate uuid compare graph
-    return bool, 标准差，描述信息
+    Return bool, standard deviation, description information
     """
     # cal std
     r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel, 1)
@@ -471,24 +436,21 @@ def compare_uuid(uuid_exp, uuid_rel, save_path):
 
 def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
     """
-    两个bag的semantic比较，并生成图片
-    汇总为每秒每种semantic的数量
-    sem_dict_exp: {type_1: [1,1,1], type_1: [2,2,2]}, 期望每种semantic每秒数量
-    sem_dict_rel: {type_1: [1,1,1], type_1: [2,2,2]}, 实际每种semantic每秒数量
-    return bool, 标准差，描述信息
+    Compare the semantic of the two bags and generate images
+    Sum up to the number of each semantic per second
+    sem_ dict_ exp: {type_ 1: [1,1,1], type_ 1: [2,2,2]}, the expected number of semantics per second
+    sem_ dict_ rel: {type_ 1: [1,1,1], type_ 1: [2,2,2]}, the actual number of semantics per second
+    Return bool, standard deviation, description information
     """
-    # 比较 semantic 种类
     exp_category = sem_dict_exp.keys()
     real_category = sem_dict_rel.keys()
     if not sorted(exp_category) == sorted(real_category):
         return False, 'semantic category is not equal, expect val: {}, real val: {}'.format(exp_category, real_category)
 
-    # 初始化返回semantic标准差结果
     sem_std_dict = {key: 0 for key in exp_category}
-    # 循环计算每个种类的标准差,并画出每种semantic条状图
-    sem_list = []  # 存放每种语义对应的画图信息
+    # The standard deviation of each kind is calculated in a cycle, and the bar chart of each kind of semantic is drawn
+    sem_list = []  # Store the drawing information corresponding to each semantic
     for key, value in sem_dict_exp.items():
-        # 计算标准差
         r_bool, std, diff_list, msg = cal_std(value, sem_dict_rel[key], 1)
         if not r_bool:
             return False, msg
@@ -496,7 +458,7 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
         sem_list.append({'data': {'expect semantic': value, 'real semantic': sem_dict_rel[key]}, 'x_label': 'Second',
                          'y_label': 'Count per second', 'title': 'Semantic: {} expect and real, std: {:<8.2f}'.format(key, std)})
 
-    # 画柱状图
+    # Draw a bar chart
     r_bool, msg = generate_bar_rows(sem_list, save_path)
     if not r_bool:
         logger.error(msg)
@@ -506,16 +468,16 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
 
 def compare_position(position_dict_exp, position_dict_real, save_path, max_step=5):
     """
-    两个bag的位置比较，并生成轨迹图
-    两者的key一定是相等的
-    position_dict_exp: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    position_dict_real: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    max_step: 两组数据最多相差的元素数量
-    0. 判断两个位置数据的个数，不能相差太大
-    1. 计算对应时间点位置的欧氏距离，并返回list
-    2. 计算上边list的标准差
-    3. 画出两个的轨迹图
-    return bool, 位置距离差list，标准差，描述信息
+    The position of the two bags is compared and the trajectory is generated
+    The keys of the two must be equal
+    position_ dict_ Exp: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    position_ dict_ Real: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    max_ Step: the number of elements with the most difference between the two groups of data
+        0. Judge the number of two location data, and the difference should not be too large
+        1. Calculate the Euclidean distance of the corresponding time point and return to list
+        2. Calculate the standard deviation of the above list
+        3. Draw the trajectory of the two
+    Return bool, position distance difference list, standard deviation, description information
     """
     exp_semantic_list = position_dict_exp.keys()
     real_semantic_list = position_dict_real.keys()
@@ -523,11 +485,11 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
         return False, 'expect position\'s semantic is not equal real\'s semantic: expect semantic {}, real semantic {}'.format(exp_semantic_list, real_semantic_list)
 
     ret_dict = {semantic: {} for semantic in exp_semantic_list}
-    data_list = []  # 存放要画每种shape的轨迹数据
+    data_list = []
     for semantic, exp_position_dict in position_dict_exp.items():
         real_position_dict = position_dict_real[semantic]
 
-        # 0. 判断两个位置数据的个数，不能相差太大
+        # 0. Judge the number of two location data, can not be too big difference
         exp_len = len(exp_position_dict.keys())
         real_len = len(real_position_dict.keys())
         max_len = exp_len + max_step
@@ -536,7 +498,7 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
             logger.info('shape: {}\nposition elements count is not in normal range\nexpect len: {} - {}, real len: {}'.format(semantic, min_len, max_len, real_len))
             return False, 'shape: {},position elements count is not in normal range, expect len: {} - {}, real len: {}'.format(semantic, min_len, max_len, real_len)
 
-        # 1. 计算对应时间点位置的欧氏距离，并返回list
+        # 1. Calculate the Euclidean distance of the corresponding time point and return to list
         exp_data_list = [exp_position_dict[t] for t in sorted(exp_position_dict.keys())]
         real_data_list = [real_position_dict[t] for t in sorted(real_position_dict.keys())]
         if exp_len > real_len:
@@ -548,20 +510,18 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
             logger.error('cal euc distance error msg: {}'.format(ret_list))
             return False, ret_list
 
-        ret_dict[semantic]['distance'] = ret_list  # 相同shape下的距离
+        ret_dict[semantic]['distance'] = ret_list  # Distance under the same semantic
 
-        # 2. 计算上边list的标准差
+        # 2. cal std
         std = np.std(ret_list)
-        # logger.info(ret_list)
-        # logger.info(std)
 
         ret_dict[semantic]['std'] = std
 
-        # 轨迹图数据拼接
+        # trace data
         data_list.append({'trace_title': '{} Trace, std: {:<8.2f}'.format(semantic, std),
                           'trace_dict': {'{}_exp'.format(semantic): exp_data_list, '{}_real'.format(semantic): real_data_list},
                           })
-    # 3. 画出两个的轨迹图
+    # 3. draw two trace
     r_bool, msg = generate_trace_rows(data_list, save_path)
 
     if not r_bool:
@@ -627,7 +587,7 @@ def compare_orientation(ori_dict_expt, ori_dict_real, save_path, max_step=5):
             )
         )
 
-        # 画出每种语义的下shape x和y以及差值的三条折线图
+        # Draw the bottom shape X and Y and the three line graph of the difference
         r_bool, msg = generate_line_rows(data_list, save_path)
 
         if not r_bool:
@@ -639,17 +599,17 @@ def compare_orientation(ori_dict_expt, ori_dict_real, save_path, max_step=5):
 
 def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
     """
-    比较线速度
-    'line':{CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},  根据分类情况（同3），将速度分成数组
-    两者的key一定是相等的
-    line_dict_exp: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    line_dict_real: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    max_step: 两组数据最多相差的元素数量
-    0. 判断两个线速度数据的个数，不能相差太大
-    1. 计算对应时间点线速度的欧氏距离，并返回list
-    2. 计算上边list的标准差
-    3. 画出两个的轨迹图
-    return bool, 线速度距离差list，标准差，描述信息
+    Compare linear velocity
+    'line': {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}. According to the classification (same as 3), the speed is divided into arrays
+    The keys of the two must be equal
+    line_dict_exp: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    line_dict_real: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    max_step: the number of elements with the most difference between the two groups of data
+        0. Judge the number of two linear velocity data, and the difference should not be too large
+        1. Calculate the Euclidean distance of the line velocity at the corresponding time point and return to list
+        2. Calculate the standard deviation of the above list
+        3. Draw the trajectory of the two
+    Return bool, linear velocity, distance difference, list, standard deviation, description information
     """
     exp_semantic_list = line_dict_exp.keys()
     real_semantic_list = line_dict_real.keys()
@@ -658,11 +618,10 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
             exp_semantic_list, real_semantic_list)
 
     ret_dict = {semantic: {} for semantic in exp_semantic_list}
-    data_list = []  # 存放要画每种shape的轨迹数据
+    data_list = []
     for semantic, exp_line_dict in line_dict_exp.items():
         real_line_dict = line_dict_real[semantic]
 
-        # 0. 判断两个位置数据的个数，不能相差太大
         exp_len = len(exp_line_dict.keys())
         real_len = len(real_line_dict.keys())
         max_len = exp_len + max_step
@@ -671,7 +630,7 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
             return False, 'shape: {}\nline elements count is not in normal range\nexpect len: {} - {}, real len: {}'.format(
                 semantic, min_len, max_len, real_len)
 
-        # 1. 计算对应时间点位置的欧氏距离，并返回list
+        # 1. Calculate the Euclidean distance of the corresponding time point and return to list
         exp_data_list = [exp_line_dict[t] for t in sorted(exp_line_dict.keys())]
         real_data_list = [real_line_dict[t] for t in sorted(real_line_dict.keys())]
         if exp_len > real_len:
@@ -682,9 +641,9 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
         if not r_bool:
             return False, ret_list
 
-        ret_dict[semantic]['distance'] = ret_list  # 相同shape下的距离
+        ret_dict[semantic]['distance'] = ret_list
 
-        # 2. 计算上边list的标准差
+        # 2. cal std
         std = np.std(ret_list)
         ret_dict[semantic]['std'] = std
 
@@ -707,11 +666,7 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
         ret_dict[semantic]['std_x'] = std_x
         std_y = np.std(ret_list_y)
         ret_dict[semantic]['std_y'] = std_y
-        # # 轨迹图数据拼接
-        # data_list.append({'trace_title': '{} Line Speed, std: {}'.format(semantic, std),
-        #                   'trace_dict': {'{}_exp'.format(semantic): exp_data_list,
-        #                                  '{}_real'.format(semantic): real_data_list},
-        #                   })
+
         data_list.append((
             {'title': '{}_X Line Speed, std: {:<8.2f}'.format(semantic, std_x),
              'data': {'{}_exp_x'.format(semantic): exp_data_list_x, '{}_real_x'.format(semantic): real_data_list_x,
@@ -722,8 +677,6 @@ def compare_line(line_dict_exp, line_dict_real, save_path, max_step=5):
                       '{}_distance_y'.format(semantic): ret_list_y}
              },
         ))
-    # # 3. 画出两个的轨迹图
-    # r_bool, msg = generate_trace_rows(data_list, save_path)
 
     # 3. make line graph
     r_bool, msg = generate_line_rows(data_list, save_path)
@@ -870,18 +823,18 @@ def compare_prediction_paths(pre_dict_exp, pre_dict_real, save_path, max_step=5)
 
 def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
     """
-    比较shape大小
-    'shape': {CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},  根据分类情况（同3），将shape分成数组
-    两者的key一定是相等的
-    shape_dict_exp: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    shape_dict_real: {'CAR': {t1: (x,y), t2: (x, y)}, 'BUS': {t1: (x,y), t2: (x, y)}},   # x和y方向的位置值
-    max_step: 两组数据最多相差的元素数量
-    0. 判断两个shape数据的个数，不能相差太大,左右相差不能超过max_step
-    1. 计算对应时间点 不同semantic shape x的差值，并返回list
-    2. 计算对应时间点 不同semantic shape y的差值，并返回list
-    3. 计算上边list的标准差
-    4. 画出每种语义的x和y分别的折线图
-    return bool, 线速度距离差list，标准差，描述信息
+    Compare shape size
+    'shape ': {car': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}}. According to the classification (same as 3), shape is divided into arrays
+    The keys of the two must be equal
+    shape_dict_exp: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    shape_dict_real: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    max_ Step: the number of elements with the most difference between the two groups of data
+    0. Judge the number of two shape data, and the difference between left and right should not exceed max_ step
+    1. Calculate the difference of different semantic shape x at corresponding time points and return to list
+    2. Calculate the difference of different semantic shape y at corresponding time points and return to list
+    3. Calculate the standard deviation of the list above
+    4. Draw the broken line graph of X and y of each semantics
+    Return bool, linear velocity, distance difference, list, standard deviation, description information
     """
     exp_semantic_list = shape_dict_exp.keys()
     real_semantic_list = shape_dict_real.keys()
@@ -895,7 +848,7 @@ def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
     for semantic, exp_shape_dict in shape_dict_exp.items():
         real_shape_dict = shape_dict_real[semantic]
 
-        # 0. 判断两个 shape 数据的个数，不能相差太大
+        # 0. The number of two shape data should not be too different
         exp_len = len(exp_shape_dict.keys())
         real_len = len(real_shape_dict.keys())
         max_len = exp_len + max_step
@@ -911,10 +864,10 @@ def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
             exp_data_list = exp_data_list[:real_len]
         elif exp_len < real_len:
             real_data_list = real_data_list[:exp_len]
-        # 1. 计算对应时间点 不同semantic shape x的差值，并返回list
+        # 1. Calculate the difference of different semantic shape x at the corresponding time point, and return to list
         shape_exp_x = [t[0] for t in exp_data_list]
         shape_real_x = [t[0] for t in real_data_list]
-        # 计算标准差
+        # cal std
         r_bool, std, diff_list, msg = cal_std(shape_exp_x, shape_real_x)
         if not r_bool:
             return False, msg
@@ -941,7 +894,7 @@ def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
             )
         )
 
-    # 画出每种语义的下shape x和y以及差值的三条折线图
+    # Draw the bottom shape X and Y and the three line graph of the difference
     r_bool, msg = generate_line_rows(data_list, save_path)
 
     if not r_bool:

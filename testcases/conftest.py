@@ -1,20 +1,20 @@
 # -*- coding:utf8 -*-
 """
-专门存放fixture的配置文件
-pytest 会在执行测试函数之前（或之后）加载运行它们
-Pytest 使用 yield 关键词将固件分为两部分，yield 之前的代码属于预处理，会在测试前执行；yield 之后的代码属于后处理，将在测试完成后执行。
-比如每个用例都要ssh到PCU环境上，就可以把fixture放到这里
-pytest会默认读取conftest.py中的所有fixture
-conftest.py只有一个package下的所有测试用例生效
-不同目录可以有自己的conftest.py
-测试用例不需要手动导入conftest.py，pytest会自己找
-在定义固件时，通过 scope 参数声明作用域，可选项有：
+The configuration file for storing fixture
+Pytest loads and runs test functions before (or after) executing them
+Pytest uses the yield keyword to divide the firmware into two parts. The code before yield belongs to preprocessing and will be executed before testing; the code after yield belongs to post-processing and will be executed after the test is completed.
+For example, if each use case needs to be SSH to the PCU environment, you can put the fixture here
+Pytest will read by default conftest.py All fixtures in
+conftest.py Only all test cases under one package are valid
+Different directories can have their own conftest.py
+Test cases do not need to be imported manually conftest.py , pytest will find it by itself
+When defining the firmware, declare the scope through the scope parameter. The options are:
 
-    function: 函数级，每个测试函数都会执行一次固件；
-    class: 类级别，每个测试类执行一次，所有方法都可以使用；
-    module: 模块级，每个模块执行一次，模块内函数和方法都可使用；
-    session: 会话级，一次测试只执行一次，所有被找到的函数和方法都可用。
 
+Function: function level, each test function will execute firmware once;
+Class: class level. Each test class is executed once, and all methods can be used;
+Module: module level, each module is executed once, and the functions and methods in the module can be used;
+Session: at the session level, a test is executed only once, and all the functions and methods found are available.
 """
 
 import pytest
@@ -26,8 +26,8 @@ from utils.log import md_logger
 logger = logging.getLogger()
 
 
-@allure.step('1. 连接PCU环境')
-@allure.title('1. 连接PCU环境')
+@allure.step('1. connect to pcu env')
+@allure.title('1. connect to pcu env')
 @pytest.fixture
 def connect_pcu():
     logger.info('================= 1. connect to PCU env =================')
@@ -40,43 +40,42 @@ def connect_pcu():
 
 
 def clean_env(remote_server):
-    """清理环境"""
+    """clean env"""
     remote_server.exec_comm('rm -rf /opt/autocore/test_data/map/*')
     # os.system('rm -rf {}/test_data/map/*'.format(config.TEST_CASE_PATH))
     logger.info('clean ok')
 
 
-@allure.step('清理环境')
+@allure.step('clean env')
 @pytest.fixture
-def clean_file(connect_pcu, name='连接PCU环境'):
+def clean_file(connect_pcu, name='connect to pcu'):
     """
-    清理文件
+    clean file
     :return:
     """
     remote_server = connect_pcu
 
-    with allure.step('2. 清理远程环境'):
+    with allure.step('2. clean remote env'):
         logger.info('================= 2. clean env =================')
         clean_env(remote_server)
 
     yield
 
-    with allure.step('15. 清理远程环境'):
+    with allure.step('15. clean remote env'):
         logger.info('================= 15. clean env =================')
         clean_env(remote_server)
     logger.info('=============== tear down test end ===============')
 
 
-@allure.step('生成日志层级对象')
 @pytest.fixture(autouse=True)
-def log(request, name='日志'):
+def log(request, name='log'):
     """
-    动态日志路径
+    Dynamic log path
     :param request:
     :param name:
     :return:
     """
-    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
+    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]
     case_name = request.function.__name__
 
     if request.cls is None:
@@ -89,19 +88,18 @@ def log(request, name='日志'):
     else:
         cls_name = request.cls.__name__
         log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
-    print("+++++++++++++++++++++++"+log_path)
-    return md_logger(log_path)  # 初始话日志路径
+    return md_logger(log_path)  # Initial session log obj
 
 
 @pytest.fixture(scope='function')
-def log_path(request, name='日志路径'):
+def log_path(request, name='log path'):
     """
-    获取日志路径
+    get log path
     :param request:
     :param name:
     :return:
     """
-    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]  # 用例所在目录
+    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]
     case_name = request.function.__name__
 
     if request.cls is None:
@@ -114,6 +112,4 @@ def log_path(request, name='日志路径'):
         cls_name = request.cls.__name__
         real_log_path = '{}logs/{}/{}/{}'.format(config.TEST_CASE_PATH, case_path, cls_name, case_name)
 
-    return real_log_path  # 日志路径
-
-
+    return real_log_path
