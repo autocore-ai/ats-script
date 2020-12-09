@@ -1,80 +1,20 @@
 # -*- coding:utf8 -*-
 import time
+import os
 import logging
 import subprocess
-from common.perception.command import START_AUTOWARE_4, START_PERCEPTION, CHECK_AUTOWARE_4, AUTOWARE_SCREEN_NAME, STOP_AUTOWARE_4,\
-    CHECK_PERCEPTION_DOCKER, CHECK_PERCEPTION_NODE, STOP_PERCEPTION, ROSBAG_RECORD_O, ROSBAG_RECORD_O_REMOTE, \
-    ROSBAG_PLAY, ROSBAG_PLAY_REMOTE, PERCEPTION_DOCKER_NAME, CHECK_AUTOWARE_4_NODES, AUTOWARE_4_NODES_LIST, \
-    PERCEPTION_NODES_LIST
-from utils.remote import RemoteP
+from common.perception.command import *
+from common.utils.remote import RemoteP
 import common.perception.perception_conf as p_conf
-import utils.local as loc
+import common.utils.local as loc
+import common.action as comm
 import config
 logger = logging.getLogger()
 
 
-# def check_autoware_status():
-#     """
-#     check autoware running status
-#     1. judge: Is autoware and test env same env?
-#     2. if same, local check
-#     3. if not, remote to autoware and check
-#     return:
-#     True, True: first true, check
-#     """
-#     check_cmd_autoware = 'ps -ef| grep {} | grep -v grep'.format('Autoware')
-#     check_cmd_ros = 'ps -ef| grep {} | grep -v grep'.format('ros')
-#     if config.TEST_IP == config.PERCEPTION_AUTOWARE4_IP:
-#         pass
-#     else:
-#         logger.info('check remote autoware.4 status: {}'.format(check_cmd_autoware))
-#         logger.info('check remote ros status: {}'.format(check_cmd_ros))
-#         server = RemoteP(config.PERCEPTION_AUTOWARE4_IP, config.PERCEPTION_AUTOWARE4_PWD, config.PERCEPTION_AUTOWARE4_PWD)
-#         r_bool_autoware4, ret_autoware4 = server.exec_comm(check_cmd_autoware)
-#         logger.info('check remote autoware4-Autoware, result: {}, msg: {}'.format(r_bool_autoware4, ret_autoware4))
-#         if not r_bool_autoware4:
-#             return False, ret_autoware4
-#         r_bool_ros, ret_ros = server.exec_comm(check_cmd_ros)
-#         logger.info('check remote autoware4-ros, result: {}, {}'.format(r_bool_ros, ret_ros))
-#         if not r_bool_ros:
-#             return False, ret_ros
-#
-#         run_status = False
-#         if 'Autoware' in ret_autoware4 or 'ros' in ret_ros:
-#             run_status = True
-#         return True, run_status
-
-
-# def stop_autoware4(signal='-15'):
-#     """
-#     stop autoware4
-#     1. judge:  Is autoware and test env same env?
-#     2. if same, local stop
-#     3. if not, remote to autoware, to stop
-#     """
-#     stop_cmd_autoware = 'kill {} `ps -ef|grep "Autoware"|awk \'{{print $2}}\'`'.format(signal)
-#     stop_cmd_ros = 'kill {} `ps -ef|grep "ros"|awk \'{{print $2}}\'`'.format(signal)
-#     if config.TEST_IP == config.PERCEPTION_AUTOWARE4_IP:
-#         pass
-#     else:
-#         logger.info('stop remote autoware4 command: {}'.format(stop_cmd_autoware))
-#         logger.info('stop remote ros command: {}'.format(stop_cmd_ros))
-#         server = RemoteP(config.PERCEPTION_AUTOWARE4_IP, config.PERCEPTION_AUTOWARE4_PWD,
-#                          config.PERCEPTION_AUTOWARE4_PWD)
-#         r_bool_autoware4, ret_autoware4 = server.exec_comm(stop_cmd_autoware)
-#         logger.info('stop remote autoware4, result: {}, msg: {}'.format(r_bool_autoware4, ret_autoware4))
-#         if not r_bool_autoware4:
-#             return False, ret_autoware4
-#         r_bool_ros, ret_ros = server.exec_comm(stop_cmd_ros)
-#         logger.info('stop remote autoware4, result: {}, msg: {}'.format(r_bool_ros, ret_autoware4))
-#         if not r_bool_ros:
-#             return False, ret_ros
-#         return True, ''
-
-
 def check_autoware_status():
     """
-    check autoware running status by screen
+    check autoware4 running status by screen
     1. judge: Is autoware and test env same env?
     2. if same, local check
     3. if not, remote to autoware and check
@@ -284,98 +224,6 @@ def check_perception():
     return True, True
 
 
-#
-# def check_perception_docker_status():
-#     """
-#     check perception docker status
-#     """
-#     if PERCEPTION_ENV_REMOTE:
-#         remote = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-#         cmd = 'docker ps | grep devel'
-#         logger.info('exec remote command, check perception docker status: {}'.format(cmd))
-#         r_bool, ret = remote.exec_comm(cmd)
-#         logger.info('check perception result:{} {}'.format(r_bool, ret))
-#         if not r_bool:
-#             return False, ret
-#         if not ret:
-#             return False, 'docker stopped already.'
-#     return True, ''
-#
-#
-# def stop_perception_docker():
-#     """
-#     stop perception docker
-#     """
-#     if PERCEPTION_ENV_REMOTE:
-#         remote = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-#         cmd = 'docker stop devel'
-#         logger.info('exec remote command, stop perception docker: {}'.format(cmd))
-#         r_bool, ret = remote.exec_comm(cmd)
-#         if not r_bool:
-#             return False, ret
-#         logger.info('exec remote command , stop perception docker result: {}'.format(ret))
-#     return True, ''
-#
-#
-# def check_perception_ok():
-#     """
-#     check perception is ok by rosnode list
-#     """
-#     r_bool, node_list = get_perception_node_list()
-#     if not r_bool:
-#         return False, node_list
-#
-#     logger.info('check perception in node list')
-#     if '/perception/object_recognition/detection/roi_cluster_fusion' not in node_list:
-#         return False, 'start failed.'
-#     return True, 'start success'
-#
-#
-# def get_perception_node_list():
-#     """get perception env rosnode list"""
-#     cmd = 'rosnode list'
-#     if PERCEPTION_ENV_REMOTE:
-#         # cmd = 'export ROS_IP={};export ROS_MASTER_URI={};source /opt/ros/melodic/setup.bash;rosnode list | grep perception'.format(PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
-#         cmd = 'export ROS_IP={};export ROS_MASTER_URI={};source /home/nv/NVME/aw_debug/perception/perception_radar_v2/autoware4-xavier/devel/setup.bash;rosnode list | grep perception'.format(PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
-#         logger.info('exec remote command: {}'.format(cmd))
-#         remote = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-#         r_bool, ret = remote.exec_comm(cmd)
-#     else:  # local operations
-#         pass
-#     if not r_bool:
-#         return False, 'get remote rosnode error: {}'.format(ret)
-#     rosnode_list = [node for node in ret.split('\n') if node]
-#     logger.info('remote rosnode list: {}'.format(ret))
-#     return True, rosnode_list
-#
-#
-# def stop_perception_node_list(node_list):
-#     """
-#     To stop node list by rosnode kill
-#     """
-#     node_str = ' '.join(node_list)
-#     cmd = 'rosnode kill {}'.format(node_str)
-#     if PERCEPTION_ENV_REMOTE:
-#         # cmd = 'export ROS_IP={};export ROS_MASTER_URI={};source /opt/ros/melodic/setup.bash;rosnode kill {}'.format(
-#         #     PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI, node_str)
-#         cmd = 'export ROS_IP={};export ROS_MASTER_URI={};source /home/nv/NVME/aw_debug/perception/perception_radar_v2/autoware4-xavier/devel/setup.bash;rosnode kill {}'.format(
-#             PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI, node_str)
-#         remote = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
-#         r_bool, ret = remote.exec_comm(cmd)
-#         print(ret)
-#         logger.info('rosnode kill result: {}'.format(ret))
-#         # stop screen
-#         screen_stop = 'screen -X -S perception-test quit'
-#         r_bool, ret = remote.exec_comm(screen_stop)
-#         logger.info('screen kill result: {}'.format(ret))
-#     else:  # local operations
-#         pass
-#     if not r_bool:
-#         return False, 'get remote rosnode error: {}'.format(ret)
-#
-#     return True, 'killed.'
-
-
 def record_bag(result_bag_path, bag_duration):
     """
     record bag
@@ -476,5 +324,62 @@ def stop_record_bag():
     return True, ''
 
 
+def check_autoware_open_status() -> (bool, bool):
+    """
+    check autoware4
+
+    steps:
+        1. check docker
+        2. get node list
+        3. check node list
+    """
+    # 1. check docker
+    r_bool, status_bool = comm.check_docker(AUTOWARE_DOCKER_NAME)
+    if not r_bool:
+        logger.info('check autoware docker(name: {}) error: {}'.format(AUTOWARE_DOCKER_NAME, status_bool))
+        return False, status_bool
+
+    if not status_bool:
+        return True, False
+
+    # 2. get node list
+    r_bool, node_list = comm.get_node_list(GET_ROS_NODE_LIST)
+    if not r_bool:
+        logger.info('get autoware rosnode list failed, error: {}'.format(node_list))
+        return False, node_list
+
+    # 3. check node list
+    r_bool, msg = comm.check_node_list(p_conf.AUTOWARE_NODE_LIST, node_list)
+    if not r_bool:
+        logger.info('check autoware rosnode failed, msg: {}'.format(msg))
+        return True, False
+    return True, True
+
+
+def start_autoware_open(aw_log_path):
+    """
+    start autoware
+    :return:
+    """
+    start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_OPEN, log_path=aw_log_path)
+    logger.info('start autoware cmd: {}'.format(start_cmd))
+    os.system(start_cmd)
+
+
+def stop_autoware_open():
+    """
+    stop docker
+    :return:
+    """
+    r_bool, s_bool = comm.stop_docker(AUTOWARE_DOCKER_NAME)
+    if not r_bool:
+        logger.error('stop autoware failed, msg: {}'.format(s_bool))
+        return False, s_bool
+
+    if not s_bool:
+        return True, 'stop autoware failed'
+    return True, ''
+
+
 if __name__ == '__main__':
-    r_bool, 
+    pass

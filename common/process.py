@@ -8,7 +8,7 @@ import os
 import time
 import logging
 import subprocess
-from utils.remote import Remote, RemoteP
+from common.utils.remote import Remote, RemoteP
 import config
 logger = logging.getLogger()
 

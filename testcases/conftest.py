@@ -19,10 +19,10 @@ Session: at the session level, a test is executed only once, and all the functio
 
 import pytest
 import allure
-from utils import remote
+from common.utils import remote
 import config
 import logging
-from utils.log import md_logger
+from common.utils.log import md_logger
 logger = logging.getLogger()
 
 

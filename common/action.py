@@ -58,6 +58,27 @@ def get_node_list(node_list_cmd: str) -> (bool, list):
 
     pass
 
+
+def stop_docker(d_name: str) -> (bool, bool):
+    """
+    stop docker
+    :param d_name:
+    :return:
+    """
+    cmd = 'docker stop {}'.format(d_name)
+    logger.debug('stop docker cmd: {cmd}'.format(cmd=cmd))
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = p.stdout.read().decode('utf-8')
+    stderr = p.stderr.read().decode('utf-8')
+    logger.debug('stop docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    if stderr:
+        logger.error(stderr)
+        return False, stderr
+    if stdout and stdout == d_name:
+        return True, True
+    return True, False
+
+
 if __name__ == '__main__':
     # print(check_docker('test'))
     check_docker('test')

@@ -15,6 +15,8 @@ docker run -it --net=host --gpus=all --rm \
     --name=autoware4_open \
     --volumes-from debug \
     --volumes-from data \
+    -volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --env "DISPLAY" \
     --privileged \
     actst/devel /bin/bash -c  \
     "cd /AutowareArchitectureProposal &&

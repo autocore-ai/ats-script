@@ -12,10 +12,14 @@ PERCEPTION_ROS_MASTER_URI = 'http://{}:11311'.format(PERCEPTION_AUTOWARE4_IP)
 PERCEPTION_IP = '127.0.0.1'
 PERCEPTION_USER = 'adlink'
 PERCEPTION_PWD = 'adlink'
-PERCEPTION_BAG_PATH = '{}/bags/perception_bags'.format(TEST_CASE_PATH)  # record bags, play bags path
-PERCEPTION_BAG_PATH_OPEN = '{}/bags/perception_bags_open'.format(TEST_CASE_PATH)  # record bags, play bags path
+PERCEPTION_BAG_PATH = '{}/bags/perception'.format(TEST_CASE_PATH)  # record bags, play bags path
+PERCEPTION_BAG_PATH_OPEN = '{}/bags/perception_open'.format(TEST_CASE_PATH)  # record bags, play bags path
 
 PERCEPTION_BAG_REMOTE = False  # record or play bags env, True remote, False local
 PERCEPTION_BAG_REMOTE_IP = '127.0.0.1'
 PERCEPTION_BAG_REMOTE_USER = 'adlink'
 PERCEPTION_BAG_REMOTE_PWD = 'adlink'
+
+# =================================== open source config ===================================
+AUTOWARE_DOCKER_NAME = 'autoware4_open'
+AUTOWARE_NODE_LIST = []
