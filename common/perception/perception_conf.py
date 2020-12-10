@@ -21,7 +21,7 @@ PERCEPTION_BAG_REMOTE_USER = 'adlink'
 PERCEPTION_BAG_REMOTE_PWD = 'adlink'
 
 # =================================== open source config ===================================
-AUTOWARE_DOCKER_NAME = 'autoware4_open'
+AUTOWARE_DOCKER_NAME = 'runtime'
 AUTOWARE_NODE_LIST = []
 AUTOWARE_RUN_STATUS = {1: 'docker stopped', 2: 'docker and autoware are running ',
                        3: 'docker is running, but autoware is not ok'}

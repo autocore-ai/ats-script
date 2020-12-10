@@ -346,13 +346,13 @@ def check_autoware_open_status() -> (bool, int):
         return True, 1  # docker stopped
 
     # 2. get node list
-    r_bool, node_list = comm.get_node_list(GET_ROS_NODE_LIST)
+    r_bool, node_list_str = comm.get_node_list(GET_ROS_NODE_LIST)
     if not r_bool:
-        logger.info('get autoware rosnode list failed, error: {}'.format(node_list))
-        return False, node_list
+        logger.info('get autoware rosnode list failed, error: {}'.format(node_list_str))
+        return False, node_list_str
 
     # 3. check node list
-    r_bool, msg = comm.check_node_list(p_conf.AUTOWARE_NODE_LIST, node_list)
+    r_bool, msg = comm.check_node_list(p_conf.AUTOWARE_NODE_LIST, node_list_str)
     if not r_bool:
         logger.info('check autoware rosnode failed, msg: {}'.format(msg))
         return True, 3  # docker is running, but autoware is not ok
@@ -366,7 +366,10 @@ def start_autoware_open(aw_log_path):
     """
     start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_OPEN, log_path=aw_log_path)
     logger.info('start autoware cmd: {}'.format(start_cmd))
-    os.system(start_cmd)
+    r_bool, msg = comm.start_docker(start_cmd)
+    if not r_bool:
+        return False, msg
+    return True, ''
 
 
 def stop_autoware_open() -> (bool, str):

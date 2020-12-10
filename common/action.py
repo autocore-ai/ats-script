@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 """
 @Project ：auto_test 
-@File    ：action.py.py
+@File    ：action.py
 @Date    ：2020/12/8 上午11:20 
 """
 
@@ -17,18 +17,20 @@ def check_docker(d_name: str) -> bool:
     :param d_name: docker name
     :return: bool
     """
-    cmd = 'docker ps | grep {d_name}'.format(d_name=d_name)
-    logger.debug('check docker cmd: {cmd}'.format(cmd=cmd))
+    # cmd = 'docker ps | grep {d_name}'.format(d_name=d_name)
+    cmd = 'docker ps --format "{{.Names}}"'
+    logger.info('check docker cmd: {cmd}'.format(cmd=cmd))
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = p.stdout.read().decode('utf-8')
     stderr = p.stderr.read().decode('utf-8')
-    logger.debug('check docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    logger.info('check docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
     if stderr:
-        logger.error(stderr)
-        raise Exception(stderr)
-    if stdout:
-        return True
-    return False
+        return False, stderr
+    stdout_list = [n for n in stdout.split('\n') if n]
+    logger.info(stdout_list)
+    if len(stdout_list) == 1 and stdout_list[0] == d_name:
+        return True, True
+    return True, False
 
 
 def check_node_list(exp_n_list: list, real_n_list: str) -> (bool, str):
@@ -47,16 +49,40 @@ def check_node_list(exp_n_list: list, real_n_list: str) -> (bool, str):
     return True, ''
 
 
-def get_node_list(node_list_cmd: str) -> (bool, list):
+def get_node_list(node_list_cmd: str) -> (bool, str):
     """
     1. get node list from current docker
     2. if successful, return list
     3. if not, return error
+
     :param node_list_cmd:
     :return: bool, list
     """
+    p = subprocess.Popen(node_list_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = p.stdout.read().decode('utf-8')
+    stderr = p.stderr.read().decode('utf-8')
+    logger.debug('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    if stderr:
+        return False, stderr
+    return True, stdout
 
-    pass
+
+def start_docker(cmd: str) -> (bool, str):
+    """
+    start docker
+    :param cmd: start command
+    :return:
+    """
+    # p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # stdout = p.stdout.read().decode('utf-8')
+    # stderr = p.stderr.read().decode('utf-8')
+    # logger.debug('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    # if stderr:
+    #     logger.error(stderr)
+    #     return False, stderr
+    # return True, ''
+    subprocess.Popen(cmd, shell=True)
+    return True, ''
 
 
 def stop_docker(d_name: str) -> (bool, bool):

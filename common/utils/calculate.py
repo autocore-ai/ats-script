@@ -29,3 +29,20 @@ def cal_std(l1, l2, step=1):
     diff = np.array(l1)-np.array(l2)
     std = np.std(diff)
     return True, std, list(diff), ''
+
+
+def cal_euc_distance(array1, array2):
+    """Calculate the Euclidean distance between the points of two vectors and return the array"""
+    ret_list = []
+    if len(array1) != len(array2):
+        return False, 'two array\'s length is not equal, {} != {}'.format(len(array1), len(array2))
+    try:
+        for i, d in enumerate(array1):
+            dist = np.linalg.norm(np.array(d)-np.array(array2[i]))
+            ret_list.append(dist)
+        return True, ret_list
+    except Exception as e:
+        logger.error(array1)
+        logger.error(array2)
+        logger.exception(e)
+        return False, '%s' % traceback.format_exc()

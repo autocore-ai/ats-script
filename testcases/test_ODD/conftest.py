@@ -27,7 +27,7 @@ logger = logging.getLogger()
 
 
 @pytest.fixture
-def perception_open_env():
+def perception_open_env(get_case_path):
     """
     1. set up
         check autoware4 docker status, if running, stop it, then check docker stopped
@@ -58,8 +58,11 @@ def perception_open_env():
     step_desc = '2. start Autoware4'
     with allure.step(step_desc):
         logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        aw_log_path = ''
-        p_env.start_autoware_open(aw_log_path)
+        log_path = get_case_path
+        aw_log_path = '{}/logs/{}_autoware.log'.format(TEST_CASE_PATH, log_path)
+        logger.info('autoware log path: {}'.format(aw_log_path))
+        r_bool, msg = p_env.start_autoware_open(aw_log_path)
+        assert r_bool, msg
 
     wait_time = 80
     step_desc = '3. check autoware start ok, and waiting autoware to start until start successful, ' \
@@ -68,11 +71,12 @@ def perception_open_env():
         logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
         t = 0
         while t < wait_time:
-            logger.info('waiting autoware start, wait {}s'.format(t+1))
+            time.sleep(1)
+            logger.info('waiting autoware start, wait {}s ......'.format(t+1))
             r_bool, status = p_env.check_autoware_open_status()
             assert r_bool, status
             if status == 2:
-                logger.ingo('autoware started successfully')
+                logger.info('autoware started successfully')
                 break
             t += 1
         assert t < wait_time, 'autoware didn\'t start in {}s'.format(wait_time)
@@ -266,7 +270,6 @@ def planning_env(scope='function'):
         local_planning_end(p1)
         time.sleep(5)
         local_docker_end(p2)
-
 
 
 if __name__ == '__main__':

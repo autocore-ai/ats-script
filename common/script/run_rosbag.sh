@@ -12,7 +12,6 @@ docker run -d --rm \
 
 docker run -it --net=host --gpus=all --rm \
     --name=runtime \
-    --name=autoware4_open \
     --volumes-from debug \
     --volumes-from data \
     --privileged \

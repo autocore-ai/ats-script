@@ -68,11 +68,20 @@ def clean_file(connect_pcu, name='connect to pcu'):
 
 
 @pytest.fixture(autouse=True)
-def log(request, name='log'):
+def log(get_case_path):
     """
-    Dynamic log path
+    Dynamic logger
+    :param get_case_path: case
+    :return:
+    """
+    return md_logger(get_case_path)  # Initial session log obj
+
+
+@pytest.fixture(scope='function')
+def get_case_path(request):
+    """
+    get log path
     :param request:
-    :param name:
     :return:
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]
@@ -80,36 +89,16 @@ def log(request, name='log'):
 
     if request.cls is None:
         if 'case_data' in request.fixturenames:
-            case_id = request.getfixturevalue('case_data')['Jira_ID']
             case_name = request.getfixturevalue('case_data')['CaseName']
-            log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
+            if 'Jira_ID' in request.getfixturevalue('case_data'):
+                case_id = request.getfixturevalue('case_data')['Jira_ID']
+                log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
+            else:
+                log_path = '{}/{}'.format(case_path, case_name)
         else:
             log_path = '{}/{}'.format(case_path, case_name)
     else:
         cls_name = request.cls.__name__
         log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
-    return md_logger(log_path)  # Initial session log obj
 
-
-@pytest.fixture(scope='function')
-def log_path(request, name='log path'):
-    """
-    get log path
-    :param request:
-    :param name:
-    :return:
-    """
-    case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]
-    case_name = request.function.__name__
-
-    if request.cls is None:
-        if 'case_data' in request.fixturenames:
-            case_id = request.getfixturevalue('test_data')['jira_id']
-            real_log_path = '{}logs/{}/{}_JiraID_{}'.format(config.TEST_CASE_PATH, case_path, case_name, case_id)
-        else:
-            real_log_path = '{}logs/{}/{}'.format(config.TEST_CASE_PATH, case_path, case_name)
-    else:
-        cls_name = request.cls.__name__
-        real_log_path = '{}logs/{}/{}/{}'.format(config.TEST_CASE_PATH, case_path, cls_name, case_name)
-
-    return real_log_path
+    return log_path
