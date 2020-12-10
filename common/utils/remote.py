@@ -262,6 +262,7 @@ class RemoteP:
             logger.exception(e)
             return False, 'get remote file execption'
 
+
 if __name__ == '__main__':
     from common.command import *
     from config import PCU_IP, PCU_USER, PCU_PWD

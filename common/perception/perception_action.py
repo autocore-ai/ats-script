@@ -324,7 +324,7 @@ def stop_record_bag():
     return True, ''
 
 
-def check_autoware_open_status() -> (bool, bool):
+def check_autoware_open_status() -> (bool, int):
     """
     check autoware4
 
@@ -332,6 +332,9 @@ def check_autoware_open_status() -> (bool, bool):
         1. check docker
         2. get node list
         3. check node list
+    :returns bool, int;
+    bool, exec cmd result,if exec successful, True, or not False,
+    int: 1. docker stopped 2. docker and autoware are running 3. docker is running, but autoware is not ok
     """
     # 1. check docker
     r_bool, status_bool = comm.check_docker(AUTOWARE_DOCKER_NAME)
@@ -340,7 +343,7 @@ def check_autoware_open_status() -> (bool, bool):
         return False, status_bool
 
     if not status_bool:
-        return True, False
+        return True, 1  # docker stopped
 
     # 2. get node list
     r_bool, node_list = comm.get_node_list(GET_ROS_NODE_LIST)
@@ -352,8 +355,8 @@ def check_autoware_open_status() -> (bool, bool):
     r_bool, msg = comm.check_node_list(p_conf.AUTOWARE_NODE_LIST, node_list)
     if not r_bool:
         logger.info('check autoware rosnode failed, msg: {}'.format(msg))
-        return True, False
-    return True, True
+        return True, 3  # docker is running, but autoware is not ok
+    return True, 2  # docker and autoware are running
 
 
 def start_autoware_open(aw_log_path):
@@ -366,10 +369,12 @@ def start_autoware_open(aw_log_path):
     os.system(start_cmd)
 
 
-def stop_autoware_open():
+def stop_autoware_open() -> (bool, str):
     """
     stop docker
     :return:
+        bool: if True that means docker stopped
+        str:  Error message description
     """
     r_bool, s_bool = comm.stop_docker(AUTOWARE_DOCKER_NAME)
     if not r_bool:

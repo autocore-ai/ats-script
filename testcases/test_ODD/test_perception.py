@@ -62,14 +62,14 @@ def make_test_case(story, case_data, case_level, case_desc):
         with allure.step(step_desc):
             time.sleep(1)
 
-            logger.info('=' * 20 + step_desc + '=' * 20)
+            logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
             r_bool, ret = p_act.stop_record_bag()
             assert r_bool, ret
 
         '''
         step_desc = '3. get bag to local, remote'
         with allure.step(step_desc):
-            logger.info('=' * 20 + step_desc + '=' * 20)
+            logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
             ip, user, pwd = conf.PERCEPTION_BAG_REMOTE_IP, conf.PERCEPTION_BAG_REMOTE_USER, conf.PERCEPTION_BAG_REMOTE_PWD
             remote = RemoteP(ip, user, pwd)
             bag_dir = '{}/{}'.format(conf.PERCEPTION_BAG_PATH, case_data['bag_name'].split('.bag')[0])
