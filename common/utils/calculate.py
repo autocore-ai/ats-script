@@ -17,14 +17,14 @@ def cal_std(l1, l2, step=1):
     """
     l1_len = len(l1)
     l2_len = len(l2)
-    if l1_len > l2_len and l1_len == l2_len+step:
+    if l1_len > l2_len and l1_len in [l2_len, l2_len+step]:
         l1 = l1[step:]
-    elif l1_len < l2_len and l1_len+step == l2_len:
+    elif l1_len < l2_len and l2_len in [l1_len, l1_len+step]:
         l2 = l2[step:]
     elif l1_len == l2_len:
         pass
     else:
-        return False, 0, [], '{}\'s len is not equal {}\'s len'.format(l1, l2)
+        return False, 0, [], '{}\'s len: {} is not equal {}\'s len: {}'.format(l1, l1_len, l2, l2_len)
 
     diff = np.array(l1)-np.array(l2)
     std = np.std(diff)
