@@ -21,12 +21,20 @@ from common.process import *
 import common.perception.perception_action as p_env
 import common.perception.perception_conf as p_conf
 from common.planning.planning_action import *
-
+import config
 logger = logging.getLogger()
 
 
 @pytest.fixture
-def perception_open_env(get_case_path):
+def perception_env():
+    if config.EXEC_CASE_TYPE == 1:
+        return perception_env_open
+    else:
+        return perception_env_home
+
+
+@pytest.fixture
+def perception_env_open(get_case_path):
     """
     1. set up
         check autoware4 docker status, if running, stop it, then check docker stopped
@@ -57,8 +65,7 @@ def perception_open_env(get_case_path):
     step_desc = '2. start Autoware4'
     with allure.step(step_desc):
         logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        log_path = get_case_path
-        aw_log_path = '{}/logs/{}_autoware.log'.format(TEST_CASE_PATH, log_path)
+        aw_log_path = '{}_autoware.log'.format(get_case_path)
         logger.info('autoware log path: {}'.format(aw_log_path))
         r_bool, msg = p_env.start_autoware_open(aw_log_path)
         assert r_bool, msg
@@ -93,7 +100,7 @@ def perception_open_env(get_case_path):
 
 
 @pytest.fixture
-def perception_env():
+def perception_env_home():
     """
     1. set up
     Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash

@@ -1,19 +1,12 @@
 # -*- coding:utf8 -*-
 """
 1. Number of obstacles UUID_ The detection rate was UUID_ Count / T, give the number of UUIDs detected per second, and draw a line graph
-
 2. The correct semantic, the type and number of semantics, the percentage of correct semantics, the semantic pie chart, the line chart of semantics per second, and the broken line chart with different semantics
-
 3. Position of obstacles, take x, Y values, form a two-dimensional list in chronological order, and draw a broken line diagram
-
 List and draw the angle of the obstacle according to the time order
-
 5. The linear velocity line of obstacles, only the values of X and y are taken. The x-axis data forms a list according to the time sequence and draws a broken line graph. The y-axis data forms a list according to the time order, and draws the broken line diagram, and gives the average speed of X and Y
-
 6. The second value of prediction information of each point is taken out from the prediction data of obstacles. The second value predicts the position and direction of the current obstacle after 0.5s. Get the list like the second and third, and then draw a line chart comparing with 3 and 4. The starting point of X axis is 0.5s later than that of 3 and 4.
-
 In the later stage, Euclidean distance and cosine similarity processing can be done for the predicted data and the data of 3 and 4, and the standard deviation can be calculated for data reference
-
 7. The shape of the obstacle, the shape type and corresponding number, the percentage of the correct type, and the shape pie chart. The list of X and Y is formed in chronological order, and a broken line chart is drawn. Calculate the standard deviation of X and Y respectively
 """
 
@@ -408,7 +401,7 @@ class Analysis:
         fig_shape.savefig(shape_path, dpi=600)
 
 
-def compare_uuid(uuid_exp, uuid_rel, save_path):
+def compare_uuid(uuid_exp, uuid_rel, save_path, step=2):
     """
     Compare the UUID of two bags and generate pictures
     uuid_ Exp: [2,4], expected UUIDs per second
@@ -417,7 +410,7 @@ def compare_uuid(uuid_exp, uuid_rel, save_path):
     Return bool, standard deviation, description information
     """
     # cal std
-    r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel, 1)
+    r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel, 2)
     if not r_bool:
         return False, 0, msg
     logger.info('expect and real uuid diff: {}'.format(std_uuid))

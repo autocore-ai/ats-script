@@ -18,4 +18,5 @@ TEST_CASE_LINK = 'https://gitlab.com/autocore/AutoTest/autotest/-/tree/master'
 TEST_IP = '127.0.0.1'
 
 SEVERITY = ['normal', 'minor']  # 设置需要执行的用例级别
+EXEC_CASE_TYPE = 1  # 1: open source 2: home
 

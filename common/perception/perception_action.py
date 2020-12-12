@@ -1,6 +1,5 @@
 # -*- coding:utf8 -*-
 import time
-import os
 import logging
 import subprocess
 from common.perception.command import *

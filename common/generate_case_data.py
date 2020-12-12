@@ -1,44 +1,36 @@
 # -*- coding:utf8 -*-
 """
-读取 CSV 生成测试用例数据
+Read CSV to generate test case data
 """
-import csv
 import pandas as pd
-import traceback
 import logging
 logger = logging.getLogger()
 
 
 def generate_case_data(csv_case_path):
     """
-    根据用例路径，生成指定标签的用例数据
-    severity: 标志着这个story的用例整体级别，有 normal 等值
-    level: 用例级别，比如1,2,3，
-    根据story 获取用例数据
-
-    [
-        {
-            'story': 'adult', 'case_level': 'normal', 'case_desc': '静止成人站在静态车前'， 'jira_id': 1,
-            'test_data' : {}
-        },normal
-        ...
-    ]
-
+    According to the use case path, the use case data of the specified tag is generated
     """
     data_list = []
     df = pd.read_csv(csv_case_path)
     for index, d in df.iterrows():
-        jira_id = d['Jira_ID']
         case_name = d['CaseName']
-        case_dict = {'Jira_ID': jira_id, 'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story'], 'CaseName': d['CaseName']}
-        d.drop('Jira_ID', inplace=True)
+        case_dict = {'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story'],
+                     'CaseName': d['CaseName']}
+        jira_id = ''
+        if 'Jira_ID' in d:
+            jira_id = d['Jira_ID']
+            case_dict['Jira_ID'] = jira_id
+            d.drop('Jira_ID', inplace=True)
+
         d.drop('Title', inplace=True)
         d.drop('Priority', inplace=True)
         d.drop('Story', inplace=True)
         d.drop('CaseName', inplace=True)
         case_dict['test_case'] = d
-        case_dict['test_case']['Jira_ID'] = jira_id
         case_dict['test_case']['CaseName'] = case_name
+        if jira_id:
+            case_dict['test_case']['Jira_ID'] = jira_id
         data_list.append(case_dict)
     logger.info('read cases count: {}'.format(len(data_list)))
     logger.info('read cases: {}'.format(data_list))

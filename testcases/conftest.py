@@ -19,6 +19,7 @@ Session: at the session level, a test is executed only once, and all the functio
 
 import pytest
 import allure
+import time
 from common.utils import remote
 import config
 import logging
@@ -86,19 +87,20 @@ def get_case_path(request):
     """
     case_path = request.fspath.strpath.split('testcases/')[-1].split('.py')[0]
     case_name = request.function.__name__
+    exec_time = time.strftime("%Y-%m-%d_%H:%M", time.localtime(time.time()))
 
     if request.cls is None:
         if 'case_data' in request.fixturenames:
             case_name = request.getfixturevalue('case_data')['CaseName']
             if 'Jira_ID' in request.getfixturevalue('case_data'):
                 case_id = request.getfixturevalue('case_data')['Jira_ID']
-                log_path = '{}/{}_JiraID_{}'.format(case_path, case_name, case_id)
+                log_path = '{}/logs_{}/{}/{}_JiraID_{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name, case_id)
             else:
-                log_path = '{}/{}'.format(case_path, case_name)
+                log_path = '{}/logs_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
         else:
-            log_path = '{}/{}'.format(case_path, case_name)
+            log_path = '{}/logs_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
     else:
         cls_name = request.cls.__name__
-        log_path = '{}/{}/{}'.format(case_path, cls_name, case_name)
+        log_path = '{}/logs_{}/{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, cls_name, case_name)
 
     return log_path
