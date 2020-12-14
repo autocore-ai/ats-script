@@ -195,7 +195,7 @@ def generate_line_rows(data_list, save_path):
         )
         ]
     """
-    logger.info('generate_line_rows: {}'.format(data_list))
+    logger.debug('generate_line_rows: {}'.format(data_list))
     row = len(data_list)
     if isinstance(data_list[0], dict):
         col = 1

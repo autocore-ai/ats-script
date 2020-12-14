@@ -46,27 +46,27 @@ def make_test_case(story, case_data, case_level, case_desc):
         logger.info('case bag path: {}'.format(bag_dir))
         perception_bag_result_path = '{}/{}'.format(bag_dir, 'result.bag')  # perception result bag path
         step_desc = '1. record rosbag, new bag name: {}'.format(perception_bag_result_path)
-        # with allure.step(step_desc):
-        #     logger.info('='*20 + step_desc + '='*20)
-        #     bag_duration = case_data['bag_duration']
-        #     r_bool, ret = p_act.record_bag(perception_bag_result_path, bag_duration)
-        #     assert r_bool, ret
-        #
-        # play_bag_path = '{}/{}'.format(bag_dir, case_data['bag_name'])
-        # step_desc = '2. play rosbag, bag path: {}'.format(play_bag_path)
-        # with allure.step(step_desc):
-        #     logger.info('='*20 + step_desc + '='*20)
-        #     r_bool, ret = p_act.play_bag(play_bag_path)
-        #     logger.info('play bag finished')
-        #     assert r_bool, ret
-        #
-        # step_desc = '3. stop record bag'
-        # with allure.step(step_desc):
-        #     time.sleep(1)
-        #
-        #     logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        #     r_bool, ret = p_act.stop_record_bag()
-        #     assert r_bool, ret
+        with allure.step(step_desc):
+            logger.info('='*20 + step_desc + '='*20)
+            bag_duration = case_data['bag_duration']
+            r_bool, ret = p_act.record_bag(perception_bag_result_path, bag_duration)
+            assert r_bool, ret
+
+        play_bag_path = '{}/{}'.format(bag_dir, case_data['bag_name'])
+        step_desc = '2. play rosbag, bag path: {}'.format(play_bag_path)
+        with allure.step(step_desc):
+            logger.info('='*20 + step_desc + '='*20)
+            r_bool, ret = p_act.play_bag(play_bag_path)
+            logger.info('play bag finished')
+            assert r_bool, ret
+
+        step_desc = '3. stop record bag'
+        with allure.step(step_desc):
+            time.sleep(1)
+
+            logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
+            r_bool, ret = p_act.stop_record_bag()
+            assert r_bool, ret
 
         step_desc = '4. analysis result bag data'
         with allure.step(step_desc):
@@ -97,9 +97,13 @@ def make_test_case(story, case_data, case_level, case_desc):
             logger.info('================= {} ================='.format(step_desc))
             real_count = bag_real.msg_count
             exp_count = bag_exp.msg_count
-            allure.attach('expect: {}, real: {}'.format(exp_count, real_count), 'compare msg count', allure.attachment_type.TEXT)
-            assert real_count in range(exp_count-1000, exp_count+2000), 'real object topic msg count is less 10 or ' \
-                                                                    'more than 20 then expect msg count'
+            logger.info('expect: {}, real: {}'.format(exp_count, real_count))
+            allure.attach('expect: {}, real: {}'.format(exp_count, real_count), 'compare msg count',
+                          allure.attachment_type.TEXT)
+            assert real_count in range(exp_count-conf.MSG_COUNT_STEP,
+                                       exp_count+conf.MSG_COUNT_STEP), 'real object topic msg count is less or ' \
+                                                                       'more than {step} then expect ' \
+                                                                       'msg count'.format(step=conf.MSG_COUNT_STEP)
 
         # uuid compare
         bag_real_sum_dict = bag_real.sum_data()
@@ -124,8 +128,10 @@ def make_test_case(story, case_data, case_level, case_desc):
             attach_mag = 'uuid count bar/per'
             allure.attach.file(save_path, attach_mag, allure.attachment_type.PNG)
             # compare std
-            assert std_uuid < 1000, 'The standard deviation between the expected uuid and '\
-                                    'the actual uuid is greater than 1, std: {:<8.2f}'.format(std_uuid)
+            assert std_uuid < conf.UUID_STD_MAX, 'The standard deviation between the expected uuid and ' \
+                                                 'the actual uuid is greater than {std_max}, ' \
+                                                 'real std: {r_std:<8.2f}'.format(std_max=conf.UUID_STD_MAX,
+                                                                                  r_std=std_uuid)
 
         step_desc = '8. compare real bag with expect bag: 3. semantic'
         with allure.step(step_desc):
@@ -144,9 +150,10 @@ def make_test_case(story, case_data, case_level, case_desc):
             allure.attach.file(save_path, attach_mag, allure.attachment_type.PNG)
             # compare semantic std
             for sem, std in sem_std_dict.items():
-                assert sem != 'UNKNOWN', 'Semantic is UNKNOWN, that is not allow'
-                assert std < 1000, 'Semantic-{}: The standard deviation between the expected position and ' \
-                                  'the actual position is greater than 1, std: {:<8.2f}'.format(sem, std)
+                assert sem != 'UNKNOWN', 'Semantic is UNKNOWN, that is not allowed'
+                assert std < conf.SEM_STD_MAX, 'Semantic-{sem}: The standard deviation between the expected position ' \
+                                               'and the actual position is greater than {std_max}, std: {r_std:<8.2f}'.\
+                    format(sem=sem, std_max=conf.SEM_STD_MAX, r_std=std)
 
         step_desc = '9. compare real bag with expect bag: 3. position'
         with allure.step(step_desc):
@@ -154,10 +161,11 @@ def make_test_case(story, case_data, case_level, case_desc):
             exp_pos_dict = bag_exp_sum_dict['position']
             real_pos_dict = bag_real_sum_dict['position']
             logger.debug('expect position sum data: {}, real position sum data: {}'.format(exp_pos_dict, real_pos_dict))
-            allure.attach('expect position sum data: {}\n real position sum data: {}'.format(exp_pos_dict, real_pos_dict),
+            allure.attach('expect position sum data: {}\n'
+                          'real position sum data: {}'.format(exp_pos_dict, real_pos_dict),
                           'expect and real position dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'position.png')
-            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=500)
+            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=conf.PST_STEP)
             logger.debug('compare result of position: {}'.format(pos_dict))
             assert r_bool, 'compare of position is wrong, message: {}'.format(pos_dict)
             # attach position png
@@ -167,23 +175,29 @@ def make_test_case(story, case_data, case_level, case_desc):
             for sem, dis_std_dict in pos_dict.items():
                 # 1. compare of std
                 std = dis_std_dict['std']
-                assert std < 100000, 'Position-{}: The standard deviation between the expected position and ' \
-                                   'the actual position is greater than 1, std: {:<8.2f}'.format(sem, std)
+                logger.info('Position-{sem}: The standard deviation between the expected '
+                            'with actual position is {std}'.format(sem=sem, std=std))
+                assert std < conf.PST_STD_MAX, 'Position-{sem}: The standard deviation between the expected position ' \
+                                               'and the actual position is greater than {std_max}, ' \
+                                               'std: {r_std:<8.2f}'.format(sem=sem, std_max=conf.PST_STD_MAX, r_std=std)
                 # 2. compare of distance between expect and actual, the distance should be less that 0.5m
                 for dis in dis_std_dict['distance']:
-                    assert dis < 200000.5, 'Position-{}: The distance between expect and actual ' \
-                                      'is more than 0.5m, distance: {}'.format(sem, dis)
+                    assert dis < conf.PST_DIS_MAX, 'Position-{sem}: The distance between expect and actual is ' \
+                                                   'more than {p_max}m, ' \
+                                                   'distance: {dis}'.format(sem=sem, p_max=conf.PST_DIS_MAX, dis=dis)
 
         step_desc = '10. compare real bag with expect bag: 4. orientation'
         with allure.step(step_desc):
             logger.info('================= {} ================='.format(step_desc))
             exp_ori_dict = bag_exp_sum_dict['orientation']
             real_ori_dict = bag_real_sum_dict['orientation']
-            logger.debug('expect orientation sum data: {}, real orientation sum data: {}'.format(exp_ori_dict, real_ori_dict))
-            allure.attach('expect orientation sum data: {}\n real orientation sum data: {}'.format(exp_ori_dict, real_ori_dict),
+            logger.debug('expect orientation sum data: {}, '
+                         'real orientation sum data: {}'.format(exp_ori_dict, real_ori_dict))
+            allure.attach('expect orientation sum data: {}\n'
+                          'real orientation sum data: {}'.format(exp_ori_dict, real_ori_dict),
                           'expect and real orientation dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'orientation.png')
-            r_bool, ori_dict = compare_orientation(exp_ori_dict, real_ori_dict, save_path, max_step=500)
+            r_bool, ori_dict = compare_orientation(exp_ori_dict, real_ori_dict, save_path, max_step=conf.ORI_STEP)
             logger.debug('compare result of orientation: {}'.format(ori_dict))
             assert r_bool, 'compare of orientation is wrong, message: {}'.format(msg)
             # attach position png
@@ -193,12 +207,16 @@ def make_test_case(story, case_data, case_level, case_desc):
             for sem, dis_std_dict in ori_dict.items():
                 # 1. compare of std
                 std = dis_std_dict['std']
-                assert std < 20000, 'Orientation-{}: The standard deviation between the expected orientation and ' \
-                                 'the actual orientation is greater than 10, std: {:<8.2f}'.format(sem, std)
+                logger.info('Orientation-{sem}: The standard deviation between the expected '
+                            'with actual Orientation is {std}'.format(sem=sem, std=std))
+                assert std < conf.ORI_STD_MAX, 'Orientation-{sem}: The standard deviation between the expected ' \
+                                               'orientation and the actual orientation is greater than {o_max}, ' \
+                                               'std: {r_std:<8.2f}'.format(sem=sem, o_max=conf.ORI_STD_MAX, r_std=std)
                 # 2. compare of distance between expect and actual, the distance should be less that 0.5m
                 for dis in dis_std_dict['yaw_diff']:
-                    assert dis < 20000, 'Orientation-{}: The distance between expect and actual ' \
-                                      'is more than 10, yaw: {}'.format(sem, dis)
+                    assert dis < conf.ORI_DIS_MAX, 'Orientation-{sem}: The distance between expect and ' \
+                                                   'actual is more than {dis_max}, ' \
+                                                   'yaw: {dis}'.format(sem=sem, dis_max=conf.ORI_DIS_MAX, dis=dis)
 
         step_desc = '11. compare real bag with expect bag: 5. line speed'
         with allure.step(step_desc):
@@ -210,7 +228,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 'expect line sum data: {}\n real line sum data: {}'.format(exp_line_dict, real_line_dict),
                 'expect and real line dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'line.png')
-            r_bool, line_dict = compare_line(exp_line_dict, real_line_dict, save_path, max_step=10000)
+            r_bool, line_dict = compare_line(exp_line_dict, real_line_dict, save_path, max_step=conf.LINE_STEP)
             logger.debug('compare result of line: {}'.format(line_dict))
             assert r_bool, 'compare of line got an error, message: {}'.format(line_dict)
             # attach compare result
@@ -223,24 +241,35 @@ def make_test_case(story, case_data, case_level, case_desc):
             for sem, line_std_dict in line_dict.items():
                 # 1. compare of std
                 std = line_std_dict['std']
-                assert std < 2000, 'Line-{}: The standard deviation between the expected linear velocity and ' \
-                                  'the actual velocity is greater than 1, std: {:<8.2f}'.format(sem, std)
+                logger.info('Line-{sem}: The standard deviation between the expected '
+                            'with actual line speed is {std}'.format(sem=sem, std=std))
+                assert std < conf.LINE_STD_MAX, 'Line-{sem}: The standard deviation between the expected ' \
+                                                'linear velocity and the actual velocity is greater than {std_max}, ' \
+                                                'std: {r_std:<8.2f}'.format(sem=sem,
+                                                                            std_max=conf.LINE_STD_MAX,
+                                                                            r_std=std)
                 # 2. compare of size between expect and actual, the size should be less that 1km/h
                 for dis in line_std_dict['distance']:
-                    assert dis < 20000, 'Line-{}: The linear velocity difference between expect and actual ' \
-                                      'is more than 1km/h, diff: {}'.format(sem, dis)
+                    assert dis < conf.LINE_DIS_MAX, 'Line-{sem}: The linear velocity difference between expect' \
+                                                    ' and actual is more than {dis_max}km/h, ' \
+                                                    'diff: {r_dis}'.format(sem=sem,
+                                                                           dis_max=conf.LINE_DIS_MAX,
+                                                                           r_dis=dis)
 
         step_desc = '12. compare real bag with expect bag: 6. prediction'
         with allure.step(step_desc):
             logger.info('================= {} ================='.format(step_desc))
             exp_pre_dict = bag_exp_sum_dict['prediction_paths']
             real_pre_dict = bag_real_sum_dict['prediction_paths']
-            logger.debug('expect prediction_paths sum data: {}, real prediction_paths sum data: {}'.format(exp_pre_dict, real_pre_dict))
+            logger.debug('expect prediction_paths sum data: {}, '
+                         'real prediction_paths sum data: {}'.format(exp_pre_dict, real_pre_dict))
             allure.attach(
-                'expect prediction_paths sum data: {}\n real prediction_paths sum data: {}'.format(exp_pre_dict, real_pre_dict),
+                'expect prediction_paths sum data: {}\n'
+                'real prediction_paths sum data: {}'.format(exp_pre_dict, real_pre_dict),
                 'expect and real prediction_paths dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'prediction_paths.png')
-            r_bool, pre_dict = compare_prediction_paths(exp_pre_dict, real_pre_dict, save_path, max_step=10000)
+            r_bool, pre_dict = compare_prediction_paths(exp_pre_dict, real_pre_dict, save_path,
+                                                        max_step=conf.PRE_PATH_STEP)
             logger.debug('compare result of prediction_paths: {}'.format(pre_dict))
             assert r_bool, 'compare of prediction_paths got an error, message: {}'.format(line_dict)
 
@@ -254,25 +283,47 @@ def make_test_case(story, case_data, case_level, case_desc):
             for sem, pre_std_dict in pre_dict.items():
                 # 1. compare of std
                 std_2th = pre_std_dict['paths_std_2th_xy']
-                assert std_2th < 100000, 'Prediction-2th-{}: The standard deviation between the expected Prediction-2th ' \
-                                       'and the actual Prediction-2th is greater than 1, std: {:<8.2f}'.format(sem, std_2th)
+                logger.info('Prediction-2th-{sem}: The standard deviation between the expected '
+                            'with actual prediction path is {std}'.format(sem=sem, std=std_2th))
+                assert std_2th < conf.PRE_PATH_STD_MAX, 'Prediction-2th-{sem}: The standard deviation between ' \
+                                                        'the expected Prediction-2th and the actual Prediction-2th ' \
+                                                        'is greater than {std_max}, ' \
+                                                        'std: {r_std:<8.2f}'.format(sem=sem,
+                                                                                    std_max=conf.PRE_PATH_STD_MAX,
+                                                                                    r_std=std_2th)
 
                 std_3th = pre_std_dict['paths_std_3th_xy']
-                assert std_3th < 100000, 'Prediction-3th-{}: The standard deviation between the expected Prediction-3th ' \
-                                       'and the actual Prediction-3th is greater than 1, std: {:<8.2f}'.format(sem, std_3th)
+                logger.info('Prediction-3th-{sem}: The standard deviation between the expected position '
+                            'with actual position is {std}'.format(sem=sem, std=std_3th))
+                assert std_3th < conf.PRE_PATH_STD_MAX, 'Prediction-3th-{sem}: The standard deviation between ' \
+                                                        'the expected Prediction-3th and the actual Prediction-3th ' \
+                                                        'is greater than {std_max}, ' \
+                                                        'std: {r_std:<8.2f}'.format(sem=sem,
+                                                                                    std_max=conf.PRE_PATH_STD_MAX,
+                                                                                    r_std=std_3th)
                 # 2. compare of size between expect and actual, the size should be less that 1km/h
                 for dis in pre_std_dict['paths_eul_2th_xy']:
-                    assert dis < 100000, 'Prediction-2th-XY-{}: The Prediction-2th difference between expect and actual ' \
-                                    'is more than 1m, diff: {}'.format(sem, dis)
+                    assert dis < conf.PRE_PATH_DIS_MAX, 'Prediction-2th-XY-{sem}: The Prediction-2th difference ' \
+                                                        'between expect and actual is more than {dis_max}m, ' \
+                                                        'diff: {r_dis}'.format(sem=sem, dis_max=conf.PRE_PATH_DIS_MAX,
+                                                                               r_dis=dis)
                 for ori in pre_std_dict['paths_eul_2th_ori']:
-                    assert ori < 100000, 'Prediction-2th-ori-{}: The Prediction-2th orientation between expect and actual ' \
-                                    'is more than 1, diff: {}'.format(sem, ori)
+                    assert ori < conf.PRE_PATH_ORI_DIS_MAX, 'Prediction-2th-ori-{sem}: The Prediction-2th orientation' \
+                                                            ' between expect and actual is more than {ori_dis_max}, ' \
+                                                            'diff: {r_ori}'.format(sem=sem,
+                                                                                   ori_dis_max=conf.PRE_PATH_ORI_DIS_MAX,
+                                                                                   r_ori=ori)
                 for dis in pre_std_dict['paths_eul_3th_xy']:
-                    assert dis < 100000, 'Prediction-3th-XY-{}: The Prediction-2th difference between expect and actual ' \
-                                    'is more than 1m, diff: {}'.format(sem, dis)
+                    assert dis < conf.PRE_PATH_DIS_MAX, 'Prediction-3th-XY-{sem}: The Prediction-2th difference ' \
+                                                        'between expect and actual is more than {dis_max}m, ' \
+                                                        'diff: {r_dis}'.format(sem=sem, dis_max=conf.PRE_PATH_DIS_MAX,
+                                                                               r_dis=dis)
                 for ori in pre_std_dict['paths_eul_3th_ori']:
-                    assert ori < 100000, 'Prediction-3th-ori-{}: The Prediction-2th orientation between expect and actual ' \
-                                    'is more than 1, diff: {}'.format(sem, ori)
+                    assert ori < conf.PRE_PATH_DIS_MAX, 'Prediction-2th-ori-{sem}: The Prediction-2th orientation ' \
+                                                        'between expect and actual is more than {ori_dis_max}, ' \
+                                                        'diff: {r_ori}'.format(sem=sem,
+                                                                               ori_dis_max=conf.PRE_PATH_ORI_DIS_MAX,
+                                                                               r_ori=ori)
 
         step_desc = '13. compare real bag with expect bag: 7. shape'
         with allure.step(step_desc):
@@ -284,7 +335,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             allure.attach(ret_desc, 'expect and real shape dict data', allure.attachment_type.TEXT)
 
             save_path = '{}/{}'.format(bag_dir, 'shape.png')
-            r_bool, shape_dict = compare_shape(exp_shape_dict, real_shape_dict, save_path, max_step=10000)
+            r_bool, shape_dict = compare_shape(exp_shape_dict, real_shape_dict, save_path, max_step=conf.SHAPE_STEP)
             logger.debug('compare result of shape: {}'.format(shape_dict))
             assert r_bool, 'compare of shape got an error, message: {}'.format(shape_dict)
             # attach shape png
@@ -294,22 +345,38 @@ def make_test_case(story, case_data, case_level, case_desc):
             for sem, s_dict in shape_dict.items():
                 # 1. compare of size x std
                 std_x = s_dict['std_x']
-                assert std < 10000, 'Shape-{}: The standard deviation between the expected size-x and ' \
-                                 'the size-x is greater than 1, std: {:<8.2f}'.format(sem, std_x)
+                logger.info('Shape-X-{sem}: The standard deviation between the expected '
+                            'with actual shape is {std}'.format(sem=sem, std=std_x))
+                assert std < conf.SHAPE_STD_X_MAX, 'Shape-{sem}: The standard deviation between the expected ' \
+                                                   'size-x and the size-x is greater than {std_max}, ' \
+                                                   'std: {r_std:<8.2f}'.format(sem=sem,
+                                                                               std_max=conf.SHAPE_STD_X_MAX,
+                                                                               r_std=std_x)
 
                 # 2. compare of size y std
                 std_y = s_dict['std_y']
-                assert std_y < 100000, 'Shape-{}: The standard deviation between the expected size-y and ' \
-                                  'the size-y is greater than 1, std: {:<8.2f}'.format(sem, std_y)
+                logger.info('Shape-Y-{sem}: The standard deviation between the expected '
+                            'with actual shape is {std}'.format(sem=sem, std=std_y))
+                assert std_y < conf.SHAPE_STD_Y_MAX, 'Shape-{sem}: The standard deviation between the expected ' \
+                                                     'size-y and the size-y is greater than {std_max}, ' \
+                                                     'std: {r_std:<8.2f}'.format(sem=sem,
+                                                                                 std_max=conf.SHAPE_STD_Y_MAX,
+                                                                                 r_std=std_y)
                 # 3. compare of shape-x difference between expect and actual, the distance should be less that 0.5m
                 for dis in s_dict['shape_diff_x']:
-                    assert dis < 100000.5, 'shape-x-{}: The shape-x difference between expect and actual ' \
-                                    'is more than 0.5m, diff: {}'.format(sem, dis)
+                    assert dis < conf.SHAPE_DIS_X_MAX, 'shape-x-{sem}: The shape-x difference between ' \
+                                                       'expect and actual is more than {dis_max}m, ' \
+                                                       'diff: {r_dis}'.format(sem=sem,
+                                                                              dis_max=conf.SHAPE_DIS_X_MAX,
+                                                                              r_dis=dis)
 
                 # 4. compare of shape-y difference between expect and actual, the distance should be less that 0.5m
                 for dis in s_dict['shape_diff_y']:
-                    assert dis < 100000.5, 'shape-y-{}: The shape-y difference between expect and actual ' \
-                                      'is more than 0.5m, diff: {}'.format(sem, dis)
+                    assert dis < conf.SHAPE_DIS_Y_MAX, 'shape-y-{sem}: The shape-y difference between ' \
+                                                       'expect and actual is more than {dis_max}m, ' \
+                                                       'diff: {r_dis}'.format(sem=sem,
+                                                                              dis_max=conf.SHAPE_DIS_Y_MAX,
+                                                                              r_dis=dis)
         logger.info('case is finished, now to clean env')
     # return fun
     return test_perception

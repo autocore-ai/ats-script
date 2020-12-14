@@ -804,7 +804,7 @@ def compare_prediction_paths(pre_dict_exp, pre_dict_real, save_path, max_step=5)
         ]
         graph_data[semantic] = graph_data_s
     # make graph
-    logger.info('prediction graph data: {}'.format(graph_data))
+    logger.debug('prediction graph data: {}'.format(graph_data))
     r_bool, msg = generate_pre_path_row(graph_data, save_path)
 
     if not r_bool:

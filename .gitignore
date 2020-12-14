@@ -116,7 +116,6 @@ dmypy.json
 
 # pycharm
 .idea
-bags
 common/*.csv
 common/*.png
 testcases/test_ODD/*.bag

@@ -36,13 +36,13 @@ def md_logger(log_path):
         'handlers': {
             # print to client
             'sh': {
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'class': 'logging.StreamHandler',
                 'formatter': 'simple'
             },
             # Print to file log, collect info and above logs
             'fh': {
-                'level': 'INFO',
+                'level': 'DEBUG',
                 'class': 'logging.handlers.TimedRotatingFileHandler',  # Split by date
                 'formatter': 'simple',
                 'filename': logfile_path_staff,  # log file
