@@ -1,6 +1,6 @@
 # ROS1 TO ROS2 Autotest
 
-# Test environmental
+# Test environment
 Linux: ububtu
 
 Autoware: Autoware4
