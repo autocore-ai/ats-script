@@ -2,7 +2,7 @@
 ## 1. insert cases in perception cases csv file
 sample csv:
 
-![alt](/home/duan/PycharmProjects/auto_test/docs/images/perception_cases.png)
+![perception](/home/duan/PycharmProjects/auto_test/docs/images/perception_cases.png)
 
 Fields description:
 
