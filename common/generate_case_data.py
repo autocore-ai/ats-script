@@ -13,6 +13,17 @@ def generate_case_data(csv_case_path):
     """
     data_list = []
     df = pd.read_csv(csv_case_path)
+
+    # Check the uniqueness of the case
+    case_name = df.CaseName.duplicated()
+    if case_name.any():
+        raise Exception('duplicated case name, must be unique')
+
+    # check case name start with test_
+    wrong_name = df[~ df['CaseName'].str.contains('test_')]
+    if wrong_name.CaseName.count():
+        raise Exception('CaseName column must start with \'test_\'')
+
     for index, d in df.iterrows():
         case_name = d['CaseName']
         case_dict = {'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story'],
