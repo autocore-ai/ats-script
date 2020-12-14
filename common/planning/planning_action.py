@@ -12,7 +12,6 @@ import logging
 import traceback
 
 logger = logging.getLogger()
-
 io = common.auto_test_io
 
 
@@ -33,7 +32,6 @@ def read_jira_file(file_path, keyword):
        'start/end.orientation.y', 'start.orientation.z', 'start.orientation.w'}}
 
        }
-
     """
     df = pd.read_csv(file_path)
     print(df)
@@ -65,14 +63,23 @@ def read_jira_file(file_path, keyword):
 
 def local_planning_start():
     """
-    "起planning_stimulator_launch， 子进程"
+    [description]: 起planning_stimulator_launch， 子进程"
     :return: subprocess.Popen
     """
-
     logger.info(START_AUTOWARE_4_PLANNING)
     p1 = subprocess.Popen(START_AUTOWARE_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     logger.info(p1.stdout)
     return p1
+
+
+def local_docker_start():
+    """
+    [description]:
+    """
+    print('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
+    logger.info('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
+    p2 = subprocess.Popen(START_PLANNING_DOCKER, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    return p2
 
 
 def local_planning_start_test():
@@ -99,18 +106,6 @@ def local_planning_start_test():
     # return False
 
 
-def local_docker_start():
-    """
-    起planning_stimulator_launch
-
-    """
-    time.sleep(15)
-    logger.info('start planning docker cmd: {}'.format(START_PLANNING_DOCKER))
-    p2 = subprocess.Popen(START_PLANNING_DOCKER, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    logger.info(p2.stdout)
-    return p2
-
-
 def docker_start():
     """
     for open branch:
@@ -118,6 +113,16 @@ def docker_start():
     """
     docker_content = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     logger.info(docker_content.stdout)
+    return docker_content
+
+
+def docker_end():
+    """
+    for open branch:
+    subprocess ends docker sh file
+    """
+    # os.system('kill -9 `ps -ef|grep "docker"|awk \'{{print $2}}\'`')
+    os.system("docker stop runtime")
 
 
 def topic_tolist() -> list:
@@ -193,7 +198,9 @@ def add_start_end_point(start_postition, start_orientation, end_position, end_or
         io_class.goal(goal_pose)  # 发送终点
         logger.info("end_point sent")
         print("end_point sent")
+        time.sleep(10)
         io_class.engage_autoware(True)  # engage
+        io_class.engage_vehicle(True)
         logger.info("engage auto")
         print("engage auto")
         return True, ''
@@ -291,6 +298,7 @@ def bag_demo():
     # time.sleep(10)
     # p2 = local_docker_start()
     # time.sleep(10)
+    local_docker_start()
     start_position_sample = [-815.500610352, -249.504760742, 0]
     start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
     end_position_sample = [-1130.37866211, -401.696289062, 0]
@@ -317,7 +325,49 @@ def save_csv_file(path, bag_name):
 
 
 if __name__ == '__main__':
-    # save_csv_file(conf.LOCAL_TEST_BAG_PATH,"test_01")
-    local_planning_start_test()
-    list = os.popen("rosnode list")
-    print(list.readlines())
+
+    import common.planning.planning_conf as conf
+    name = "test_planning_01"
+    gt_name = "gt_01"
+    bag_path = '{}/bags/planning_bags/'.format(TEST_CASE_PATH)
+    p2 = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
+    time.sleep(20)
+    # bag_path = "/home/minwei/autotest/bags/planning_bags/"
+    print(bag_path+name)
+    bag_name_record = start_record_bag(60, bag_path + name)
+    time.sleep(1)
+    dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
+    time.sleep(1)
+    dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
+    a_l = list(dict_start.values())
+    print("start_point is {}".format(a_l))
+    b_l = list(dict_end.values())
+    print("end_point is {}".format(b_l))
+    start_position_sample = a_l[0:3]
+    start_orientation_sample = a_l[3:]
+    end_position_sample = b_l[0:3]
+    end_orientation_sample = b_l[3:]
+    add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
+                        end_orientation_sample)
+    time.sleep(10)
+    print("auto engage")
+    for i in range(int(60)):
+        time.sleep(1)
+        print("waitting {}s".format(i))
+    # r_bool, msg = local_stop_process(bag_path+name, '-2')
+    # logger.info(r_bool)
+    # logger.info(msg)
+    print("end recording ")
+
+    time.sleep(10)
+
+    for topic in TOPICS.split(" "):
+        print(topic)
+        keyw = topic.split("/")
+        assert topic_csv(bag_path + name + ".bag", topic, "test_01_" + keyw[-1],
+                         bag_path), topic + " could not saved to csv file"
+        time.sleep(2)
+    for i in range(3):
+        logger.info("Waiting bag record.. {}s".format(i + 1))
+        time.sleep(1)
+

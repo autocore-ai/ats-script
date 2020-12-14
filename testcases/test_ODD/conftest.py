@@ -264,7 +264,7 @@ def planning_env(scope='function'):
     with allure.step(step_2):
         logger.info(step_2)
         time.sleep(5)
-        p2 = local_docker_start()
+        p2 = docker_start()
         time.sleep(10)
         assert pid_exists(p2.pid), "local docker env started fail"
 
@@ -273,9 +273,30 @@ def planning_env(scope='function'):
     with allure.step("stop environment"):
         time.sleep(5)
         logger.info("stop env")
-        local_planning_end(p1)
+        local_planning_end(p2)
         time.sleep(5)
         local_docker_end(p2)
+
+
+@pytest.fixture
+def planning_open_env(scope='function'):
+
+    step_1 = "1. start docker"
+    with allure.step(step_1):
+        logger.info(step_1)
+        time.sleep(5)
+        p2 = docker_start()
+        time.sleep(10)
+        assert pid_exists(p2.pid), "open-source docker env started fail"
+
+    yield
+
+    with allure.step("stop environment"):
+        time.sleep(5)
+        logger.info("stop env")
+        # local_planning_end(p2)
+        time.sleep(5)
+        docker_end(p2)
 
 
 if __name__ == '__main__':

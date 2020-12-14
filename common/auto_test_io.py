@@ -26,7 +26,7 @@ class AutoTestIO:
             self.pub_initialpose = rospy.Publisher(
                 'initialpose', PoseWithCovarianceStamped, queue_size=1, latch=True)
             self.pub_goal = rospy.Publisher(
-                'move_base_simple/goal', PoseStamped, queue_size=1, latch=True)
+                'planning/mission_planning/goal', PoseStamped, queue_size=1, latch=True)
             self.pub_autoware_engage = rospy.Publisher(
                 'autoware/engage', Bool, queue_size=1, latch=True)
             self.pub_vehicle_engage = rospy.Publisher(

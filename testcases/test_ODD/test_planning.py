@@ -22,9 +22,9 @@ def make_test_case(story, case_data, case_level, case_desc):
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
     @allure.severity(case_level)
-    def test_planning(planning_env, case_data):
+    def test_planning(planning_open_env, case_data):
         """
-        1. Planning, local autowarea setup.bash , roslaunch map
+        1. Planning, local autoware setup.bash , roslaunch map
         It is expected that in this step, the interface will be written into docker
 
         2. Local docker (this will change in the future)
@@ -52,20 +52,19 @@ def make_test_case(story, case_data, case_level, case_desc):
         name = case_data['CaseName']
         gt_name = case_data['gt_name']
         bag_path = '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH, gt_name)
+        logger.info("bag path : {}".format(bag_path))
         # with allure.step("collect ground_truth bag data"):
-        #     #
-        #     # for topic in TOPICS.split(" "):
-        #     #     print(topic)
-        #     #     keyw = topic.split("/")
-        #     #     assert topic_csv(gt_name+".bag", topic,
-        #     "gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
-        #     #     time.sleep(2)
-        #     #
-        #     # save_csv_file(bag_path,gt_name)
+        #
+        #     for topic in TOPICS.split(" "):
+        #         print(topic)
+        #         keyw = topic.split("/")
+        #         assert topic_csv(gt_name+".bag", topic,"gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #         time.sleep(2)
+        #
+        #     save_csv_file(bag_path,gt_name)
         #     for i in range(3):
         #         logger.info("Waiting.. {}s".format(i+1))
         #         time.sleep(1)
-        #
         #
         #     for topic in TOPICS.split(" "):
         #         print(topic)
@@ -73,21 +72,22 @@ def make_test_case(story, case_data, case_level, case_desc):
         #         assert topic_csv(bag_path+gt_name+".bag", topic,
         #         "gt_01_"+keyw[-1],bag_path), topic+" could not saved to csv file"
         #         time.sleep(2)
-        #
+
         step_3 = "start_record bag"
         with allure.step(step_3):
             # start_position_sample = [-815.500610352, -249.504760742, 0]
             # start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
             # end_position_sample = [-1130.37866211, -401.696289062, 0]
             # end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
-            bag_name_record = start_record_bag(90, bag_path+name)
+            time.sleep(20)
+            bag_name_record = start_record_bag(60, bag_path+name)
             logger.info("recording bag address".format(bag_name_record))
             # assert check_bag(bag_path+name+".bag"), "bag has not recorded successfully"
 
         step_4 = "add start end point， and engage"
         with allure.step(step_4):
             logger.info(step_4)
-            time.sleep(1)
+            time.sleep(20)
             dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
             dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
             a_l = list(dict_start.values())
@@ -100,7 +100,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             end_orientation_sample = b_l[3:]
             add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
                                 end_orientation_sample)
-            time.sleep(1)
+            time.sleep(20)
             logger.info("auto engage")
 
             # assert r_bool, msg
