@@ -21,14 +21,13 @@ def main():
     parser.add_argument('-t', '--type', help="exec cases type, 1: open source cases 2: home cases, default 1",
                         type=int, choices=[1, 2])
     parser.add_argument('-f', '--features', help="tested features, such as perception,planning")
-    parser.add_argument('-s', '--stories',  help="tested stories, such as person,car")
+    parser.add_argument('-s', '--stories',  help="tested stories, such as adult,car")
     parser.add_argument('-l', '--level', type=int,  choices=[0, 1, 2, 3, 4],
                         help="tested cases level, 0: trivial, 1: minor, 2: normal, 3: critical, 4: blocker")
-    parser.add_argument('-m', '--mark',
-                        help="cases marker")
+    parser.add_argument('-m', '--mark', help="cases marker")
+    parser.add_argument('-r', '--rviz', help="show rviz, default True", action="store_true")
     args = parser.parse_args()
 
-    p_args = ['-v', '-s',  '--alluredir', './allure_reports/result']
     if args.type == 2:
         config.EXEC_CASE_TYPE = 2
         print('exec home cases')
@@ -36,6 +35,11 @@ def main():
         config.EXEC_CASE_TYPE = 1
         print('exec open source cases')
 
+    if args.rviz:
+        print('show rviz')
+        config.RVIZ = 1
+
+    p_args = ['-v', '-s',  '--alluredir', './allure_reports/result']
     if args.features:
         p_args.append('--allure-features')
         p_args.append(args.features)

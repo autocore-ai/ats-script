@@ -41,6 +41,8 @@ ROSBAG_PLAY_REMOTE = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s/devel/
 
 # =================================== open source command ===================================
 START_AUTOWARE_OPEN = 'cd {}/common/script/;export ROS_IP={};export ROS_MASTER_URI={}; ' \
+                      './run_rosbag.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
+START_AUTOWARE_RVIZ_OPEN = 'cd {}/common/script/;export ROS_IP={};export ROS_MASTER_URI={}; ' \
                       './run_rosbag_rviz.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
 GET_ROS_NODE_LIST = 'docker exec {} /bin/bash -c \'cd /AutowareArchitectureProposal && ' \
                         'source install/setup.bash && export ROS_IP={} && ' \
