@@ -1,10 +1,12 @@
 """
-1.pose x , y 分别取值
-2. 偏航角差值计算
+1. Pose, X and Y take values respectively
 
-1.bag， groundtruth bag, 进行点数对比分析判断
-2.position 比较两组数据的均值、方差，必要的话用f检验看看其是否有显著性差异
-取出bag 文件,
+2. Calculation of yaw angle difference
+
+1. Bag, groundtruth bag
+
+2. Position compare the mean and variance of the two groups of data, if necessary, use F test to see if there is significant difference
+
 """
 import numpy as np
 import logging
