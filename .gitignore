@@ -118,7 +118,9 @@ dmypy.json
 .idea
 common/*.csv
 common/*.png
+common/*.bag
 testcases/test_ODD/*.bag
+logs/*
 *.txt
 allure_reports
 *.bak
