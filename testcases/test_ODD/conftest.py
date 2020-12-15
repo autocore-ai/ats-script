@@ -26,7 +26,7 @@ logger = logging.getLogger()
 
 
 @pytest.fixture
-def perception_env():
+def perception_env(perception_env_open, perception_env_home):
     if config.EXEC_CASE_TYPE == 1:
         return perception_env_open
     else:
@@ -46,7 +46,6 @@ def perception_env_open(get_case_path):
         check docker stopped
     """
     start_time = time.time()
-
     step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(
         p_conf.PERCEPTION_AUTOWARE4_IP)
     with allure.step(step_desc):
