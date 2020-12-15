@@ -1,5 +1,7 @@
 #! /bin/bash
 
+xhost +
+
 docker run -d --rm \
     -v /AutowareArchitectureProposal/install \
     --name=debug \
@@ -14,6 +16,7 @@ docker run -it --net=host --gpus=all --rm \
     --name=runtime \
     --volumes-from debug \
     --volumes-from data \
+    --env "DISPLAY" \
     --privileged \
     registry.autocore.ai/autotest/devel /bin/bash -c  \
     "cd /AutowareArchitectureProposal && \
