@@ -24,7 +24,6 @@ def csv_to_df(csv1, csv2):
     return a, b
 
 
-# a,b计算点数计算
 def point_count(a, b):
     a_col = a.columns
     a_last_num = a_col[-1]
@@ -35,7 +34,7 @@ def point_count(a, b):
     return a_last_num, b_last_num
 
 
-# 每个点欧式距离计算
+# Euclidean distance calculation for each point
 def eur_calculate(a, b, point_num):
     ac, bc = point_count(a, b)
     if ac == bc:
@@ -68,9 +67,7 @@ def eur_calculate(a, b, point_num):
 # plot_position=[541,542,543,544,441,442,443]
 
 
-# 偏航角计算
-
-
+# Yaw angle calculation
 def to_euler_angles(w, x, y, z):
     """w、x、y、z to euler angles"""
     angles = {'pitch': 0.0, 'roll': 0.0, 'yaw': 0.0}
@@ -92,7 +89,7 @@ def ori_angel(a_angle):
     return a_w, a_x, a_y, a_z
 
 
-# 每个点的偏航角
+# Yaw angle of each point
 def orientation_one_point(a, b, point_num, four_angles):
     a_col = a.columns
     b_col = b.columns
@@ -100,7 +97,7 @@ def orientation_one_point(a, b, point_num, four_angles):
     b_angle = []
     for angle in four_angles:
         keyword = str("points" + str(point_num) + ".pose.orientation." + angle)
-        # 找dataframe中存在的column
+        # Find the column that exists in the dataframe
         for i in a_col:
             if keyword in str(i):
                 a_result = a[i].tolist()
@@ -124,7 +121,7 @@ def orientation_one_point(a, b, point_num, four_angles):
     return c_yaw_list
 
 
-# 全部点的欧式距离，然后重新组合成Dataframe
+# Euclidean distance of all points, and then recombine into a Dataframe
 def eu_dataframe(a, b):
     a_num, b_num = point_count(a, b)
     print("there are " + str(a_num) + " points")
@@ -135,7 +132,7 @@ def eu_dataframe(a, b):
     return df_eu
 
 
-# 集合所有点的偏航角之差
+# Collect the difference of the yaw angle of all points
 def yaw_df(a, b):
     a_num, b_num = point_count(a, b)
     c_all_dict = {}
@@ -146,7 +143,7 @@ def yaw_df(a, b):
     return yaw_df
 
 
-# 选取异样值
+# Select abnormal value
 def extract(df1, df2):
     for i in df1.columns:
         df1_reuslt = df1.loc[df1[i] > 1]
@@ -154,7 +151,7 @@ def extract(df1, df2):
     return df1_reuslt
 
 
-# plot两个速度
+# plot two speeds
 def plot_twist(a, b, address):
     df1_1 = a["field.twist.linear.x"]
     df2_1 = b["field.twist.linear.x"]
@@ -303,19 +300,12 @@ def current_pose_analysis_yaw(range_scale, df1, df2):
 
 
 def compare_analysis(csv1, csv2):
-    "欧式距离之差"
     a, b = csv_to_df(csv1, csv2)
     print("===================")
     aa = eu_dataframe(a, b)
     print(aa.head(20))
     # plot_eur(a,b)
     plt.show()
-
-    # "偏航角之差"
-    # print("*******************")
-    # print(yaw_df(a,b))
-    # plot_eur(a, b)
-    # return eu_dataFrame(a,b), yaw_df(a,b)
 
 
 def route_same(csv_a, csv_b):
@@ -416,7 +406,8 @@ def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
 
 
 if __name__ == '__main__':
-    # local = "/home/minwei/autotest/bags/planning_bags"
+    pass
+    # local = "/home/minwei/autotest/bags/planning"
     # GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
     # TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
     # # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
@@ -437,10 +428,10 @@ if __name__ == '__main__':
 
     # df1 , df2 = csv_to_df(local + "/record_vehiclewist.csv", local + "/record_vehiclewist1.csv")
     # # plot_twist(df1,df2)
-    "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv"
-    dfa, dfb = csv_to_df("/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv",
-                         "/home/adlink/workspace/autotest/bags/planning_bags/gt_01/gt_01_current_pose.csv")
-    # dfb.drop(dfb.tail(3).index, inplace=True)
-    # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
-    # df_all.to_csv("./tzzs_data.csv")
-    plot_pose(dfa, dfb)
+    # "/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv"
+    # dfa, dfb = csv_to_df("/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv",
+    #                      "/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv")
+    # # dfb.drop(dfb.tail(3).index, inplace=True)
+    # # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
+    # # df_all.to_csv("./tzzs_data.csv")
+    # plot_pose(dfa, dfb)

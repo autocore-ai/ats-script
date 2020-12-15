@@ -51,7 +51,7 @@ def make_test_case(story, case_data, case_level, case_desc):
         """
         name = case_data['CaseName']
         gt_name = case_data['gt_name']
-        bag_path = '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH, gt_name)
+        bag_path = '{}/bags/planning/{}/'.format(TEST_CASE_PATH, gt_name)
         groundtruth_bag_path = bag_path + gt_name
         test_bag_path = bag_path + name
         logger.info("bag path : {}".format(bag_path))

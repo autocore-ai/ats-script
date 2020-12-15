@@ -27,7 +27,7 @@ def read_jira_file(file_path, keyword):
        'end.orientation.w', 'bag_name', 'duration']
 
     KEYWORD：['Jira ID', 'Priority', 'Story' ,'bag_name', 'duration']
-       if keyword is 'start/end_point'  ->  return {'start/end_point':{'start/end.position.x',
+       if keyword is 'start point' or 'end_point'  ->  return {'start/end_point':{'start/end.position.x',
        'start/end.position.y', 'start.position.z', 'start.orientation.x',
        'start/end.orientation.y', 'start.orientation.z', 'start.orientation.w'}}
 
@@ -291,27 +291,6 @@ def topic_csv(bag_name, topic_name, result_file_name, path):
     #     return False
 
 
-def bag_demo():
-    # 录取一个含有/planning/scenario_planning/trajectory， /current_pose，/vehicle/status/twist，  /vehicle/status/velocity的bag
-    # time.sleep(10)
-    # p1 = local_planning_start()
-    # time.sleep(10)
-    # p2 = local_docker_start()
-    # time.sleep(10)
-    local_docker_start()
-    start_position_sample = [-815.500610352, -249.504760742, 0]
-    start_orientation_sample = [0, 0, -0.994364378898, 0.10601642316]
-    end_position_sample = [-1130.37866211, -401.696289062, 0]
-    end_orientation_sample = [0, 0, -0.771075397889, 0.636743850202]
-    add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample, end_orientation_sample)
-    time.sleep(80)
-    # topic_csv("/home/minwei/autotest/bags/05.bag", "/planning/scenario_planning/trajectory", "record_result")
-    # time.sleep(10)
-    # local_planning_end(p1)
-    # time.sleep(10)
-    # local_docker_end(p2)
-
-
 #     complete
 def save_csv_file(path, bag_name):
     for topic in TOPICS.split(" "):
@@ -329,10 +308,10 @@ if __name__ == '__main__':
     import common.planning.planning_conf as conf
     name = "test_planning_01"
     gt_name = "gt_01"
-    bag_path = '{}/bags/planning_bags/'.format(TEST_CASE_PATH)
+    bag_path = '{}/bags/planning/'.format(TEST_CASE_PATH)
     p2 = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     time.sleep(20)
-    # bag_path = "/home/minwei/autotest/bags/planning_bags/"
+    # bag_path = "/home/minwei/autotest/bags/planning/"
     print(bag_path+name)
     bag_name_record = start_record_bag(60, bag_path + name)
     time.sleep(1)
