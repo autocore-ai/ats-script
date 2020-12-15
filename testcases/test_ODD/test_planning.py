@@ -12,12 +12,12 @@ from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
 import logging
 from common.action import *
+
 logger = logging.getLogger()
 CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases.csv'.format(TEST_CASE_PATH))
 
 
 def make_test_case(story, case_data, case_level, case_desc):
-
     @allure.feature('planning')
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
@@ -52,13 +52,16 @@ def make_test_case(story, case_data, case_level, case_desc):
         name = case_data['CaseName']
         gt_name = case_data['gt_name']
         bag_path = '{}/bags/planning_bags/{}/'.format(TEST_CASE_PATH, gt_name)
+        groundtruth_bag_path = bag_path + gt_name
+        test_bag_path = bag_path + name
         logger.info("bag path : {}".format(bag_path))
         # with allure.step("collect ground_truth bag data"):
         #
         #     for topic in TOPICS.split(" "):
         #         print(topic)
         #         keyw = topic.split("/")
-        #         assert topic_csv(gt_name+".bag", topic,"gt_"+keyw[-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+        #         assert topic_csv(gt_name+".bag", topic,"gt_"+keyw
+        #         [-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
         #         time.sleep(2)
         #
         #     save_csv_file(bag_path,gt_name)
@@ -137,22 +140,23 @@ def make_test_case(story, case_data, case_level, case_desc):
             for topic in TOPICS.split(" "):
                 print(topic)
                 keyw = topic.split("/")
-                assert topic_csv(bag_path+name+".bag", topic, "test_01_"+keyw[-1], bag_path), topic + " could not saved to csv file"
+                assert topic_csv(bag_path + name + ".bag", topic, name + "_" + keyw[-1],
+                                 bag_path), topic + " could not saved to csv file"
                 time.sleep(2)
             for i in range(3):
-                logger.info("Waiting bag record.. {}s".format(i+1))
+                logger.info("Waiting bag record.. {}s".format(i + 1))
                 time.sleep(1)
 
-        gt_pose_path = bag_path+"gt_01_current_pose.csv"
-        t_v_path = bag_path+"test_01_twist.csv"
+        gt_pose_path = groundtruth_bag_path + "_current_pose.csv"
+        t_v_path = test_bag_path + "_twist.csv"
         logger.info("BAG VELOCITY bag path : {}".format(t_v_path))
-        gt_v_path = bag_path+"gt_01_twist.csv"
+        gt_v_path = groundtruth_bag_path + "_twist.csv"
 
-        t_pose_path = bag_path + "test_01_current_pose.csv"
-        gt_pose_file = bag_path + "gt_01_current_pose.csv"
+        t_pose_path = test_bag_path + "_current_pose.csv"
+        gt_pose_file = groundtruth_bag_path + "_current_pose.csv"
 
-        gt_tra_path = bag_path + "gt_01_trajectory.csv"
-        t_tra_path = bag_path + "test_01_trajectory.csv"
+        gt_tra_path = groundtruth_bag_path + "_trajectory.csv"
+        t_tra_path = test_bag_path + "_trajectory.csv"
         logger.info("trajectory bag path {}".format(t_tra_path))
 
         with allure.step("Data analysis"):
@@ -173,7 +177,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 logger.info(c)
                 logger.info(d)
                 if c > d:
-                    count = df1.shape[0]-df2.shape[0]
+                    count = df1.shape[0] - df2.shape[0]
                     df1.drop(df1.tail(count).index, inplace=True)
                 else:
                     count = df2.shape[0] - df1.shape[0]
@@ -184,27 +188,27 @@ def make_test_case(story, case_data, case_level, case_desc):
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(100, df1, df2)
                 # assert result
-                with open(bag_path+'1.txt', 'w') as f:
+                with open(bag_path + '1.txt', 'w') as f:
                     for i in range(len(c_yaw_list)):
                         f.write(str(c_yaw_list[i]))
                 logger.info("current pose list: {}".format(c_yaw_list))
 
                 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
                 ax.plot(c_yaw_list)
-                plt.savefig(bag_path+"current_pose.png")
-                logger.info("current pose pic address: {}".format(bag_path+"current_pose.png"))
-                allure.attach.file(bag_path+"1.txt", "current_pose txt file ")
-                allure.attach.file(bag_path+"current_pose.png", "current_pose pic")
+                plt.savefig(bag_path + "current_pose.png")
+                logger.info("current pose pic address: {}".format(bag_path + "current_pose.png"))
+                allure.attach.file(bag_path + "1.txt", "current_pose txt file ")
+                allure.attach.file(bag_path + "current_pose.png", "current_pose pic")
 
             with allure.step("5. current twist comparison： ×3.6 plot"):
                 dfc, dfd = csv_to_df(gt_v_path, t_v_path)
-                add = bag_path+"twist.png"
+                add = bag_path + "twist.png"
                 plot_twist(dfc, dfd, add)
                 allure.attach.file(add, "current_twist")
 
             with allure.step("6. plot pose"):
                 df1, df2 = csv_to_df(gt_pose_path, t_pose_path)
-                pose_pic_add = bag_path+"pose.png"
+                pose_pic_add = bag_path + "pose.png"
                 pic_loc = plot_pose(df1, df2, pose_pic_add)
                 assert pic_loc, "fail to plot current pose"
                 allure.attach.file(pose_pic_add, "plot pose for two bags")

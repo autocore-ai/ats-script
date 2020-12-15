@@ -322,12 +322,12 @@ def route_same(csv_a, csv_b):
     # a gt , b test
     a, b = csv_to_df(csv_a, csv_b)
     col = list(a.loc[0, :])
-    col = col[-18:]
+    col = col[-5:]
     logger.info(col)
     logger.info("groundtruth bag planning_route info: {}".format(col))
     col1 = list(b.loc[0, :])
     logger.info(col1)
-    col1 = col1[-18:]
+    col1 = col1[-5:]
     logger.info("test bag planning_route info: {}".format(col1))
     if col == col1:
         return True

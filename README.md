@@ -32,3 +32,11 @@ python3 run.py -f planning,perception    # run planning and perception cases
 
 [Add planning cases](docs/add_planning_cases.md)
 
+## Development usage
+1. if reboot, need to exec 'xhost +'
+2. if docker updated, need to exec:
+ - docker pull registry.autocore.ai/autotest/devel
+ - docker pull registry.autocore.ai/autotest/debug
+ - docker pull registry.autocore.ai/autotest/data
+ 
+ 

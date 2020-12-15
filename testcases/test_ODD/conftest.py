@@ -106,8 +106,8 @@ def check_aw4_open():
 @allure.step(start_aw4_step_desc)
 def start_aw4_open(case_path):
     logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=start_aw4_step_desc))
-    aw_log_path = '{}_autoware.log'.format(case_path)
-    logger.info('autoware log path: {}'.format(aw_log_path))
+    aw_log_path = '{}_aw4.log'.format(case_path)
+    logger.info('aw4 log path: {}'.format(aw_log_path))
     r_bool, msg = p_env.start_autoware_open(aw_log_path)
     assert r_bool, msg
 
@@ -317,7 +317,7 @@ def planning_open_env(scope='function'):
         logger.info("stop env")
         # local_planning_end(p2)
         time.sleep(5)
-        docker_end(p2)
+        docker_end()
 
 
 if __name__ == '__main__':
