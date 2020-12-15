@@ -26,226 +26,248 @@ logger = logging.getLogger()
 
 
 @pytest.fixture
-def perception_env(perception_env_open, perception_env_home):
+def perception_env(get_case_path):
+    start_time = time.time()
     if config.EXEC_CASE_TYPE == 1:
-        return perception_env_open
+        """
+        1. set up
+            check autoware4 docker status, if running, stop it, then check docker stopped
+            start autoware4 docker
+            check autoware4 docker started successful
+
+        2. tear down
+            stop docker
+            check docker stopped
+        """
+        check_aw4_open()
+        start_aw4_open(get_case_path)
+        wait_aw4_start_open()
+        time.sleep(2)
+        logger.info('aw4 env is ok, now to exec cases')
+        yield
+        stop_aw4_open()
     else:
-        return perception_env_home
+        """
+        1. set up
+        Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
+        start perception env
+            1. start Autoware.4, command：START_AUTOWARE_4
+            2. start perception
+
+        1. tear down
+            1. close perception
+            2. close Autoware.4
+        """
+        check_aw4_home()
+        start_aw4_home()
+        check_aw4_ok_home()
+        check_perception_home()
+        start_perception_home()
+        check_perception_ok_home()
+        time.sleep(2)
+        logger.info('aw4 env is ok, now to exec cases')
+        yield
+        stop_perception_home()
+        check_perception_stop_home()
+        stop_aw4_home()
+        check_aw4_stop_home()
+
+    end_time = time.time()
+    allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
 
 
-@pytest.fixture
-def perception_env_open(get_case_path):
-    """
-    1. set up
-        check autoware4 docker status, if running, stop it, then check docker stopped
-        start autoware4 docker
-        check autoware4 docker started successful
+check_aw4_step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(
+    p_conf.PERCEPTION_AUTOWARE4_IP)
+start_aw4_step_desc = '2. start Autoware4'
+wait_aw4_time = 80
+wait_aw4_start_step_desc = '3. check autoware start ok, and waiting autoware to start until start successful, ' \
+                'max wait time: {w_t}s'.format(w_t=wait_aw4_time)
+check_p_step_desc = '4. Check perception status, if running, stop it'
+start_perception_step_desc = '5. Start perception ...'
+check_perception_ok_step_desc = '6. Check start perception OK'
+stop_aw4_step_desc = '1. stop autoware'
 
-    2. tear down
-        stop docker
-        check docker stopped
-    """
-    start_time = time.time()
-    step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(
-        p_conf.PERCEPTION_AUTOWARE4_IP)
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, status = p_env.check_autoware_open_status()
-        logger.info('check_autoware_open_status, return: {}, {}'.format(r_bool, status))
-        assert r_bool, status
-        if status in [2, 3]:
-            step_desc = '1.1 {}, stop it'.format(p_conf.AUTOWARE_RUN_STATUS)
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, status = p_env.stop_autoware_open()
-                logger.info('stop autoware result: {}, {}'.format(r_bool, status))
-                assert r_bool, status
 
-    step_desc = '2. start Autoware4'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        aw_log_path = '{}_autoware.log'.format(get_case_path)
-        logger.info('autoware log path: {}'.format(aw_log_path))
-        r_bool, msg = p_env.start_autoware_open(aw_log_path)
-        assert r_bool, msg
-
-    wait_time = 80
-    step_desc = '3. check autoware start ok, and waiting autoware to start until start successful, ' \
-                'max wait time: {w_t}s'.format(w_t=wait_time)
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
-        t = 0
-        while t < wait_time:
-            time.sleep(1)
-            logger.info('waiting autoware start, wait {}s ......'.format(t+1))
-            r_bool, status = p_env.check_autoware_open_status()
+@allure.step(check_aw4_step_desc)
+def check_aw4_open():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=check_aw4_step_desc))
+    r_bool, status = p_env.check_autoware_open_status()
+    logger.info('check_autoware_open_status, return: {}, {}'.format(r_bool, status))
+    assert r_bool, status
+    if status in [2, 3]:
+        step_desc = '1.1 {}, stop it'.format(p_conf.AUTOWARE_RUN_STATUS)
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            r_bool, status = p_env.stop_autoware_open()
+            logger.info('stop autoware result: {}, {}'.format(r_bool, status))
             assert r_bool, status
-            if status == 2:
-                logger.info('autoware started successfully')
-                break
-            t += 1
-        assert t < wait_time, 'autoware didn\'t start in {}s'.format(wait_time)
-
-    yield
-
-    step_desc = '1. stop autoware'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
-        r_bool, msg = p_env.stop_autoware_open()
-        assert r_bool, msg
-
-    end_time = time.time()
-    allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
 
 
-@pytest.fixture
-def perception_env_home():
-    """
-    1. set up
-    Default export 了ROS_IP,ROS_MASTER_URI,source /opt/ros/melodic/setup.bash, source ~/AutowareArchitectureProposal/devel/setup.bash
-    start perception env
-        1. start Autoware.4, command：START_AUTOWARE_4
-        2. start perception
+@allure.step(start_aw4_step_desc)
+def start_aw4_open(case_path):
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=start_aw4_step_desc))
+    aw_log_path = '{}_autoware.log'.format(case_path)
+    logger.info('autoware log path: {}'.format(aw_log_path))
+    r_bool, msg = p_env.start_autoware_open(aw_log_path)
+    assert r_bool, msg
 
-    1. tear down
-        1. close perception
-        2. close Autoware.4
-    """
-    start_time = time.time()
-    step_desc = '1. check Autoware4 status, if running, stop it, autoware.4 env: {}'.format(p_conf.PERCEPTION_AUTOWARE4_IP)
-    with allure.step(step_desc):
-        logger.info('='*20 + step_desc + '='*20)
-        r_bool, status = p_env.check_autoware_status()
-        logger.info('check_autoware_status, return: {}, {}'.format(r_bool, status))
-        assert r_bool, str(status)
-        if status:
-            step_desc = 'Autoware4 is running...now to stop it'
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                s_bool, s_ret = p_env.stop_autoware4()
-                assert s_bool, s_ret
-                time.sleep(3)  # wait killed success
-            step_desc = 'Autoware4 stopped, now to check status'
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, status = p_env.check_autoware_status()
-                assert r_bool, status
-                assert not status, 'Autoware4 stopped failed, please check ...'
 
-    step_desc = '2. To start Autoware4'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, msg = p_env.start_autoware4()
-        assert r_bool, msg
-        wait_time = 0
-        while wait_time < 20:
-            time.sleep(1)
-            wait_time += 1
-            step_desc = 'waiting Autoware4 to start, {}s'.format(wait_time)
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, status = p_env.check_autoware_status()
-                if r_bool and status:
-                    logger.info('Autoware started OK')
-                    break
-
-    step_desc = '3. Check Autoware4 started ok'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, status = p_env.check_autoware_status()
-        logger.info('check autoware status, return: {}, {}'.format(r_bool, status))
+@allure.step(wait_aw4_start_step_desc)
+def wait_aw4_start_open():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=wait_aw4_start_step_desc))
+    t = 0
+    while t < wait_aw4_time:
+        time.sleep(1)
+        logger.info('waiting autoware start, wait {}s ......'.format(t+1))
+        r_bool, status = p_env.check_autoware_open_status()
         assert r_bool, status
-        assert status, 'Autoware is not running after wait {}s'.format(wait_time)
+        if status == 2:
+            logger.info('autoware started successfully')
+            break
+        t += 1
+    assert t < wait_aw4_time, 'autoware didn\'t start in {}s'.format(wait_aw4_time)
 
-    # need to enter docker to check
-    step_desc = '4. Check perception status, if running, stop it'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, ret = p_env.check_perception()
-        assert r_bool, ret
-        if ret:
-            step_desc = 'Perception is running, to kill it.'
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, msg = p_env.stop_perception()
-                assert r_bool, msg
-                wait_time = 10
-                for i in range(1, wait_time+1):
-                    time.sleep(1)
-                    logger.info('waiting perception stop, {}s...'.format(i))
-            step_desc = 'check perception is stopped'
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, ret = p_env.check_perception()
-                assert r_bool, ret
-                assert not ret, 'Perception is stopped once, now it is running still, return'
 
-    step_desc = '5. Start perception ...'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, msg = p_env.start_perception()
-        assert r_bool, msg
-        wait_time = 0
-        while wait_time < 60:
-            time.sleep(1)
-            wait_time += 1
-            step_desc = 'waiting perception to start, {}s'.format(wait_time)
-            with allure.step(step_desc):
-                logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-                r_bool, status = p_env.check_perception()
-                if r_bool and status:
-                    logger.info('Perception started OK')
-                    break
+@allure.step(stop_aw4_step_desc)
+def stop_aw4_open():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=stop_aw4_step_desc))
+    r_bool, msg = p_env.stop_autoware_open()
+    assert r_bool, msg
 
-    # 6. check perception is ok
-    step_desc = '6. Check start perception OK'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, msg = p_env.check_perception()
-        assert r_bool, msg
-        assert msg, 'perception is not running, start env failed, return'
 
-    logger.info('Test env for autoware4 perception is ready, let\'s to do test...')
-    time.sleep(5)
+@allure.step(check_aw4_step_desc)
+def check_aw4_home():
+    logger.info('=' * 20 + check_aw4_step_desc + '=' * 20)
+    r_bool, status = p_env.check_autoware_status()
+    logger.info('check_autoware_status, return: {}, {}'.format(r_bool, status))
+    assert r_bool, str(status)
+    if status:
+        step_desc = 'Autoware4 is running...now to stop it'
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            s_bool, s_ret = p_env.stop_autoware4()
+            assert s_bool, s_ret
+            time.sleep(3)  # wait killed success
+        step_desc = 'Autoware4 stopped, now to check status'
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            r_bool, status = p_env.check_autoware_status()
+            assert r_bool, status
+            assert not status, 'Autoware4 stopped failed, please check ...'
 
-    yield
 
-    step_desc = '1. Stop perception'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, ret = p_env.stop_perception()
-        assert r_bool, ret
-        wait_time = 30
-        for i in range(1, wait_time+1):
-            logger.info('waiting perception to stop, {}s ...'.format(i))
-            time.sleep(1)
+@allure.step(start_aw4_step_desc)
+def start_aw4_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=start_aw4_step_desc))
+    r_bool, msg = p_env.start_autoware4()
+    assert r_bool, msg
+    wait_time = 0
+    while wait_time < 20:
+        time.sleep(1)
+        wait_time += 1
+        step_desc = 'waiting Autoware4 to start, {}s'.format(wait_time)
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=start_aw4_step_desc))
+            r_bool, status = p_env.check_autoware_status()
+            if r_bool and status:
+                logger.info('Autoware started OK')
+                break
 
-    step_desc = '2. Check perception has stopped'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, ret = p_env.check_perception()
-        assert r_bool, ret
-        assert not ret, 'perception stopped failed, return'
 
-    step_desc = '3. Stop autoware4'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, ret = p_env.stop_autoware4()
-        assert r_bool, ret
-        wait_time = 10
-        for i in range(1, wait_time + 1):
-            logger.info('waiting autoware4 to stop, {}s ...'.format(i))
-            time.sleep(1)
+@allure.step(wait_aw4_start_step_desc)
+def check_aw4_ok_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=wait_aw4_start_step_desc))
+    r_bool, status = p_env.check_autoware_status()
+    logger.info('check autoware status, return: {}, {}'.format(r_bool, status))
+    assert r_bool, status
+    assert status, 'Autoware is not running after wait {}s'.format(wait_aw4_time)
 
-    step_desc = '4.Check autoware4 has stopped'
-    with allure.step(step_desc):
-        logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
-        r_bool, ret = p_env.check_autoware_status()
-        assert r_bool, ret
-        assert not ret, 'autoware4 stopped failed, return'
 
-    end_time = time.time()
-    allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
+@allure.step(check_p_step_desc)
+def check_perception_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=check_p_step_desc))
+    r_bool, ret = p_env.check_perception()
+    assert r_bool, ret
+    if ret:
+        step_desc = 'Perception is running, to kill it.'
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            r_bool, msg = p_env.stop_perception()
+            assert r_bool, msg
+            wait_time = 10
+            for i in range(1, wait_time + 1):
+                time.sleep(1)
+                logger.info('waiting perception stop, {}s...'.format(i))
+        step_desc = 'check perception is stopped'
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            r_bool, ret = p_env.check_perception()
+            assert r_bool, ret
+            assert not ret, 'Perception is stopped once, now it is running still, return'
+
+
+@allure.step(start_perception_step_desc)
+def start_perception_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=start_perception_step_desc))
+    r_bool, msg = p_env.start_perception()
+    assert r_bool, msg
+    wait_time = 0
+    while wait_time < 60:
+        time.sleep(1)
+        wait_time += 1
+        step_desc = 'waiting perception to start, {}s'.format(wait_time)
+        with allure.step(step_desc):
+            logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=step_desc))
+            r_bool, status = p_env.check_perception()
+            if r_bool and status:
+                logger.info('Perception started OK')
+                break
+
+
+@allure.step(check_perception_ok_step_desc)
+def check_perception_ok_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step=check_perception_ok_step_desc))
+    r_bool, msg = p_env.check_perception()
+    assert r_bool, msg
+    assert msg, 'perception is not running, start env failed, return'
+
+
+@allure.step('1. Stop perception')
+def stop_perception_home():
+    logger.info('{eq} {step} {eq}'.format(eq='='*20, step='1. Stop perception'))
+    r_bool, ret = p_env.stop_perception()
+    assert r_bool, ret
+    wait_time = 30
+    for i in range(1, wait_time+1):
+        logger.info('waiting perception to stop, {}s ...'.format(i))
+        time.sleep(1)
+
+
+@allure.step('2. Check perception has stoppedc')
+def check_perception_stop_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step='2. Check perception has stopped'))
+    r_bool, ret = p_env.check_perception()
+    assert r_bool, ret
+    assert not ret, 'perception stopped failed, return'
+
+
+@allure.step('3. Stop autoware4')
+def stop_aw4_home():
+    logger.info('{eq} {step} {eq}'.format(eq='='*20, step='3. Stop autoware4'))
+    r_bool, ret = p_env.stop_autoware4()
+    assert r_bool, ret
+    wait_time = 10
+    for i in range(1, wait_time + 1):
+        logger.info('waiting autoware4 to stop, {}s ...'.format(i))
+        time.sleep(1)
+
+
+@allure.step('4.Check autoware4 has stopped')
+def check_aw4_stop_home():
+    logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step='4.Check autoware4 has stopped'))
+    r_bool, ret = p_env.check_autoware_status()
+    assert r_bool, ret
+    assert not ret, 'autoware4 stopped failed, return'
 
 
 @pytest.fixture
