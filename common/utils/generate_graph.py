@@ -359,6 +359,51 @@ def generate_pre_path_row(data_dict, save_path):
     return True, ''
 
 
+def generate_scatter_rows(scatter_list, save_path):
+    """Draw a multi line scatter
+    scatter_list: [
+        {
+            'scatter_title': 'BUS scatter',
+            'scatter_dict': {'BUS_exp': [(x1, y1), (x2, y2)], 'BUS_real': [(x1, y1), (x2, y2)]}
+        },
+        {
+            'scatter_title': 'CAR scatter',
+            'scatter_dict': {'CAR_exp': [(x1, y1), (x2, y2)], 'CAR_real': [(x1, y1), (x2, y2)]}
+        },
+    ]
+    """
+    try:
+        row = len(scatter_list)
+        fig, ax_list = plt.subplots(row, 1, figsize=(10, 5*row))
+
+        for i, scatter in enumerate(scatter_list):
+            if row == 1:
+                ax = ax_list
+            else:
+                ax = ax_list[i]
+            scatter_title = scatter['scatter_title']
+            scatter_1, scatter_2 = scatter['scatter_dict'].items()
+            logger.info(scatter_1[1])
+            scatter_x_1 = [d[0] for d in scatter_1[1]]
+            scatter_y_1 = [d[1] for d in scatter_1[1]]
+            scatter_x_2 = [d[0] for d in scatter_2[1]]
+            scatter_y_2 = [d[1] for d in scatter_2[1]]
+            ax.scatter(scatter_x_1, scatter_y_1, label=scatter_1[0],
+                       alpha=0.3, edgecolors='none')
+            ax.scatter(scatter_x_2, scatter_y_2, label=scatter_2[0],
+                       alpha=0.3, edgecolors='none')
+            ax.grid()
+            ax.set_title(scatter_title)
+            ax.legend()
+        fig.savefig(save_path, dpi=600)
+
+    except Exception as e:
+        # traceback.print_exc()
+        logger.exception(e)
+        return False, '%s' % traceback.format_exc()
+    return True, ''
+
+
 if __name__ == '__main__':
     # generate_bar([{'data': [1, 2, 3, 4], 'label': 'test1 '}, {'data': [1, 2, 13, 4], 'label': 'test2'}], '')
     # data_list = [

@@ -16,7 +16,8 @@ import os
 import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
-from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, generate_pre_path_row
+from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
+    generate_pre_path_row, generate_scatter_rows
 from common.utils.calculate import cal_std, cal_euc_distance
 import logging
 logger = logging.getLogger()
@@ -229,8 +230,8 @@ class Analysis:
         }
         """
         if cat_type == 1:  # according to semantic
-            ret_dict = {'uuid': np.array([0]*self._sect_len), 'semantic': {}, 'position': {}, 'line': {}, 'shape': {},
-                        'orientation': {}, 'prediction_paths': {}}
+            ret_dict = {'uuid': np.array([0]*self._sect_len), 'semantic': {}, 'position': {}, 'position_all': {},
+                        'line': {}, 'shape': {}, 'orientation': {}, 'prediction_paths': {}}
         else:
             ret_dict = {}
 
@@ -241,6 +242,7 @@ class Analysis:
                 if sem in ret_dict['semantic']:
                     ret_dict['semantic'][sem] += np.array(sec_data)
                     ret_dict['position'][sem].update(data['position'])
+                    ret_dict['position_all'][sem].extend(list(data['position'].values()))
                     ret_dict['orientation'][sem].update(data['orientation'])
                     ret_dict['line'][sem].update(data['line'])
                     ret_dict['prediction_paths'][sem].update(data['prediction_paths'])
@@ -251,6 +253,7 @@ class Analysis:
                     ret_dict['semantic'][sem] = np.array(sec_data)
                     # print(data_dict['position'][sem])
                     ret_dict['position'][sem] = data['position']
+                    ret_dict['position_all'][sem] = list(data['position'].values())
                     ret_dict['orientation'][sem] = data['orientation']
                     ret_dict['line'][sem] = data['line']
                     ret_dict['prediction_paths'][sem] = data['prediction_paths']
@@ -458,7 +461,8 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
     return True, sem_std_dict
 
 
-def compare_position(position_dict_exp, position_dict_real, save_path, max_step=5):
+def compare_position(position_dict_exp, position_dict_real, exp_pos_all_dict, real_pos_all_dict, save_path,
+                     scatter_save_path, max_step=5):
     """
     The position of the two bags is compared and the trajectory is generated
     The keys of the two must be equal
@@ -474,10 +478,11 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
     exp_semantic_list = position_dict_exp.keys()
     real_semantic_list = position_dict_real.keys()
     if sorted(exp_semantic_list) != sorted(real_semantic_list):
-        return False, 'expect position\'s semantic is not equal real\'s semantic: expect semantic {}, real semantic {}'.format(exp_semantic_list, real_semantic_list)
+        return False, 'expect position\'s semantic is not equal real\'s semantic: expect semantic {}, ' \
+                      'real semantic {}'.format(exp_semantic_list, real_semantic_list)
 
     ret_dict = {semantic: {} for semantic in exp_semantic_list}
-    data_list = []
+    data_list, scatter_list = [], []
     for semantic, exp_position_dict in position_dict_exp.items():
         real_position_dict = position_dict_real[semantic]
 
@@ -487,8 +492,10 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
         max_len = exp_len + max_step
         min_len = exp_len - max_step
         if real_len not in range(min_len, max_len+1):
-            logger.info('shape: {}\nposition elements count is not in normal range\nexpect len: {} - {}, real len: {}'.format(semantic, min_len, max_len, real_len))
-            return False, 'shape: {},position elements count is not in normal range, expect len: {} - {}, real len: {}'.format(semantic, min_len, max_len, real_len)
+            logger.info('shape: {}\nposition elements count is not in normal range\nexpect len: {} - {}, '
+                        'real len: {}'.format(semantic, min_len, max_len, real_len))
+            return False, 'shape: {},position elements count is not in normal range, expect len: {} - {}, ' \
+                          'real len: {}'.format(semantic, min_len, max_len, real_len)
 
         # 1. Calculate the Euclidean distance of the corresponding time point and return to list
         exp_data_list = [exp_position_dict[t] for t in sorted(exp_position_dict.keys())]
@@ -511,14 +518,27 @@ def compare_position(position_dict_exp, position_dict_real, save_path, max_step=
 
         # trace data
         data_list.append({'trace_title': '{} Trace, std: {:<8.2f}'.format(semantic, std),
-                          'trace_dict': {'{}_exp'.format(semantic): exp_data_list, '{}_real'.format(semantic): real_data_list},
+                          'trace_dict': {'{}_exp'.format(semantic): exp_data_list,
+                                         '{}_real'.format(semantic): real_data_list},
                           })
+        scatter_list.append({
+            'scatter_title': '{sem} Scatter'.format(sem=semantic),
+            'scatter_dict': {'{sem}_exp'.format(sem=semantic): exp_pos_all_dict[semantic],
+                             '{sem}_real'.format(sem=semantic): real_pos_all_dict[semantic]}
+        })
     # 3. draw two trace
     r_bool, msg = generate_trace_rows(data_list, save_path)
 
     if not r_bool:
         logger.error('generate trace rows failed: {}'.format(msg))
         return False, msg
+
+    # 4. draw scatter picture
+    r_bool, msg = generate_scatter_rows(scatter_list, scatter_save_path)
+    if not r_bool:
+        logger.error('generate scatter rows failed: {}'.format(msg))
+        return False, msg
+
     return True, ret_dict
 
 
@@ -896,13 +916,16 @@ def compare_shape(shape_dict_exp, shape_dict_real, save_path, max_step=5):
 
 
 if __name__ == '__main__':
-    bag_path = '/home/adlink/workspace/autotest/bags/moving_p_inner_front_2020-10-13-16-37-15/result.bag'
+    bag_path = '/home/duan/PycharmProjects/auto_test/bags/perception_open/sample/result.bag'
     ans = Analysis(bag_path)
     # print(ans.msg_count)
     ans.analysis()
     # # print(ans.data_dict)
     ret = ans.sum_data()
-    print(ret['line'])
+    print(ret.keys())
+    print(len(ret['position']['CAR']))
+    print(len(ret['position_all']['CAR']))
+    print(ret['position_all']['CAR'])
 
     # print(ans.sum_data()['position'])
     # for key, data in ans.sum_data().items():

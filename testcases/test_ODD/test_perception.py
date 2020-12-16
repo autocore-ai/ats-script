@@ -160,17 +160,25 @@ def make_test_case(story, case_data, case_level, case_desc):
             logger.info('================= {} ================='.format(step_desc))
             exp_pos_dict = bag_exp_sum_dict['position']
             real_pos_dict = bag_real_sum_dict['position']
+            exp_pos_all_dict = bag_exp_sum_dict['position_all']
+            real_pos_all_dict = bag_real_sum_dict['position_all']
             logger.debug('expect position sum data: {}, real position sum data: {}'.format(exp_pos_dict, real_pos_dict))
             allure.attach('expect position sum data: {}\n'
                           'real position sum data: {}'.format(exp_pos_dict, real_pos_dict),
                           'expect and real position dict data', allure.attachment_type.TEXT)
             save_path = '{}/{}'.format(bag_dir, 'position.png')
-            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, save_path, max_step=conf.PST_STEP)
+            scatter_save_path = '{}/{}'.format(bag_dir, 'position_scatter.png')
+            r_bool, pos_dict = compare_position(exp_pos_dict, real_pos_dict, exp_pos_all_dict, real_pos_all_dict,
+                                                save_path, scatter_save_path, max_step=conf.PST_STEP)
             logger.debug('compare result of position: {}'.format(pos_dict))
             assert r_bool, 'compare of position is wrong, message: {}'.format(pos_dict)
             # attach position png
             attach_mag = 'per second count of position\'s  bar graph'
             allure.attach.file(save_path, attach_mag, allure.attachment_type.PNG)
+            # attach position scatter png
+            attach_mag = 'position scatter graph'
+            allure.attach.file(scatter_save_path, attach_mag, allure.attachment_type.PNG)
+
             # compare position std
             for sem, dis_std_dict in pos_dict.items():
                 # 1. compare of std
