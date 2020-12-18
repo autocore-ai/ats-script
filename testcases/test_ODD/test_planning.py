@@ -110,13 +110,13 @@ def make_test_case(story, case_data, case_level, case_desc):
             logger.info("auto engage")
 
             # assert r_bool, msg
-
-        step_check="check bag finished or not"
-        with allure.step(step_check):
-            logger.info("step_check")
-            check_result, msg = check_bag(90,bag_path+name)
-            logger.info(check_result,msg)
-            assert check_result, msg
+        #
+        # step_check="check bag finished or not"
+        # with allure.step(step_check):
+        #     logger.info("step_check")
+        #     check_result, msg = check_bag(90,bag_path+name)
+        #     # logger.info(check_result,msg)
+        #     assert check_result, msg
 
         step_6 = "6. end recording maunally"
         with allure.step(step_6):
@@ -208,8 +208,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                 df1, df2 = csv_to_df(gt_pose_path, t_pose_path)
                 pose_pic_add = bag_path + "pose.png"
                 pic_loc = plot_pose(df1, df2, pose_pic_add)
-                assert pic_loc, "fail to plot current pose"
                 allure.attach.file(pose_pic_add, "plot pose for two bags")
+                assert pic_loc, "fail to plot current pose"
 
             with allure.step("7.trajectory eur distance ，first 40 points"):
                 trajectory_pic_add = bag_path + "trajectory.png"
@@ -230,8 +230,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                 allure.attach.file(tr_yaw_add1, "trajectory_delta_yaw_01")
 
             with allure.step("9. /planning/mission_planning/route   info comparison"):
-                gt_route = bag_path + "gt_01_route.csv"
-                t_route = bag_path + "test_01_route.csv"
+                gt_route = bag_path + gt_name+"_route.csv"
+                t_route = bag_path + name+"_route.csv"
                 allure.attach.file(gt_route, "gt route info")
                 allure.attach.file(t_route, "test route info")
 

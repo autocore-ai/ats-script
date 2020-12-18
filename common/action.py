@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger()
 
 
-def check_docker(d_name: str) -> bool:
+def check_docker(d_name: str) -> (bool, bool):
     """
     check docker status
     :param d_name: docker name
@@ -23,7 +23,7 @@ def check_docker(d_name: str) -> bool:
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = p.stdout.read().decode('utf-8')
     stderr = p.stderr.read().decode('utf-8')
-    logger.info('check docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    logger.info('check docker result, \nstdout: \n{}, \nstderr: \n{}\n'.format(stdout.split('\n'), stderr.split('\n')))
     if stderr:
         return False, stderr
     stdout_list = [n for n in stdout.split('\n') if n]

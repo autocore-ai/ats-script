@@ -23,30 +23,30 @@ def extrat_start_end_point(case_list, keyword):
     start_orientation_list = []
     end_pose_list = []
     end_orientation_list = []
-    start_pose_list.append(case_list.start.position.x, case_list.start.position.y, case_list.start.position.z)
-    start_orientation_list.append(case_list.start.orientation.x, case_list.start.orientation.y,
-                                  case_list.start.orientation.z,case_list.start.orientation.w)
-    end_pose_list.append(case_list.end.position.x, case_list.end.position.y, case_list.end.position.z)
-    end_orientation_list.append(case_list.end.orientation.x, case_list.end.orientation.y,
-                                  case_list.end.orientation.z, case_list.end.orientation.w)
+    start_pose_list.append([case_list["start.position.x"], case_list["start.position.y"], case_list["start.position.z"]])
+    start_orientation_list.append([case_list["start.orientation.x"], case_list["start.orientation.y"],
+                                  case_list["start.orientation.z"],case_list["start.orientation.w"]])
+    end_pose_list.append([case_list["end.position.x"], case_list["end.position.y"], case_list["end.position.z"]])
+    end_orientation_list.append([case_list["end.orientation.x"], case_list["end.orientation.y"],
+                                  case_list["end.orientation.z"], case_list["end.orientation.w"]])
     if keyword == 'start_point':
-        result = {'start.position.x': start_pose_list[0],
-                      'start.position.y':  start_pose_list[1],
-                      'start.position.z':  start_pose_list[2],
-                      'start.orientation.x':  start_orientation_list[0],
-                      'start.orientation.y':  start_orientation_list[1],
-                      'start.orientation.z': start_orientation_list[2],
-                      'start.orientation.w':  start_orientation_list[3]}
+        result = {'start.position.x': start_pose_list[0][0],
+                      'start.position.y':  start_pose_list[0][1],
+                      'start.position.z':  start_pose_list[0][2],
+                      'start.orientation.x':  start_orientation_list[0][0],
+                      'start.orientation.y':  start_orientation_list[0][1],
+                      'start.orientation.z': start_orientation_list[0][2],
+                      'start.orientation.w':  start_orientation_list[0][3]}
         return result
 
     if keyword == 'end_point':
-        result = {'end.position.x': end_pose_list[0],
-                  'end.position.y': end_pose_list[1],
-                  'end.position.z': end_pose_list[2],
-                  'end.orientation.x': end_orientation_list[0],
-                  'end.orientation.y': end_orientation_list[1],
-                  'end.orientation.z': end_orientation_list[2],
-                  'end.orientation.w': end_orientation_list[3]}
+        result = {'end.position.x': end_pose_list[0][0],
+                  'end.position.y': end_pose_list[0][1],
+                  'end.position.z': end_pose_list[0][2],
+                  'end.orientation.x': end_orientation_list[0][0],
+                  'end.orientation.y': end_orientation_list[0][1],
+                  'end.orientation.z': end_orientation_list[0][2],
+                  'end.orientation.w': end_orientation_list[0][3]}
         return result
 
 
@@ -277,27 +277,21 @@ def check_bag(wait_time, bag_name):
     # rosbag.rosbag_main.info_cmd("/home/minwei/autotest/common/08.bag")
     count = 0
     logger.info("checkbag")
-    try:
-        # result = os.popen("rosbag info " + bag_name)
-        # logger.info(result.read())
-        cmd = "ps -ef | grep record"
-        while count < wait_time:
-            result = os.popen(cmd)
-            logger.info(cmd, "the result is {}".format(result))
-            count += 1
-            logger.info("count: {}".format(count))
-            time.sleep(1)
-            logger.info("waiting record files {}s".count)
-            if "record" in result:
-                continue
-            else:
-                break
-        if count == wait_time:
-            return False, "waiting time is larger than count time"
+
+    # result = os.popen("rosbag info " + bag_name)
+    # logger.info(result.read())
+    cmd = "ps -ef | grep record"
+
+    result = os.popen(cmd)
+    logger.info(cmd, "the result is {}".format(result))
+    count += 1
+    logger.info("count: {}".format(count))
+    time.sleep(1)
+    logger.info("waiting record files {}s".count)
+    if "record" in result:
+        return False, "waiting time is larger than count time"
+    else:
         return True, ""
-    except Exception as e:
-        logger.exception("There is an err in checking bag: {}".format(e))
-        return False, "There is an err in checking bag: {}".format(e)
 
 
 def topic_csv(bag_name, topic_name, result_file_name, path):

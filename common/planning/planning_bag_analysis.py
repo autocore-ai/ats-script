@@ -186,6 +186,7 @@ def plot_pose(a, b, pose_path):
     print(a["field.pose.position.z"])
     ax3.set_title('field.pose.position.z')
     ax3.legend()
+    plt.savefig(pose_path)
     return True
 
 
