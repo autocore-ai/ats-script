@@ -54,8 +54,6 @@ def eur_calculate(a, b, point_num):
         key = "eu_distance of " + str(point_num)
     return key, df_all
 
-
-# plot欧式距离差, 单个一列
 # def plot_eur(df_eur,column_name):
 #     df_ex=df_eur[column_name]
 #     figure = plt.figure()
@@ -188,15 +186,6 @@ def plot_pose(a, b, pose_path):
     print(a["field.pose.position.z"])
     ax3.set_title('field.pose.position.z')
     ax3.legend()
-    #
-    # fig.add_subplot(ax)
-    # fig.add_subplot(ax2)
-    # fig.add_subplot(ax3)
-    # fig.subplots_adjust(bottom=0.2)
-    # upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    # upper_loc = upper_loc
-    # pic_loc = upper_loc + 'pose.png'
-    plt.savefig(pose_path)
     return True
 
 
@@ -220,7 +209,6 @@ def current_pose_analysis_eur(rangenum, df1, df2):
     df_all = pd.DataFrame()
     ac = df1.shape[0]
     bc = df2.shape[0]
-    print(ac, bc)
     if ac == bc:
         a_col = df1.columns
         b_col = df2.columns
@@ -243,12 +231,9 @@ def current_pose_analysis_eur(rangenum, df1, df2):
                 result = True
         key_name = "eu_distance of current pose"
     else:
-        print("current pose shape is not the same")
         result = False
         key_name = None
     df_all = pd.DataFrame(df_all, columns=[key_name])
-    print(df_all)
-    print(key_name)
     return result, key_name, df_all, er_msg
 
 
@@ -279,7 +264,6 @@ def current_pose_analysis_yaw(range_scale, df1, df2):
         c_yaw_list = []
         # mean_c_yaw_list = []
         ss = len(a_w)
-        print(ss)
         for ii in range(0, ss):
             a_yaw = to_euler_angles(a_w[ii], a_x[ii], a_y[ii], a_z[ii])
             b_yaw = to_euler_angles(b_w[ii], b_x[ii], b_y[ii], b_z[ii])
@@ -301,9 +285,7 @@ def current_pose_analysis_yaw(range_scale, df1, df2):
 
 def compare_analysis(csv1, csv2):
     a, b = csv_to_df(csv1, csv2)
-    print("===================")
     aa = eu_dataframe(a, b)
-    print(aa.head(20))
     # plot_eur(a,b)
     plt.show()
 
@@ -330,7 +312,6 @@ def plot_eu(csv_file, csv_file_1, trajectory_path):
     fig.subplots_adjust(wspace=0.4, hspace=0.4)
     # fig.subplots_adjust(bottom=0.02,top =0.03)
     a, b = csv_to_df(csv_file, csv_file_1)
-    print("===================")
     eur_df = eu_dataframe(a, b)
     logger.info("Euclidean distance dataframe for all the points : {}".format(eur_df))
     for i, a_list in enumerate(ax_list):

@@ -6,6 +6,7 @@ from common.action import *
 import time
 import pandas as pd
 import os
+import common.action as comm
 import errno
 from common.planning.command import *
 import logging
@@ -13,6 +14,41 @@ import traceback
 
 logger = logging.getLogger()
 io = common.auto_test_io
+
+
+# def check_autoware
+
+def extrat_start_end_point(case_list, keyword):
+    start_pose_list = []
+    start_orientation_list = []
+    end_pose_list = []
+    end_orientation_list = []
+    start_pose_list.append(case_list.start.position.x, case_list.start.position.y, case_list.start.position.z)
+    start_orientation_list.append(case_list.start.orientation.x, case_list.start.orientation.y,
+                                  case_list.start.orientation.z,case_list.start.orientation.w)
+    end_pose_list.append(case_list.end.position.x, case_list.end.position.y, case_list.end.position.z)
+    end_orientation_list.append(case_list.end.orientation.x, case_list.end.orientation.y,
+                                  case_list.end.orientation.z, case_list.end.orientation.w)
+    if keyword == 'start_point':
+        result = {'start.position.x': start_pose_list[0],
+                      'start.position.y':  start_pose_list[1],
+                      'start.position.z':  start_pose_list[2],
+                      'start.orientation.x':  start_orientation_list[0],
+                      'start.orientation.y':  start_orientation_list[1],
+                      'start.orientation.z': start_orientation_list[2],
+                      'start.orientation.w':  start_orientation_list[3]}
+        return result
+
+    if keyword == 'end_point':
+        result = {'end.position.x': end_pose_list[0],
+                  'end.position.y': end_pose_list[1],
+                  'end.position.z': end_pose_list[2],
+                  'end.orientation.x': end_orientation_list[0],
+                  'end.orientation.y': end_orientation_list[1],
+                  'end.orientation.z': end_orientation_list[2],
+                  'end.orientation.w': end_orientation_list[3]}
+        return result
+
 
 
 def read_jira_file(file_path, keyword):
@@ -82,8 +118,8 @@ def local_docker_start():
     return p2
 
 
-def local_planning_start_test():
-    # 检测进程起来了
+def planning_topics_test():
+    # detect the process is on
     shown = subprocess.Popen("rostopic list", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     out, err = shown.communicate()
     # cmd = 'docker exec {} /bin/bash -c \'source /opt/ros/melodic/setup.bash && ' \
@@ -96,24 +132,43 @@ def local_planning_start_test():
         print("cmd out: ", err.decode())
     else:
         print("cmd in:", out.decode("utf-8"))
-    # shown = subprocess.Popen("rostopic list",stdout=subprocess.PIPE, shell=True)
-    # topics = shown.stdout
-    # logger.info('start planning topics: {}'.format(topics))
-    # topic_list = topic_tolist()
-    # assert check_node_list(PLANNING_TOPICS, topic_list)
-    # # if 'perception' in topics and 'planning' in topics:
-    # #     return True
+    shown = subprocess.Popen("rostopic list",stdout=subprocess.PIPE, shell=True)
+    topics = shown.stdout
+    logger.info('start planning topics: {}'.format(topics))
+    topic_list = topic_tolist()
+    assert check_node_list(PLANNING_TOPICS, topic_list)
+    # if 'perception' in topics and 'planning' in topics:
+    #     return True
     # return False
 
 
-def docker_start():
+def docker_start(aw_log_path):
     """
     for open branch:
     subprocess starts docker sh file
     """
-    docker_content = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
-    logger.info(docker_content.stdout)
-    return docker_content
+    start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING, log_path=aw_log_path)
+    logger.info('start autoware cmd: {}'.format(start_cmd))
+    r_bool, msg = comm.start_docker(start_cmd)
+    return r_bool,msg
+
+    # docker_content = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
+    # logger.info(docker_content.stdout)
+    # return docker_content
+
+
+def check_docker():
+    cmd_docker = 'docker ps | grep %s' % PLANNING_DOCKER_NAME
+    logger.info('check planning docker, cmd: {}'.format(cmd_docker))
+    p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    stderr = p.stderr.read().decode('utf-8')
+    stdout = p.stdout.read().decode('utf-8')
+    logger.info('check planning docker, stdout: {}, stderr: {}'.format(stdout, stderr))
+    if len(stderr) > 0:
+        return False, stderr
+    if len(stdout) == 0:  # docker is not exist, return
+        return True, False
+    logger.info('planning docker is running...')
 
 
 def docker_end():
@@ -121,33 +176,14 @@ def docker_end():
     for open branch:
     subprocess ends docker sh file
     """
-    # os.system('kill -9 `ps -ef|grep "docker"|awk \'{{print $2}}\'`')
-    os.system("docker stop runtime")
+    r_bool, s_bool = comm.stop_docker(PLANNING_DOCKER_NAME)
+    return r_bool, s_bool
 
 
 def topic_tolist() -> list:
     shown = os.popen("rostopic list")
     topics = shown.readlines()
     return topics
-
-
-def pid_exists(pid):
-    """Check whether pid exists in the current process table.
-    """
-    if pid < 0:
-        return False
-    if pid == 0:
-        raise ValueError('invalid PID 0')
-        return False
-    try:
-        os.kill(pid, 0)
-    except OSError as err:
-        if err.errno == errno.ESRCH:
-            return False
-        elif err.errno == errno.EPERM:
-            return True
-    else:
-        return True
 
 
 def local_planning_end(p1):
@@ -254,10 +290,8 @@ def check_bag(wait_time, bag_name):
             logger.info("waiting record files {}s".count)
             if "record" in result:
                 continue
-
             else:
                 break
-
         if count == wait_time:
             return False, "waiting time is larger than count time"
         return True, ""
@@ -303,50 +337,55 @@ def save_csv_file(path, bag_name):
         time.sleep(2)
 
 
+def check_save_csv():
+    pass
+
 if __name__ == '__main__':
 
-    import common.planning.planning_conf as conf
-    name = "test_planning_01"
-    gt_name = "gt_01"
-    bag_path = '{}/bags/planning/'.format(TEST_CASE_PATH)
-    p2 = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
-    time.sleep(20)
-    # bag_path = "/home/minwei/autotest/bags/planning/"
-    print(bag_path+name)
-    bag_name_record = start_record_bag(60, bag_path + name)
-    time.sleep(1)
-    dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
-    time.sleep(1)
-    dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
-    a_l = list(dict_start.values())
-    print("start_point is {}".format(a_l))
-    b_l = list(dict_end.values())
-    print("end_point is {}".format(b_l))
-    start_position_sample = a_l[0:3]
-    start_orientation_sample = a_l[3:]
-    end_position_sample = b_l[0:3]
-    end_orientation_sample = b_l[3:]
-    add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
-                        end_orientation_sample)
-    time.sleep(10)
-    print("auto engage")
-    for i in range(int(60)):
-        time.sleep(1)
-        print("waitting {}s".format(i))
-    # r_bool, msg = local_stop_process(bag_path+name, '-2')
-    # logger.info(r_bool)
-    # logger.info(msg)
-    print("end recording ")
+    pass
 
-    time.sleep(10)
-
-    for topic in TOPICS.split(" "):
-        print(topic)
-        keyw = topic.split("/")
-        assert topic_csv(bag_path + name + ".bag", topic, "test_01_" + keyw[-1],
-                         bag_path), topic + " could not saved to csv file"
-        time.sleep(2)
-    for i in range(3):
-        logger.info("Waiting bag record.. {}s".format(i + 1))
-        time.sleep(1)
+    # import common.planning.planning_conf as conf
+    # name = "test_planning_01"
+    # gt_name = "gt_01"
+    # bag_path = '{}/bags/planning/'.format(TEST_CASE_PATH)
+    # p2 = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
+    # time.sleep(20)
+    # # bag_path = "/home/minwei/autotest/bags/planning/"
+    # print(bag_path+name)
+    # bag_name_record = start_record_bag(60, bag_path + name)
+    # time.sleep(1)
+    # dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
+    # time.sleep(1)
+    # dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
+    # a_l = list(dict_start.values())
+    # print("start_point is {}".format(a_l))
+    # b_l = list(dict_end.values())
+    # print("end_point is {}".format(b_l))
+    # start_position_sample = a_l[0:3]
+    # start_orientation_sample = a_l[3:]
+    # end_position_sample = b_l[0:3]
+    # end_orientation_sample = b_l[3:]
+    # add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
+    #                     end_orientation_sample)
+    # time.sleep(10)
+    # print("auto engage")
+    # for i in range(int(60)):
+    #     time.sleep(1)
+    #     print("waitting {}s".format(i))
+    # # r_bool, msg = local_stop_process(bag_path+name, '-2')
+    # # logger.info(r_bool)
+    # # logger.info(msg)
+    # print("end recording ")
+    #
+    # time.sleep(10)
+    #
+    # for topic in TOPICS.split(" "):
+    #     print(topic)
+    #     keyw = topic.split("/")
+    #     assert topic_csv(bag_path + name + ".bag", topic, "test_01_" + keyw[-1],
+    #                      bag_path), topic + " could not saved to csv file"
+    #     time.sleep(2)
+    # for i in range(3):
+    #     logger.info("Waiting bag record.. {}s".format(i + 1))
+    #     time.sleep(1)
 

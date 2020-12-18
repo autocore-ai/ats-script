@@ -269,53 +269,40 @@ def check_aw4_stop_home():
 
 
 @pytest.fixture
-def planning_env(scope='function'):
-    step_1 = "start environment "
-    with allure.step(step_1):
-        logger.info(step_1)
-        p1 = local_planning_start()
-        logger.info(p1)
-        logging.info('waiting autoware start ...')
-        time.sleep(5)
-        assert local_planning_start_test(), 'local planning env started fail'
-
-    step_2 = "start docker"
-    with allure.step(step_2):
-        logger.info(step_2)
-        time.sleep(5)
-        p2 = docker_start()
-        time.sleep(10)
-        assert pid_exists(p2.pid), "local docker env started fail"
-
-    yield
-
-    with allure.step("stop environment"):
-        time.sleep(5)
-        logger.info("stop env")
-        local_planning_end(p2)
-        time.sleep(5)
-        local_docker_end(p2)
-
-
-@pytest.fixture
-def planning_open_env(scope='function'):
+def planning_open_env(get_case_path):
+    step_0 = "check environment status , if status open, close it , if not , follow next step"
+    with allure.step(step_0):
+        check_aw4_open()
+        time.sleep(2)
+        logger.info('aw4 env is ok, now to exec cases')
 
     step_1 = "1. start docker"
     with allure.step(step_1):
         logger.info(step_1)
         time.sleep(5)
-        p2 = docker_start()
-        time.sleep(10)
-        assert pid_exists(p2.pid), "open-source docker env started fail"
+        logger.info('{eq} {step} {eq}'.format(eq='=' * 20, step='2. start aw4'))
+        aw_log_path = '{}_autoware.log'.format(get_case_path)
+        logger.info('autoware log path: {}'.format(aw_log_path))
+        r_bool, msg = docker_start(aw_log_path)
+        assert r_bool , msg
+        time.sleep(3)
+        assert check_docker(), "docker has not started"
+        time.sleep(3)
+        assert planning_topics_test(), "all planning related topics are ready"
 
     yield
 
     with allure.step("stop environment"):
-        time.sleep(5)
         logger.info("stop env")
-        # local_planning_end(p2)
         time.sleep(5)
-        docker_end()
+        r_bool, s_bool = docker_end()
+        if not r_bool:
+            logger.error('stop autoware failed, msg: {}'.format(s_bool))
+            return False, s_bool
+
+        if not s_bool:
+            return True, 'stop autoware failed'
+        return True, ''
 
 
 if __name__ == '__main__':

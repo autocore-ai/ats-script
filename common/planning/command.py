@@ -10,6 +10,8 @@ START_PLANNING_DOCKER = 'export ROS_IP={};export ROS_MASTER_URI={};{}/common/scr
 
 START_DOCKER_4_PLANNING = '{}/common/script/run_psim.sh'.format(TEST_CASE_PATH)
 
+PLANNING_DOCKER_NAME = 'runtime'
+
 PLANNING_TOPICS = ['/autoware/engage\n', '/autoware/state\n',
                    '/checkpoint\n', '/client_count\n', '/connected_clients\n',
                    '/control/control_cmd\n', '/control/lateral/control_cmd\n',
