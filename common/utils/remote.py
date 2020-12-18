@@ -263,23 +263,5 @@ class RemoteP:
             return False, 'get remote file execption'
 
 
-if __name__ == '__main__':
-    from common.command import *
-    from config import PCU_IP, PCU_USER, PCU_PWD
-
-    pcu_ser = Remote(PCU_IP, PCU_USER, PCU_PWD)
-    # print(pcu_ser.exec_comm('ls -1', hide=True))
-    print(RADAR_MAPPING)
-    print(pcu_ser.exec_comm(RADAR_MAPPING, hide=True))
-    print(pcu_ser.exec_comm('echo $ROS_IP', hide=True))
-    # print(pcu_ser.exec_comm('echo $ROS_IP', hide=False))
-    # result = pcu_ser.exec_comm('pwd')
-    # client = pcu_ser.client
-    # print(dir(client))
-    # print(client.exec_command('ls'))
-    # print(pcu_ser.get('/home/train/disk/Share/duanrongjie/data_2.tar.gz', './file5/'))
-    # print(os.getcwd())
-    # print(os.path.exists(os.getcwd()))
-    # print(pcu_ser.put('./file5/test.txt', '/home/train/disk/Share/duanrongjie/ll'))
 
 

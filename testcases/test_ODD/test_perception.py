@@ -11,10 +11,11 @@ import logging
 from common.generate_case_data import generate_case_data
 from config import TEST_CASE_PATH
 import config
-from common.perception.perception_bag_analysis import Analysis, compare_uuid, compare_semantic, compare_line,\
-    compare_position, compare_shape, compare_orientation, compare_prediction_paths
+from common.perception.compare_topics import compare_uuid, compare_semantic, compare_line,compare_position, \
+    compare_shape, compare_orientation, compare_prediction_paths
 import common.perception.perception_action as p_act
 import common.perception.perception_conf as conf
+from common.utils.perception_bag_analysis import Analysis
 logger = logging.getLogger()
 
 if config.EXEC_CASE_TYPE == 1:

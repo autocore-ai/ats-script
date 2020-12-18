@@ -185,12 +185,16 @@ def generate_line_rows(data_list, save_path):
     data_ Dict1 and data_ The number of elements in dict2 is equal
     data_list = [
         (
-            {title: CAR_Shape_X, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2], 'shape_diff_x': [2, 3, 4, 2]}},
-            {title: CAR_Shape_Y, data: {'shape_exp_y': [2, 3, 4, 2], 'shape_real_y': [2, 3, 4, 2], 'shape_diff_y': [2, 3, 4, 2]
+            {title: CAR_Shape_X, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2],
+            'shape_diff_x': [2, 3, 4, 2]}},
+            {title: CAR_Shape_Y, data: {'shape_exp_y': [2, 3, 4, 2], 'shape_real_y': [2, 3, 4, 2],
+            'shape_diff_y': [2, 3, 4, 2]
         ),
         (
-            {title: BUS_Shape_X, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2], 'shape_diff_x': [2, 3, 4, 2]}},
-            {title: BUS_Shape_Y, data: {'shape_exp_y': [2, 3, 4, 2], 'shape_real_y': [2, 3, 4, 2], 'shape_diff_y': [2, 3, 4, 2]
+            {title: BUS_Shape_X, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2],
+            'shape_diff_x': [2, 3, 4, 2]}},
+            {title: BUS_Shape_Y, data: {'shape_exp_y': [2, 3, 4, 2], 'shape_real_y': [2, 3, 4, 2],
+            'shape_diff_y': [2, 3, 4, 2]
         )
         ]
     """
@@ -200,19 +204,20 @@ def generate_line_rows(data_list, save_path):
         col = 1
     else:
         col = len(data_list[0])
+
     fig, ax_list = plt.subplots(row, col, figsize=(10, 5 * row))
     if isinstance(ax_list, numpy.ndarray):
         ax_list = ax_list.tolist()
+
     # begin to make line graph
     for i, data_tuple in enumerate(data_list):
         if row == 1:
             ax = ax_list
         else:
             ax = ax_list[i]
-        # logger.info(data_tuple)
+
         if isinstance(data_tuple, tuple):
             for j, data_dict in enumerate(data_tuple):
-                # print(data_dict)
                 # CAR_Shape_X
                 axe = ax
                 if col != 1:
@@ -296,7 +301,7 @@ def generate_pre_path_row(data_dict, save_path):
     """
     sem_count = len(data_dict.keys())
     row = sem_count * 2  # 2nd and 3rd
-    col = 3
+    col = len(list(data_dict.values())[0])
     fig, ax_list = plt.subplots(row, col, figsize=(15, 5 * row))  # 位置 轨迹图
     # begin to make graph
     Path = mpath.Path
@@ -310,7 +315,8 @@ def generate_pre_path_row(data_dict, save_path):
             # orientation line
             ax_trace = ax_tuple[j][0]
             ax_eul_line = ax_tuple[j][1]
-            ax_ori_line = ax_tuple[j][2]
+            if col > 2:
+                ax_ori_line = ax_tuple[j][2]
 
             # trace
             trace_title = data_tuple[0]['title']
@@ -345,17 +351,18 @@ def generate_pre_path_row(data_dict, save_path):
             ax_eul_line.grid()
             ax_eul_line.legend()
 
-            # ax_ori_line
-            ori_title = data_tuple[2]['title']
-            ori_line_dict = data_tuple[2]['line_data']
-            for label, d in ori_line_dict.items():
-                data_len = len(d) + 1
-                ax_ori_line.plot(range(1, data_len), d, label=label)
-            ax_ori_line.set_title(ori_title)
-            ax_ori_line.grid()
-            ax_ori_line.legend()
-
-    fig.savefig(save_path, dpi=600)
+            if col > 2:
+                # ax_ori_line
+                ori_title = data_tuple[2]['title']
+                ori_line_dict = data_tuple[2]['line_data']
+                for label, d in ori_line_dict.items():
+                    data_len = len(d) + 1
+                    ax_ori_line.plot(range(1, data_len), d, label=label)
+                ax_ori_line.set_title(ori_title)
+                ax_ori_line.grid()
+                ax_ori_line.legend()
+    # plt.show()
+    fig.savefig(save_path)
     return True, ''
 
 
@@ -382,16 +389,11 @@ def generate_scatter_rows(scatter_list, save_path):
             else:
                 ax = ax_list[i]
             scatter_title = scatter['scatter_title']
-            scatter_1, scatter_2 = scatter['scatter_dict'].items()
-            logger.info(scatter_1[1])
-            scatter_x_1 = [d[0] for d in scatter_1[1]]
-            scatter_y_1 = [d[1] for d in scatter_1[1]]
-            scatter_x_2 = [d[0] for d in scatter_2[1]]
-            scatter_y_2 = [d[1] for d in scatter_2[1]]
-            ax.scatter(scatter_x_1, scatter_y_1, label=scatter_1[0],
-                       alpha=0.3, edgecolors='none')
-            ax.scatter(scatter_x_2, scatter_y_2, label=scatter_2[0],
-                       alpha=0.3, edgecolors='none')
+            for key, sca in scatter['scatter_dict'].items():
+                scatter_x = [d[0] for d in sca]
+                scatter_y = [d[1] for d in sca]
+                ax.scatter(scatter_x, scatter_y, label=key,
+                           alpha=0.3, edgecolors='none')
             ax.grid()
             ax.set_title(scatter_title)
             ax.legend()

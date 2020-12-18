@@ -1,11 +1,8 @@
 # -*- coding:utf8 -*-
 
 import logging.config
-from config import TEST_CASE_PATH
 import os
 import functools
-
-# Define three log output formats
 
 standard_format = '[%(asctime)s][%(threadName)s:%(thread)d][task_id:%(name)s][%(filename)s:%(lineno)d]' \
                   '[%(levelname)s][%(message)s]'  # Where name is the name specified by getlogger
@@ -54,13 +51,16 @@ def md_logger(log_path):
         },
         'loggers': {
             '': {
-                'handlers': ['sh', 'fh'],  # Here we add the two handlers defined above, that is, log data is written to the file and printed to the screen
+                # Here we add the two handlers defined above, that is,
+                # log data is written to the file and printed to the screen
+                'handlers': ['sh', 'fh'],
                 'level': 'DEBUG',
                 'propagate': True,  # Pass up (higher level logger)
             },
         },
     }
-    logging.config.dictConfig(logging_dict)  # Import the logging configuration defined above and configure the log by dictionary
+    # Import the logging configuration defined above and configure the log by dictionary
+    logging.config.dictConfig(logging_dict)
     logger = logging.getLogger()  # generate a log instance
 
     return logger
