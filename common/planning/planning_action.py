@@ -11,6 +11,7 @@ import errno
 from common.planning.command import *
 import logging
 import traceback
+import config
 
 logger = logging.getLogger()
 io = common.auto_test_io
@@ -148,10 +149,11 @@ def docker_start(aw_log_path):
     subprocess starts docker sh file
     """
     start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING, log_path=aw_log_path)
+    if config.RVIZ == 1:
+        start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING_RVIZ, log_path=aw_log_path)
     logger.info('start autoware cmd: {}'.format(start_cmd))
     r_bool, msg = comm.start_docker(start_cmd)
     return r_bool,msg
-
     # docker_content = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     # logger.info(docker_content.stdout)
     # return docker_content

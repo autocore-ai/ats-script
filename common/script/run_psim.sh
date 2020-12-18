@@ -14,7 +14,6 @@ docker run -it --net=host --gpus=all --rm \
     --name=runtime \
     --volumes-from debug \
     --volumes-from data \
-    --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env "DISPLAY" \
     --privileged \
     registry.autocore.ai/autotest/devel /bin/bash -c  \

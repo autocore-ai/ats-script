@@ -1,5 +1,5 @@
 #! /bin/bash
-
+xhost +
 docker run -d --rm \
     -v /AutowareArchitectureProposal/install \
     --name=debug \
