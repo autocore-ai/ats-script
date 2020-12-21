@@ -9,7 +9,7 @@ import logging
 from common.action import *
 
 logger = logging.getLogger()
-CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases.csv'.format(TEST_CASE_PATH))
+CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases_open.csv'.format(TEST_CASE_PATH))
 
 
 def make_test_case(story, case_data, case_level, case_desc):
