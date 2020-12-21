@@ -43,11 +43,10 @@ def local_start_process(command, check_key, start_time=2):
 
 def remote_start_process(command, check_key, start_time=2):
     """
-    远程启动命令
-    :param server: 远程服务
-    :param command: 执行命令
-    :param check_key: 检测启动成功关键字
-    :param start_time:  启动时间
+    Remote start command
+    :param command: command
+    :param check_key: Detect startup success keyword
+    :param start_time:  start time
     :return:
     """
     try:

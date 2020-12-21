@@ -27,47 +27,6 @@ from common.utils.log import md_logger
 logger = logging.getLogger()
 
 
-@allure.step('1. connect to pcu env')
-@allure.title('1. connect to pcu env')
-@pytest.fixture
-def connect_pcu():
-    logger.info('================= 1. connect to PCU env =================')
-    logger.info('IP: {}, USER: {}, PWD: {}'.format(config.PCU_IP, config.PCU_USER, config.PCU_PWD))
-    remote_server = remote.Remote(config.PCU_IP, config.PCU_USER, config.PCU_PWD)
-    r_bool, desc = remote_server.check_is_connect()
-    assert r_bool, desc
-    logger.info('=============== set up connect PCU OK ===============')
-    return remote_server
-
-
-def clean_env(remote_server):
-    """clean env"""
-    remote_server.exec_comm('rm -rf /opt/autocore/test_data/map/*')
-    # os.system('rm -rf {}/test_data/map/*'.format(config.TEST_CASE_PATH))
-    logger.info('clean ok')
-
-
-@allure.step('clean env')
-@pytest.fixture
-def clean_file(connect_pcu, name='connect to pcu'):
-    """
-    clean file
-    :return:
-    """
-    remote_server = connect_pcu
-
-    with allure.step('2. clean remote env'):
-        logger.info('================= 2. clean env =================')
-        clean_env(remote_server)
-
-    yield
-
-    with allure.step('15. clean remote env'):
-        logger.info('================= 15. clean env =================')
-        clean_env(remote_server)
-    logger.info('=============== tear down test end ===============')
-
-
 @pytest.fixture(autouse=True)
 def log(get_case_path):
     """
