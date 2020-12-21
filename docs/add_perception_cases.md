@@ -27,7 +27,7 @@ Fields description:
  - recording topic, command: rosbag record -O expect.bag --duration {bag_time} /perception/object_recognition/objects
  - check expect.bag data, you can use script[python */autotest/common/utils/perception_bag_analysis.py expect.bag] to check. The script will analysis expect.bag, if you think the bag is not ok, can play and record bag until ok.
 
-## 4．copy expected rosbag to dir
+## 4. copy expected rosbag to dir
  - copy the expect.bag to '*/autotest/bags/perception_open/{your_rosbag_name}/'
  
 ## 5. limitations of test cases

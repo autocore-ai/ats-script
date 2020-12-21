@@ -13,7 +13,12 @@ python: python3.6
 # Test Frame
 python+pytest+allure
 
+![frame](/docs/images/frame.png)
+
+![test flow](/docs/images/test_flow.png)
+
 ## Deployment
+
 [Installation instructions](docs/install.md)
 
 ## How to run cases?
@@ -23,16 +28,20 @@ python3 run.py -h  # help
 
 python3 run.py -f perception  # run perception cases
 
+python3 run.py -f perception -r # run perception cases with rviz
+
 python3 run.py -f planning  # run perception cases
+
+python3 run.py -f planning -r  # run perception cases with rviz
 
 python3 run.py -f planning,perception    # run planning and perception cases
 ```
 
 ## How to add cases?
 
-[Add perception cases](docs/add_perception_cases.md)
+1. [Add perception cases](docs/add_perception_cases.md)
 
-[Add planning cases](docs/add_planning_cases.md)
+2. [Add planning cases](docs/add_planning_cases.md)
 
 
 ## About Pytest and Allure
@@ -48,9 +57,5 @@ if docker updated, need to exec:
  - docker pull registry.autocore.ai/autotest/debug
  - docker pull registry.autocore.ai/autotest/data
  
-## Next plan
-
-- 脑图
-- 框架优化，如何优雅控制用例文件？ 
  
  

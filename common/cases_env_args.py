@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 """
 @Project ：auto_test 
-@File    ：cases_csv_choice.py
+@File    ：cases_env_args.py
 @Date    ：2020/12/18 下午5:10 
 """
 

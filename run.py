@@ -25,9 +25,11 @@ def main():
     parser.add_argument('-l', '--level', type=int,  choices=[0, 1, 2, 3, 4],
                         help="tested cases level, 0: trivial, 1: minor, 2: normal, 3: critical, 4: blocker")
     parser.add_argument('-m', '--mark', help="cases marker")
-    parser.add_argument('-r', '--rviz', help="show rviz, default True", action="store_true")
+    parser.add_argument('-r', '--rviz', help="show rviz, default False", action="store_true")
+    parser.add_argument('-sv', '--serve', help="after executed cases finished, open test results in Browse;"
+                                               " default False", action="store_true")
     args = parser.parse_args()
-
+    print(args)
     if args.type == 2:
         config.EXEC_CASE_TYPE = 2
         print('exec home cases')
@@ -49,8 +51,10 @@ def main():
 
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))
-    # gen = 'allure generate ./allure_reports/result/ -o ./allure_reports/report/ --clean'
-    gen = 'allure serve ./allure_reports/result'
+    if args.serve:
+        gen = 'allure serve ./allure_reports/result'
+    else:
+        gen = 'allure generate ./allure_reports/result/ -o ./allure_reports/report/ --clean'
     print('generate allure_results: {}'.format(gen))
     os.system(gen)
 

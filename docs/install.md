@@ -1,4 +1,5 @@
 # Deployment
+
 ## Install ros1 
 http://wiki.ros.org/melodic/Installation
 
@@ -11,6 +12,7 @@ ubuntu with python3.6
 
 ## Install JDK
 
+Allure need JDK
 ```
 sudo apt-get update
 sudo apt-get install openjdk-8-jdk
@@ -19,6 +21,8 @@ java -version  # show version make sure install successfully
 ```
   
 ## Install Allure
+To generate beautiful test reports
+
 ```
 curl -o allure-2.7.0.tgz -Ls https://dl.bintray.com/qameta/generic/io/qameta/allure/allure/2.7.0/allure-2.7.0.tgz
 sudo tar -zxvf allure-2.7.0.tgz -C /opt/
@@ -27,14 +31,24 @@ rm -rf allure-2.7.0.tgz
 allure --version
 ```
 
-## install pip3
+## Install pip3
 ```
 sudo apt-get install python3-pip
 ```
 
-## install autotest frame
+## Install autotest frame
 ```
 git clone https://gitlab.com/autocore/AutoTest/autotest.git
 cd autotest
 pip3 install -r requirements.txt
 ```
+
+## Download perception and planning dockers
+```
+cd autotest/common/script
+. run_rosbag.sh  // download perception docker
+. run_psim.sh  // download planning docker
+```
+
+And now, you can to run cases.
+
