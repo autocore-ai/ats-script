@@ -30,19 +30,19 @@ Fields description:
 |bag_name|YES| groundtruth bag file name 
 |duration|YES | groundtruth bag info duration 
 
-##2. Prepare groundtruth bag and extract the coordinate information of starting , ending ,obstacles info
+## 2. Prepare groundtruth bag and extract the coordinate information of starting , ending ,obstacles info
       1. open rviz 
       2. rosbag record:  rosbag record -o <package-name> 
       3. setting start point end point, obstacle opsition 
       4. end recording
       5. check rosbag : rosbag info  <package-name>
-##3. Save bag to the specified path
+## 3. Save bag to the specified path
         eg.: if you named your testcase name : gt_01
         bag file : ../autotest/bags/planning/gt_01/gt_01.bag
-##4. Store the coordinate information of starting ， ending and obstacles to the specified CSV file
+## 4. Store the coordinate information of starting ， ending and obstacles to the specified CSV file
 
 
-##5 Support cases
+## 5 Support cases
         Current test version support: test planning a straight route 
         includes following topics : planning/scenario_planning/trajectory /current_pose " \
          "/vehicle/status/twist /vehicle/status/velocity /planning/mission_planning/route"
