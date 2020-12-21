@@ -50,5 +50,13 @@ cd autotest/common/script
 . run_psim.sh  // download planning docker
 ```
 
+if docker updated, need to execute manually:
+
+ - docker pull registry.autocore.ai/autotest/devel
+
+ - docker pull registry.autocore.ai/autotest/debug
+
+ - docker pull registry.autocore.ai/autotest/data
+ 
 And now, you can to run cases.
 

@@ -50,12 +50,4 @@ Pytest official website: https://docs.pytest.org/en/stable/
 
 Allure official website: https://docs.qameta.io/allure/#_pytest
 
-
-## Development usage
-if docker updated, need to exec:
- - docker pull registry.autocore.ai/autotest/devel
- - docker pull registry.autocore.ai/autotest/debug
- - docker pull registry.autocore.ai/autotest/data
- 
- 
  
