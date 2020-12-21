@@ -9,8 +9,7 @@ import time
 import logging
 
 from common.generate_case_data import generate_case_data
-from config import TEST_CASE_PATH
-import config
+from common.cases_csv_choice import get_case_argv
 from common.perception.compare_topics import compare_uuid, compare_semantic, compare_line,compare_position, \
     compare_shape, compare_orientation, compare_prediction_paths
 import common.perception.perception_action as p_act
@@ -18,12 +17,8 @@ import common.perception.perception_conf as conf
 from common.utils.perception_bag_analysis import Analysis
 logger = logging.getLogger()
 
-if config.EXEC_CASE_TYPE == 1:
-    CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases_open.csv'.format(TEST_CASE_PATH))
-    BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH_OPEN
-else:
-    CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/perception_cases.csv'.format(TEST_CASE_PATH))
-    BAG_BASE_PATH = conf.PERCEPTION_BAG_PATH
+CASE_LIST = generate_case_data(get_case_argv()['perception'])
+BAG_BASE_PATH = get_case_argv()['perception_bag_path']
 
 
 def make_test_case(story, case_data, case_level, case_desc):

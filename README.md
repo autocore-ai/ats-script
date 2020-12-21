@@ -3,6 +3,8 @@
 # Test environment
 Linux: ububtu
 
+ROS: ros1
+
 Autoware: Autoware4
 
 python: python3.6
@@ -45,5 +47,10 @@ if docker updated, need to exec:
  - docker pull registry.autocore.ai/autotest/devel
  - docker pull registry.autocore.ai/autotest/debug
  - docker pull registry.autocore.ai/autotest/data
+ 
+## Next plan
+
+- 脑图
+- 框架优化，如何优雅控制用例文件？ 
  
  

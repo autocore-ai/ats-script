@@ -37,7 +37,7 @@ def main():
 
     if args.rviz:
         print('show rviz')
-        config.RVIZ = 1
+        config.RVIZ = True
 
     p_args = ['-v', '-s',  '--alluredir', './allure_reports/result']
     if args.features:

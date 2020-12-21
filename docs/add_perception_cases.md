@@ -21,7 +21,7 @@ Fields description:
  - mkdir your bagname
  - cp your rosbag to dir
  
-## ３．get your ground truth rosbag 
+## 3. get your ground truth rosbag 
  
  - playing rosbag in a good environment
  - recording topic, command: rosbag record -O expect.bag --duration {bag_time} /perception/object_recognition/objects
@@ -29,4 +29,15 @@ Fields description:
 
 ## 4．copy expected rosbag to dir
  - copy the expect.bag to '*/autotest/bags/perception_open/{your_rosbag_name}/'
+ 
+## 5. limitations of test cases
+
+At present, different obstacles are distinguished according to the semantics of obstacles. Therefore, there can only be one obstacle for the same semantics. Otherwise, when comparing the position with the ground truth bag, problems will arise, such as the distance is too large and the standard deviation is particularly large
+
+Semantic comes from Autoware's message type, it is used to the topic of '/perception/object_recognition/objects'.
+
+![semantic](/docs/images/semantic.png)
+
+
+ 
 

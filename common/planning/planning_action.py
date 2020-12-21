@@ -149,7 +149,7 @@ def docker_start(aw_log_path):
     subprocess starts docker sh file
     """
     start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING, log_path=aw_log_path)
-    if config.RVIZ == 1:
+    if config.RVIZ:
         start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING_RVIZ, log_path=aw_log_path)
     logger.info('start autoware cmd: {}'.format(start_cmd))
     r_bool, msg = comm.start_docker(start_cmd)

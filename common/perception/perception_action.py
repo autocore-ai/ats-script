@@ -364,7 +364,7 @@ def start_autoware_open(aw_log_path):
     :return:
     """
     start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_OPEN, log_path=aw_log_path)
-    if config.RVIZ == 1:
+    if config.RVIZ:
         start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_RVIZ_OPEN, log_path=aw_log_path)
     logger.info('start autoware cmd: {}'.format(start_cmd))
     r_bool, msg = comm.start_docker(start_cmd)

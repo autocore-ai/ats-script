@@ -1,16 +1,20 @@
 # Deployment
-## ros1
+## Install ros1 
 http://wiki.ros.org/melodic/Installation
 
-## Autoware4
+## Install Autoware4
 https://github.com/tier4/AutowareArchitectureProposal/
 
-## python3.6 - ubuntu with python3.6
+## python3.6 
+
+ubuntu with python3.6
+
 ## Install JDK
+
 ```
 sudo apt-get update
 sudo apt-get install openjdk-8-jdk
-sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0_version/bin/java
+sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0_version/bin/java  # set environment
 java -version  # show version make sure install successfully
 ```
   
@@ -30,7 +34,7 @@ sudo apt-get install python3-pip
 
 ## install autotest frame
 ```
-git clone 
+git clone https://gitlab.com/autocore/AutoTest/autotest.git
 cd autotest
 pip3 install -r requirements.txt
 ```
