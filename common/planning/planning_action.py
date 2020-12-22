@@ -7,7 +7,6 @@ import time
 import pandas as pd
 import os
 import common.action as comm
-import errno
 from common.planning.command import *
 import logging
 import traceback
@@ -24,20 +23,21 @@ def extrat_start_end_point(case_list, keyword):
     start_orientation_list = []
     end_pose_list = []
     end_orientation_list = []
-    start_pose_list.append([case_list["start.position.x"], case_list["start.position.y"], case_list["start.position.z"]])
+    start_pose_list.append([case_list["start.position.x"], case_list["start.position.y"],
+                            case_list["start.position.z"]])
     start_orientation_list.append([case_list["start.orientation.x"], case_list["start.orientation.y"],
-                                  case_list["start.orientation.z"],case_list["start.orientation.w"]])
+                                   case_list["start.orientation.z"], case_list["start.orientation.w"]])
     end_pose_list.append([case_list["end.position.x"], case_list["end.position.y"], case_list["end.position.z"]])
     end_orientation_list.append([case_list["end.orientation.x"], case_list["end.orientation.y"],
-                                  case_list["end.orientation.z"], case_list["end.orientation.w"]])
+                                 case_list["end.orientation.z"], case_list["end.orientation.w"]])
     if keyword == 'start_point':
         result = {'start.position.x': start_pose_list[0][0],
-                      'start.position.y':  start_pose_list[0][1],
-                      'start.position.z':  start_pose_list[0][2],
-                      'start.orientation.x':  start_orientation_list[0][0],
-                      'start.orientation.y':  start_orientation_list[0][1],
-                      'start.orientation.z': start_orientation_list[0][2],
-                      'start.orientation.w':  start_orientation_list[0][3]}
+                  'start.position.y': start_pose_list[0][1],
+                  'start.position.z': start_pose_list[0][2],
+                  'start.orientation.x': start_orientation_list[0][0],
+                  'start.orientation.y': start_orientation_list[0][1],
+                  'start.orientation.z': start_orientation_list[0][2],
+                  'start.orientation.w': start_orientation_list[0][3]}
         return result
 
     if keyword == 'end_point':
@@ -49,7 +49,6 @@ def extrat_start_end_point(case_list, keyword):
                   'end.orientation.z': end_orientation_list[0][2],
                   'end.orientation.w': end_orientation_list[0][3]}
         return result
-
 
 
 def read_jira_file(file_path, keyword):
@@ -133,7 +132,7 @@ def planning_topics_test():
         print("cmd out: ", err.decode())
     else:
         print("cmd in:", out.decode("utf-8"))
-    shown = subprocess.Popen("rostopic list",stdout=subprocess.PIPE, shell=True)
+    shown = subprocess.Popen("rostopic list", stdout=subprocess.PIPE, shell=True)
     topics = shown.stdout
     logger.info('start planning topics: {}'.format(topics))
     topic_list = topic_tolist()
@@ -153,7 +152,7 @@ def docker_start(aw_log_path):
         start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING_RVIZ, log_path=aw_log_path)
     logger.info('start autoware cmd: {}'.format(start_cmd))
     r_bool, msg = comm.start_docker(start_cmd)
-    return r_bool,msg
+    return r_bool, msg
     # docker_content = subprocess.Popen(START_DOCKER_4_PLANNING, stdout=subprocess.PIPE, shell=True)
     # logger.info(docker_content.stdout)
     # return docker_content
@@ -189,17 +188,13 @@ def topic_tolist() -> list:
 
 
 def local_planning_end(p1):
-    "结束local planning子进程"
     time.sleep(10)
-    ll = os.system('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
-    ll_ros = os.system('kill -9 `ps -ef|grep "ros"|awk \'{{print $2}}\'`')
     logger.info('kill -9 `ps -ef|grep "AutowareArchitectureProposal"|awk \'{{print $2}}\'`')
     logger.info("end local planning env")
     p1.terminate()
 
 
 def local_docker_end(p2):
-    "结束docker进程"
     time.sleep(10)
     p2.terminate()
     print("local docker end")
@@ -209,7 +204,14 @@ def local_docker_end(p2):
 
 
 def add_start_end_point(start_postition, start_orientation, end_position, end_orientation):
-    "position: [x,y,z], orientation: [x,y,z,w]"
+    """
+
+    :param start_postition: [x,y,z], orientation: [x,y,z,w]
+    :param start_orientation: [x,y,z], orientation: [x,y,z,w]
+    :param end_position: [x,y,z], orientation: [x,y,z,w]
+    :param end_orientation: [x,y,z], orientation: [x,y,z,w]
+    :return:
+    """
     logger.info('enter add_start_end_point')
     try:
         io_class = io.AutoTestIO()
@@ -275,7 +277,7 @@ def start_record_bag(count_seconds, bag_name):
     return bag_name
 
 
-def check_bag(wait_time, bag_name):
+def check_bag():
     # rosbag.rosbag_main.info_cmd("/home/minwei/autotest/common/08.bag")
     count = 0
     logger.info("checkbag")
@@ -336,8 +338,8 @@ def save_csv_file(path, bag_name):
 def check_save_csv():
     pass
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     pass
 
     # import common.planning.planning_conf as conf
@@ -384,4 +386,3 @@ if __name__ == '__main__':
     # for i in range(3):
     #     logger.info("Waiting bag record.. {}s".format(i + 1))
     #     time.sleep(1)
-

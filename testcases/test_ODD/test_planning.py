@@ -1,12 +1,11 @@
-
+# -*- coding: utf-8 -*-
+import logging
 import allure
-from common.process import *
 import pytest
+from common.process import *
 from common.cases_env_args import get_case_argv
-import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
-import logging
 from common.action import *
 
 logger = logging.getLogger()
@@ -26,7 +25,8 @@ def make_test_case(story, case_data, case_level, case_desc):
 
         2. Local docker (this will change in the future)
 
-        3. Check whether the starting and ending points exist, do not exist or are abnormal, report an error and exit
+        3. Check whether the starting and ending points exist, do not exist or are abnormal,
+        report an error and exit
 
         4. Engage / disengage, speed limit interface settings,
         whether the car speed changes, if not, report an error exit
@@ -49,7 +49,9 @@ def make_test_case(story, case_data, case_level, case_desc):
 
         step_info = "check ground truth has csv file or not"
         with allure.step(step_info):
-            gt_csv_file_name = ['{}_current_pose.csv\n'.format(gt_name), '{}_route.csv\n'.format(gt_name), '{}_trajectory.csv\n'.format(gt_name),
+            gt_csv_file_name = ['{}_current_pose.csv\n'.format(gt_name),
+                                '{}_route.csv\n'.format(gt_name),
+                                '{}_trajectory.csv\n'.format(gt_name),
                                 '{}_twist.csv\n'.format(gt_name),
                                 '{}_velocity.csv\n'.format(gt_name)]
             shown = os.popen("cd {}; ls".format(bag_path))
@@ -57,27 +59,26 @@ def make_test_case(story, case_data, case_level, case_desc):
             exist_msg = [False for file_name in gt_csv_file_name if file_name not in path_info]
             if exist_msg:
                 for topic in TOPICS.split(" "):
-                    logger.info("Downlaoding topic : {}".format(topic))
-                    keyw = topic.split("/")
-                    assert topic_csv(gt_name+".bag", topic, "gt_" + keyw[-1], BAG_BASE_PATH), topic + " could not saved to csv file"
+                    logger.info("Downloading topic : {}".format(topic))
+                    hkey = topic.split("/")
+                    assert topic_csv(gt_name + ".bag", topic, "gt_" + hkey[-1],
+                                     BAG_BASE_PATH), topic + " could not saved to csv file"
                     time.sleep(2)
 
-                    save_csv_file(bag_path,gt_name)
+                    save_csv_file(bag_path, gt_name)
                     for i in range(3):
-                        logger.info("Waiting.. {}s".format(i+1))
+                        logger.info("Waiting.. {}s".format(i + 1))
                         time.sleep(1)
 
-                    for topic in TOPICS.split(" "):
-                        print(topic)
-                        keyw = topic.split("/")
-                        assert topic_csv(bag_path+gt_name+".bag", topic,
-                        gt_name+"_"+keyw[-1], bag_path), topic+" could not saved to csv file"
+                    for topic_one in TOPICS.split(" "):
+                        hkey = topic_one.split("/")
+                        assert topic_csv(bag_path + gt_name + ".bag", topic_one,
+                                         gt_name + "_" + hkey[-1], bag_path), topic_one + " could not saved to csv file"
                         time.sleep(2)
             else:
                 logger.info("csv files has already in bag file path: {}".format(gt_csv_file_name))
         # with allure.step("collect ground_truth bag data"):
         #
-
 
         step_3 = "start_record bag"
         with allure.step(step_3):
@@ -128,7 +129,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 time.sleep(1)
                 logger.info("waitting planning bag record finished {}s".format(i))
             logger.info("waitting finished , check the bag duration ")
-            r_bool, msg = local_stop_process(bag_path+name, '-2')
+            r_bool, msg = local_stop_process(bag_path + name, '-2')
             logger.info(r_bool)
             logger.info(msg)
             logger.info("end recording ")
@@ -138,8 +139,8 @@ def make_test_case(story, case_data, case_level, case_desc):
         with allure.step(step_5):
             for topic in TOPICS.split(" "):
                 print(topic)
-                keyw = topic.split("/")
-                assert topic_csv(bag_path + name + ".bag", topic, name + "_" + keyw[-1],
+                hkey = topic.split("/")
+                assert topic_csv(bag_path + name + ".bag", topic, name + "_" + hkey[-1],
                                  bag_path), topic + " could not saved to csv file"
                 time.sleep(2)
             for i in range(3):
@@ -181,15 +182,16 @@ def make_test_case(story, case_data, case_level, case_desc):
                 else:
                     count = df2.shape[0] - df1.shape[0]
                     df2.drop(df2.tail(count).index, inplace=True)
-                logger.info("cut the extra columns , now the  columns are {} , {}".format(df1.shape[0], df2.shape[0]))
+                logger.info("cut the extra columns , "
+                            "now the  columns are {} , {}".format(df1.shape[0], df2.shape[0]))
 
             yaw_range = 100
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(yaw_range, df1, df2)
                 assert result, "current pose yaw caculation is out of range: {}".format(yaw_range)
-                with open(bag_path + '1.txt', 'w') as f:
+                with open(bag_path + '1.txt', 'w') as file_pose:
                     for i in range(len(c_yaw_list)):
-                        f.write(str(c_yaw_list[i]))
+                        file_pose.write(str(c_yaw_list[i]))
                 logger.info("current pose list: {}".format(c_yaw_list))
 
                 fig, ax = plt.subplots(1, 1, figsize=(10, 6))
@@ -231,8 +233,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                 allure.attach.file(tr_yaw_add1, "trajectory_delta_yaw_01")
 
             with allure.step("9. /planning/mission_planning/route   info comparison"):
-                gt_route = bag_path + gt_name+"_route.csv"
-                t_route = bag_path + name+"_route.csv"
+                gt_route = bag_path + gt_name + "_route.csv"
+                t_route = bag_path + name + "_route.csv"
                 allure.attach.file(gt_route, "gt route info")
                 allure.attach.file(t_route, "test route info")
 
@@ -244,10 +246,8 @@ def make_test_case(story, case_data, case_level, case_desc):
 
 for case_arg in CASE_LIST:
     logger.info(case_arg)
-    print(case_arg)
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
-                                                     case_arg['Priority'], case_arg['Title'],
-                                                     )
+                                                     case_arg['Priority'], case_arg['Title'], )
 
 #  局限于只有一条路经， 无障碍物
 if __name__ == '__main__':

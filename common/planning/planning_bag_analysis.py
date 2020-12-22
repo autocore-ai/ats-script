@@ -5,11 +5,11 @@
 
 1. Bag, groundtruth bag
 
-2. Position compare the mean and variance of the two groups of data, if necessary, use F test to see if there is significant difference
+2. Position compare the mean and variance of the two groups of data,
+if necessary, use F test to see if there is significant difference
 
 """
 import numpy as np
-import logging
 import math
 from common.planning.planning_action import *
 import re
@@ -39,7 +39,6 @@ def eur_calculate(a, b, point_num):
     ac, bc = point_count(a, b)
     if ac == bc:
         a_col = a.columns
-        b_col = b.columns
         keyword = str("points" + str(point_num) + ".pose.position.x")
         keyword1 = str("points" + str(point_num) + ".pose.position.y")
         for i in a_col:
@@ -139,14 +138,6 @@ def yaw_df(a, b):
         c_all_dict["delta yaw " + str(i)] = c_dict
     yaw_df = pd.DataFrame(c_all_dict)
     return yaw_df
-
-
-# Select abnormal value
-def extract(df1, df2):
-    for i in df1.columns:
-        df1_reuslt = df1.loc[df1[i] > 1]
-
-    return df1_reuslt
 
 
 # plot two speeds
@@ -284,13 +275,6 @@ def current_pose_analysis_yaw(range_scale, df1, df2):
     return result, c_yaw_list
 
 
-def compare_analysis(csv1, csv2):
-    a, b = csv_to_df(csv1, csv2)
-    aa = eu_dataframe(a, b)
-    # plot_eur(a,b)
-    plt.show()
-
-
 def route_same(csv_a, csv_b):
     # a gt , b test
     a, b = csv_to_df(csv_a, csv_b)
@@ -383,7 +367,6 @@ def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
             a = round(a, 3)
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
-    pic_loc1 = TEST_CASE_PATH + '/delta_yaw1.png'
     plt.savefig(tr_yaw_add1)
 
 
