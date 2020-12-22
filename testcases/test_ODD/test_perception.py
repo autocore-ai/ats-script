@@ -3,14 +3,14 @@
 Perception module case
 """
 
-import allure
-import pytest
 import time
 import logging
+import allure
+import pytest
 
 from common.generate_case_data import generate_case_data
 from common.cases_env_args import get_case_argv
-from common.perception.compare_topics import compare_uuid, compare_semantic, compare_line,compare_position, \
+from common.perception.compare_topics import compare_uuid, compare_semantic, compare_line, compare_position, \
     compare_shape, compare_orientation, compare_prediction_paths
 import common.perception.perception_action as p_act
 import common.perception.perception_conf as conf

@@ -1,19 +1,20 @@
 # -*- coding:utf8 -*-
 """generate picture"""
 
+import logging
+import traceback
+
 import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
-import numpy
-import traceback
-import logging
 logger = logging.getLogger()
 
 
-def generate_bar(data_list, save_path, x_value=[], x_label='', y_label='', title=''):
+def generate_bar(data_list, save_path, x_value=None, x_label='', y_label='', title=''):
     """
     generate bar
-    data_list = [{‘data’: [1, 2, 3], 'label': 'expect uuid count/second'}, {‘data’: [1, 2, 3], 'label': 'expect uuid count/second'},]
+    data_list = [{‘data’: [1, 2, 3], 'label': 'expect uuid count/second'},
+    {‘data’: [1, 2, 3], 'label': 'expect uuid count/second'},]
     """
     if not data_list:
         return False, 'data_list can not be empty'
@@ -21,16 +22,16 @@ def generate_bar(data_list, save_path, x_value=[], x_label='', y_label='', title
     fig, ax = plt.subplots(figsize=(10, 8))
     # x axis value
     if x_value:
-        x = x_value
+        x_list = x_value
     else:
-        x = np.arange(1, len(data_list[0]['data'])+1)  # the label locations
+        x_list = np.arange(1, len(data_list[0]['data'])+1)  # the label locations
     width = 0.2  # the width of the bars
 
     for i, data in enumerate(data_list):
         if i % 2 == 0:
-            rects = ax.bar(x - width / 2, data['data'], width, label=data['label'])
+            rects = ax.bar(x_list - width / 2, data['data'], width, label=data['label'])
         else:
-            rects = ax.bar(x + width / 2, data['data'], width, label=data['label'])
+            rects = ax.bar(x_list + width / 2, data['data'], width, label=data['label'])
         auto_label(ax, rects)
 
     if x_label:
@@ -68,18 +69,18 @@ def generate_bar_rows(data_list, save_path):
         d_dict = item['data']
         # x axis value
         if 'x_value' in item and item['x_value']:
-            x = item['x_value']
+            x_list = item['x_value']
         else:
-            x = np.arange(1, len(list(d_dict.values())[0])+1)  # the label locations
+            x_list = np.arange(1, len(list(d_dict.values())[0])+1)  # the label locations
         width = 0.2  # the width of the bars
 
         j = 0
         for label, data in d_dict.items():
 
             if j % 2 == 0:
-                rects = ax.bar(x - width / 2, data, width, label=label)
+                rects = ax.bar(x_list - width / 2, data, width, label=label)
             else:
-                rects = ax.bar(x + width / 2, data, width, label=label)
+                rects = ax.bar(x_list + width / 2, data, width, label=label)
             auto_label(ax, rects)
             j += 1
 
@@ -172,7 +173,6 @@ def generate_trace_rows(data_list, save_path):
         # plt.show()
         fig.savefig(save_path, dpi=600)
     except Exception as e:
-        # traceback.print_exc()
         logger.exception(e)
         return False, '%s' % traceback.format_exc()
     return True, ''
@@ -206,7 +206,7 @@ def generate_line_rows(data_list, save_path):
         col = len(data_list[0])
 
     fig, ax_list = plt.subplots(row, col, figsize=(10, 5 * row))
-    if isinstance(ax_list, numpy.ndarray):
+    if isinstance(ax_list, np.ndarray):
         ax_list = ax_list.tolist()
 
     # begin to make line graph
@@ -224,9 +224,9 @@ def generate_line_rows(data_list, save_path):
                     axe = ax[j]
                 title = data_dict['title']
                 data = data_dict['data']
-                for label, l in data.items():
-                    data_len = len(l) + 1
-                    axe.plot(range(1, data_len), l, label=label)
+                for label, d_list in data.items():
+                    data_len = len(d_list) + 1
+                    axe.plot(range(1, data_len), d_list, label=label)
                 axe.grid()
                 # axe.axis('equal')
                 axe.set_title(title)
@@ -234,9 +234,9 @@ def generate_line_rows(data_list, save_path):
         else:
             title = data_tuple['title']
             data = data_tuple['data']
-            for label, l in data.items():
-                data_len = len(l) + 1
-                ax.plot(range(1, data_len), l, label=label)
+            for label, d_list in data.items():
+                data_len = len(d_list) + 1
+                ax.plot(range(1, data_len), d_list, label=label)
             ax.grid()
             # ax.axis('equal')
             ax.set_title(title)
@@ -344,9 +344,9 @@ def generate_pre_path_row(data_dict, save_path):
             # ax_eul_line
             eul_title = data_tuple[1]['title']
             eul_line_dict = data_tuple[1]['line_data']
-            for label, d in eul_line_dict.items():
-                data_len = len(d) + 1
-                ax_eul_line.plot(range(1, data_len), d, label=label)
+            for label, d_list in eul_line_dict.items():
+                data_len = len(d_list) + 1
+                ax_eul_line.plot(range(1, data_len), d_list, label=label)
             ax_eul_line.set_title(eul_title)
             ax_eul_line.grid()
             ax_eul_line.legend()
@@ -404,26 +404,3 @@ def generate_scatter_rows(scatter_list, save_path):
         logger.exception(e)
         return False, '%s' % traceback.format_exc()
     return True, ''
-
-
-if __name__ == '__main__':
-    # generate_bar([{'data': [1, 2, 3, 4], 'label': 'test1 '}, {'data': [1, 2, 13, 4], 'label': 'test2'}], '')
-    # data_list = [
-    #     {'data': {'label1': [1, 2, 13], 'label2': [1, 2, 3]}, 'title': 'title1'},
-    #     {'data': {'label1': [1, 2, 3], 'label2': [1, 2, 3]}, 'title': 'title1'},
-    #     {'data': {'label1': [1, 2, 3], 'label2': [1, 2, 3]}, 'title': 'title1'},
-    # ]
-    # generate_bar_rows(data_list, './semantic.png')
-    # data_list = [
-    #     {
-    #         'trace_title': 'BUS trace',
-    #         'trace_dict': {'BUS_exp': [(2,3), (5,7)], 'BUS_real': [(2,3), (5,7)]}
-    #     },
-    #     {
-    #         'trace_title': 'CAR trace',
-    #         'trace_dict': {'CAR_exp': [(2,3), (5,7)], 'CAR_real': [(-2,-3), (-5,-7)]}
-    #     },
-    # ]
-    # generate_trace_row(data_list, './position.png')
-    # generate_trace_rows(data_list, './ll.png')
-    pass

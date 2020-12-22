@@ -1,28 +1,27 @@
 # -*- coding:utf8 -*-
 """
-Fabric真正强大在于可以很方便的执行远程机器上的Shell命令，它基于SSH实现
-1. 连接到远程，执行命令
-2. 上传文件
-3. 下载文件
+Fabric is really powerful because it can easily execute shell commands on remote machines. It is based on SSH
+1. Connect to the remote and execute the command
+2. Upload files
+3. Download the file
 """
-from fabric import Connection
 import time
 import os
 import logging
 from socket import timeout
+from fabric import Connection
 import paramiko
 from paramiko.ssh_exception import AuthenticationException
-
 
 logger = logging.getLogger()
 
 
 class Remote:
-    """远程操作"""
+    """Remote operation"""
 
     def __init__(self, host, user, pwd):
         """
-        初始化连接
+        init connect
         :param host:
         :param user:
         :param pwd:
@@ -48,10 +47,11 @@ class Remote:
 
     def exec_comm(self, cmd, hide=False, timeout=30):
         """
-        执行命令
+        exec command
         :param cmd:
-        :param hide: 默认为 False, 默认情况下将远程的输出信息在当前命令行输出, 为 True 时, 则不会, 但不论是什么, 都不会影响 Result 对象的 stdout 和 stderr 结果, 还可以只隐藏 stdout 或 stderr
-        :param timeout: 超时时间
+        :param hide: 默认为 False, 默认情况下将远程的输出信息在当前命令行输出, 为 True 时, 则不会, 但不论是什么, 都不会影响 Result
+         对象的 stdout 和 stderr 结果, 还可以只隐藏 stdout 或 stderr
+        :param timeout: time out
         :return: fabric.runners.Result
         """
         logger.info('exec remote command: {}'.format(cmd))
@@ -61,7 +61,8 @@ class Remote:
         """
         执行本地命令
         :param cmd:
-        :param hide: 默认为 False, 默认情况下将远程的输出信息在当前命令行输出, 为 True 时, 则不会, 但不论是什么, 都不会影响 Result 对象的 stdout 和 stderr 结果, 还可以只隐藏 stdout 或 stderr
+        :param hide: 默认为 False, 默认情况下将远程的输出信息在当前命令行输出, 为 True 时, 则不会, 但不论是什么,
+        都不会影响 Result 对象的 stdout 和 stderr 结果, 还可以只隐藏 stdout 或 stderr
         :param timeout: 超时时间
         :return: fabric.runners.Result
         """
@@ -216,15 +217,12 @@ class RemoteP:
 
     def __get_conn(self):
         ssh = paramiko.SSHClient()
-        # 允许连接不在know_hosts文件中的主机
+        # Allow connection not in know_Hosts in the hosts file
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        # 建立连接
         ssh.connect(self.host, username=self.user, port=22, password=self.pwd)
         return ssh
 
     def exec_comm(self, command):
-        # 使用这个连接执行命令
         ssh = self.__get_conn()
         try:
             ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
@@ -241,7 +239,6 @@ class RemoteP:
             return False, 'exec command exception: {}'.format(command)
 
     def exec_comm_no_out(self, command):
-        # 使用这个连接执行命令
         ssh = self.__get_conn()
         ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
         ssh.close()
@@ -261,7 +258,3 @@ class RemoteP:
             logger.error("get remote file execption")
             logger.exception(e)
             return False, 'get remote file execption'
-
-
-
-

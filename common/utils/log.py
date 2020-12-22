@@ -4,14 +4,12 @@ import logging.config
 import os
 import functools
 
-standard_format = '[%(asctime)s][%(threadName)s:%(thread)d][task_id:%(name)s][%(filename)s:%(lineno)d]' \
-                  '[%(levelname)s][%(message)s]'  # Where name is the name specified by getlogger
-
-simple_format = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d] %(message)s'
-id_simple_format = '[%(levelname)s][%(asctime)s] %(message)s'
-
 
 def md_logger(log_path):
+    standard_format = '[%(asctime)s][%(threadName)s:%(thread)d][task_id:%(name)s][%(filename)s:%(lineno)d]' \
+                      '[%(levelname)s][%(message)s]'  # Where name is the name specified by getlogger
+    simple_format = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d] %(message)s'
+
     logfile_path_staff = '{}.log'.format(log_path)
     log_path = '/'.join(logfile_path_staff.split('/')[:-1])
     if not os.path.exists(log_path):

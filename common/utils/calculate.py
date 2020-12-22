@@ -2,31 +2,31 @@
 """
 General calculation method
 """
+import logging
 import numpy as np
 import traceback
-import logging
 logger = logging.getLogger()
 
 
-def cal_std(l1, l2, step=1):
+def cal_std(l_1, l_2, step=1):
     """
     Calculate the standard deviation of two arrays
     1. Calculate whether the length of two arrays is consistent. If not, remove the element
     2. Array subtraction
     3. Calculate the standard deviation
     """
-    l1_len = len(l1)
-    l2_len = len(l2)
+    l1_len = len(l_1)
+    l2_len = len(l_2)
     if l1_len > l2_len and l1_len in [l2_len, l2_len+step]:
-        l1 = l1[step:]
+        l_1 = l_1[step:]
     elif l1_len < l2_len and l2_len in [l1_len, l1_len+step]:
-        l2 = l2[step:]
+        l_2 = l_2[step:]
     elif l1_len == l2_len:
         pass
     else:
-        return False, 0, [], '{}\'s len: {} is not equal {}\'s len: {}'.format(l1, l1_len, l2, l2_len)
+        return False, 0, [], '{}\'s len: {} is not equal {}\'s len: {}'.format(l_1, l1_len, l_2, l2_len)
 
-    diff = np.array(l1)-np.array(l2)
+    diff = np.array(l_1)-np.array(l_2)
     std = np.std(diff)
     return True, std, list(diff), ''
 

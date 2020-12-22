@@ -5,6 +5,7 @@ PERCEPTION_AUTOWARE4_IP = '127.0.0.1'  # as master
 PERCEPTION_AUTOWARE4_USER = 'adlink'
 PERCEPTION_AUTOWARE4_PWD = 'adlink'
 PERCEPTION_AUTOWARE4_DEVEL = '~/workspace/test_autoware/AutowareArchitectureProposal'
+PERCEPTION_ROS1_SETUP = '/opt/ros/melodic/setup.bash'
 
 PERCEPTION_ROS_MASTER_URI = 'http://{}:11311'.format(PERCEPTION_AUTOWARE4_IP)
 
@@ -48,5 +49,3 @@ SHAPE_STD_X_MAX = 1000
 SHAPE_STD_Y_MAX = 1000
 SHAPE_DIS_X_MAX = 1000
 SHAPE_DIS_Y_MAX = 1000
-
-

@@ -1,7 +1,6 @@
 # -*- coding:utf8 -*-
 
 import time
-import os
 import logging
 import subprocess
 
@@ -30,9 +29,9 @@ def stop_process(process_name, signal='-9', stop_time=1):
     try:
         stop_cmd = 'kill {} `ps -ef|grep "{}"|awk \'{{print $2}}\'`'.format(signal, process_name)
         logger.info('stop local process[{}]: {}'.format(process_name, stop_cmd))
-        p = subprocess.Popen(stop_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        std = p.stdout.read().decode('utf-8')
-        err = p.stderr.read().decode('utf-8')
+        proc = subprocess.Popen(stop_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        std = proc.stdout.read().decode('utf-8')
+        err = proc.stderr.read().decode('utf-8')
         logger.info('kill process[{}] stdout: {}'.format(process_name, std))
         logger.info('kill process[{}] stderr: {}'.format(process_name, err))
 
@@ -48,4 +47,3 @@ def stop_process(process_name, signal='-9', stop_time=1):
     except Exception as e:
         logger.exception(e)
         return False, 'raised except, stop local process : {}'.format(process_name)
-

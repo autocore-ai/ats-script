@@ -1,20 +1,31 @@
 # -*- coding:utf8 -*-
 """
-1. Number of obstacles UUID_ The detection rate was UUID_ Count / T, give the number of UUIDs detected per second, and draw a line graph
-2. The correct semantic, the type and number of semantics, the percentage of correct semantics, the semantic pie chart, the line chart of semantics per second, and the broken line chart with different semantics
-3. Position of obstacles, take x, Y values, form a two-dimensional list in chronological order, and draw a broken line diagram
+1. Number of obstacles UUID_ The detection rate was UUID_ Count / T, give the number of UUIDs detected per second,
+and draw a line graph
+2. The correct semantic, the type and number of semantics, the percentage of correct semantics, the semantic pie chart,
+the line chart of semantics per second, and the broken line chart with different semantics
+3. Position of obstacles, take x, Y values, form a two-dimensional list in chronological order,
+and draw a broken line diagram
 List and draw the angle of the obstacle according to the time order
-5. The linear velocity line of obstacles, only the values of X and y are taken. The x-axis data forms a list according to the time sequence and draws a broken line graph. The y-axis data forms a list according to the time order, and draws the broken line diagram, and gives the average speed of X and Y
-6. The second value of prediction information of each point is taken out from the prediction data of obstacles. The second value predicts the position and direction of the current obstacle after 0.5s. Get the list like the second and third, and then draw a line chart comparing with 3 and 4. The starting point of X axis is 0.5s later than that of 3 and 4.
-In the later stage, Euclidean distance and cosine similarity processing can be done for the predicted data and the data of 3 and 4, and the standard deviation can be calculated for data reference
-7. The shape of the obstacle, the shape type and corresponding number, the percentage of the correct type, and the shape pie chart. The list of X and Y is formed in chronological order, and a broken line chart is drawn. Calculate the standard deviation of X and Y respectively
+5. The linear velocity line of obstacles, only the values of X and y are taken. The x-axis data forms a list
+according to the time sequence and draws a broken line graph. The y-axis data forms a list according to the time order,
+and draws the broken line diagram, and gives the average speed of X and Y
+6. The second value of prediction information of each point is taken out from the prediction data of obstacles.
+The second value predicts the position and direction of the current obstacle after 0.5s.
+Get the list like the second and third, and then draw a line chart comparing with 3 and 4.
+The starting point of X axis is 0.5s later than that of 3 and 4.
+In the later stage, Euclidean distance and cosine similarity processing can be done for the predicted data and
+the data of 3 and 4, and the standard deviation can be calculated for data reference
+7. The shape of the obstacle, the shape type and corresponding number, the percentage of the correct type,
+and the shape pie chart. The list of X and Y is formed in chronological order, and a broken line chart is drawn.
+Calculate the standard deviation of X and Y respectively
 """
-
+import logging
 import numpy as np
 from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
     generate_pre_path_row, generate_scatter_rows
 from common.utils.calculate import cal_std, cal_euc_distance
-import logging
+
 logger = logging.getLogger()
 
 
@@ -30,7 +41,7 @@ def compare_uuid(uuid_exp, uuid_rel, save_path, step=2):
     r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel, step)
     if not r_bool:
         return False, 0, msg
-    logger.info('expect and real uuid diff: {}'.format(std_uuid))
+    logger.info('expect and real uuid diff: {diff}, std: {std}'.format(diff=diff_list, std=std_uuid))
 
     # per count
     data_list = [{'data': uuid_exp, 'label': 'expect uuid, sum: {}'.format(sum(uuid_exp))},
@@ -59,14 +70,16 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
     sem_std_dict = {key: 0 for key in exp_category}
     # The standard deviation of each kind is calculated in a cycle, and the bar chart of each kind of semantic is drawn
     sem_list = []  # Store the drawing information corresponding to each semantic
-    for key, value in sem_dict_exp.items():
-        r_bool, std, diff_list, msg = cal_std(value, sem_dict_rel[key], 1)
+    for sem, value in sem_dict_exp.items():
+        r_bool, std, diff_list, msg = cal_std(value, sem_dict_rel[sem], 1)
+        logger.info('semantic: {sem}, expect and real uuid diff: {diff}, std: {std}'.format(sem=sem,
+                                                                                            diff=diff_list, std=std))
         if not r_bool:
             return False, msg
-        sem_std_dict[key] = std
-        sem_list.append({'data': {'expect semantic': value, 'real semantic': sem_dict_rel[key]}, 'x_label': 'Second',
+        sem_std_dict[sem] = std
+        sem_list.append({'data': {'expect semantic': value, 'real semantic': sem_dict_rel[sem]}, 'x_label': 'Second',
                          'y_label': 'Count per second', 'title': 'Semantic: {} expect and real, '
-                                                                 'std: {:<8.2f}'.format(key, std)})
+                                                                 'std: {:<8.2f}'.format(sem, std)})
 
     # Draw a bar chart
     r_bool, msg = generate_bar_rows(sem_list, save_path)
@@ -81,8 +94,10 @@ def compare_position(position_dict_exp, position_dict_real, exp_pos_all_dict, re
     """
     The position of the two bags is compared and the trajectory is generated
     The keys of the two must be equal
-    position_ dict_ Exp: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
-    position_ dict_ Real: {car ': {T1: (x, y), T2: (x, y)},'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    position_ dict_ Exp: {car ': {T1: (x, y), T2: (x, y)},
+    'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
+    position_ dict_ Real: {car ': {T1: (x, y), T2: (x, y)},
+    'bus': {T1: (x, y), T2: (x, y)}, # position values in X and Y directions
     max_ Step: the number of elements with the most difference between the two groups of data
         0. Judge the number of two location data, and the difference should not be too large
         1. Calculate the Euclidean distance of the corresponding time point and return to list
@@ -375,10 +390,10 @@ def compare_prediction_paths(pre_dict_exp, pre_dict_real, save_path, max_step=5)
         real_2th_ori = [data[2] for data in paths_real_2th]
         exp_3th_ori = [data[2] for data in paths_exp_3th]
         real_3th_ori = [data[2] for data in paths_real_3th]
-        r_boo, paths_diff_2th_xy = cal_euc_distance(exp_2th_xy, real_2th_xy)  # line
-        r_boo, paths_diff_3th_xy = cal_euc_distance(exp_3th_xy, real_3th_xy)  # line
-        r_boo, paths_diff_2th_ori = cal_euc_distance(exp_2th_ori, real_2th_ori)
-        r_boo, paths_diff_3th_ori = cal_euc_distance(exp_3th_ori, real_3th_ori)
+        _, paths_diff_2th_xy = cal_euc_distance(exp_2th_xy, real_2th_xy)  # line
+        _, paths_diff_3th_xy = cal_euc_distance(exp_3th_xy, real_3th_xy)  # line
+        _, paths_diff_2th_ori = cal_euc_distance(exp_2th_ori, real_2th_ori)
+        _, paths_diff_3th_ori = cal_euc_distance(exp_3th_ori, real_3th_ori)
 
         # 3. cal xy std
         paths_std_2th_xy = np.std(paths_diff_2th_xy)

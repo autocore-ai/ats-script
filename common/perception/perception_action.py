@@ -1,4 +1,7 @@
 # -*- coding:utf8 -*-
+"""
+perception environment and others funcs
+"""
 import time
 import logging
 import subprocess
@@ -26,9 +29,9 @@ def check_autoware_status():
     logger.info('check autoware4 nodes status, command: {}'.format(check_cmd_node))
 
     if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        p = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stderr = p.stderr.read().decode('utf-8')
-        ret = p.stdout.read().decode('utf-8')
+        proc = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = proc.stderr.read().decode('utf-8')
+        ret = proc.stdout.read().decode('utf-8')
         logger.info('check autoware result, stdout:{}, stderr: {}'.format(ret, stderr))
         if len(stderr) > 1:
             return False, stderr
@@ -37,14 +40,15 @@ def check_autoware_status():
             return True, False
 
         # check nodes are all ok
-        p = subprocess.Popen(check_cmd_node, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stderr = p.stderr.read().decode('utf-8')
-        ret_nodes = p.stdout.read().decode('utf-8')
+        proc = subprocess.Popen(check_cmd_node, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stderr = proc.stderr.read().decode('utf-8')
+        ret_nodes = proc.stdout.read().decode('utf-8')
         logger.info('check Autoware nodes result, stdout: {}, stderr: {}'.format(ret_nodes, stderr))
         # if len(stderr) > 1:
         #     return False, stderr
     else:
-        server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD, p_conf.PERCEPTION_AUTOWARE4_PWD)
+        server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
+                         p_conf.PERCEPTION_AUTOWARE4_PWD)
         r_bool, ret = server.exec_comm(check_cmd_autoware)
         logger.info('check remote autoware4-Autoware, exec result: {}, autoware status: {}'.format(r_bool, ret))
         if not r_bool:
@@ -256,7 +260,8 @@ def play_bag(bag_path):
     """
     if p_conf.PERCEPTION_BAG_REMOTE:
         play_cmd = ROSBAG_PLAY_REMOTE.format(bag_path=bag_path)
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, p_conf.PERCEPTION_BAG_REMOTE_PWD
+        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, \
+                        p_conf.PERCEPTION_BAG_REMOTE_PWD
         logger.info('need to play bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
         remote = RemoteP(ip, user, pwd)
         logger.info('play command: {}'.format(play_cmd))
@@ -309,7 +314,8 @@ def stop_record_bag():
     stop_cmd = 'kill -2 `ps -ef|grep "result.bag"|awk \'{{print $2}}\'`'
     logger.info('stop record command: {}'.format(stop_cmd))
     if p_conf.PERCEPTION_BAG_REMOTE:
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, p_conf.PERCEPTION_BAG_REMOTE_PWD
+        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, \
+                        p_conf.PERCEPTION_BAG_REMOTE_PWD
         logger.info('need to stop record bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
         remote = RemoteP(ip, user, pwd)
         r_bool, ret = remote.exec_comm(stop_cmd)

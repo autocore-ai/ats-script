@@ -5,16 +5,16 @@
 @File    ：perception_bag_analysis.py
 @Date    ：2020/12/18 上午11:11 
 """
-import rosbag
 import math
 import os
 import sys
+import logging
 import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
+import rosbag
 from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
     generate_pre_path_row, generate_scatter_rows
-import logging
 sys.path.append('./../../')
 logger = logging.getLogger()
 
@@ -71,10 +71,10 @@ class Analysis:
 
         """
         ans_list = []
-        for idx, (topic, msg, mt) in enumerate(self.bag.read_messages()):
+        for _, (_, msg, mt) in enumerate(self.bag.read_messages()):
             if not msg.objects:
                 continue
-            sect = self.time_section(mt.to_sec())  # 看当前时间所处的时间段位
+            sect = self.time_section(mt.to_sec())  # time segment of the current time
             for obj in msg.objects:
                 ans_list.append(self.obj_deal(obj, sect, mt.to_sec()))
         return True
@@ -93,11 +93,11 @@ class Analysis:
         Judge where the current time is in
         Time divided in seconds, with segments starting from 0
         """
-        l = len(self.time_list) - 1
+        len_time = len(self.time_list) - 1
         sect = 0
         for i, val in enumerate(self.time_list):
             if t > val:
-                sect = l-i
+                sect = len_time - i
                 break
         return sect
 
@@ -174,7 +174,7 @@ class Analysis:
         data_struct['line'][mt] = (obj.state.twist_covariance.twist.linear.x, obj.state.twist_covariance.twist.linear.y)
 
         data_struct['prediction_paths'][mt] = []
-        for i, path in enumerate(obj.state.predicted_paths[0].path):
+        for _, path in enumerate(obj.state.predicted_paths[0].path):
             path_obj = path.pose
             data_struct['prediction_paths'][mt].append(
                 (path_obj.pose.position.x, path_obj.pose.position.y, self.to_euler_angles(path_obj.pose.orientation))
@@ -240,7 +240,7 @@ class Analysis:
         else:
             ret_dict = {}
 
-        for uuid, data in self.data_dict.items():
+        for _, data in self.data_dict.items():
             ret_dict['uuid'] += np.array(data['uuid_sec'])
             # sum data by semantic
             for sem, sec_data in data['semantic'].items():
@@ -251,8 +251,8 @@ class Analysis:
                     ret_dict['orientation'][sem].update(data['orientation'])
                     ret_dict['line'][sem].update(data['line'])
                     ret_dict['prediction_paths'][sem].update(data['prediction_paths'])
-                    for shape, shape_data in data['shape'].items():
-                        ret_dict['shape'][sem].update(data['shape'][shape]['t_size'])
+                    for _, shape_data in data['shape'].items():
+                        ret_dict['shape'][sem].update(shape_data['t_size'])
 
                 else:
                     ret_dict['semantic'][sem] = np.array(sec_data)
@@ -264,8 +264,8 @@ class Analysis:
                     ret_dict['prediction_paths'][sem] = data['prediction_paths']
 
                     ret_dict['shape'][sem] = {}
-                    for shape, shape_data in data['shape'].items():
-                        ret_dict['shape'][sem].update(data['shape'][shape]['t_size'])
+                    for _, shape_data in data['shape'].items():
+                        ret_dict['shape'][sem].update(shape_data['t_size'])
 
         return ret_dict
 
@@ -604,7 +604,6 @@ class Analysis:
 
 
 if __name__ == '__main__':
-    import sys
     argv_list = sys.argv
     if len(argv_list) < 2:
         print('please input bag path')
@@ -613,4 +612,3 @@ if __name__ == '__main__':
         ans = Analysis(bag_path)
         ans.analysis()
         ans.show_graph_after_sum()
-

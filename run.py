@@ -9,9 +9,9 @@ General entrance of test execution
 """
 
 import os
+import argparse
 import pytest
 import config
-import argparse
 
 CASE_TYPE = 1
 
