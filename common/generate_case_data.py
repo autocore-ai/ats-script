@@ -46,7 +46,3 @@ def generate_case_data(csv_case_path):
     logger.info('read cases count: {}'.format(len(data_list)))
     logger.info('read cases: {}'.format(data_list))
     return data_list
-
-
-if __name__ == '__main__':
-    generate_case_data('/home/duan/PycharmProjects/auto_test/testcases/test_ODD/cases/perception_cases.csv')

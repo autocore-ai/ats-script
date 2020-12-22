@@ -52,15 +52,13 @@ def remote_start_process(command, check_key, start_time=2):
     try:
         server = Remote(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
         ret = server.exec_comm(command)
-        print(ret)
         logger.info('stdout: {}'.format(ret.stdout))
 
-        # 等待进程启动
-        print('wait time')
+        # wait
         logger.info('wait time: {}'.format(start_time))
         time.sleep(start_time)
 
-        # 检查启动结果
+        # check
         cmd = 'ps -ef | grep {} | grep -v grep'.format(check_key)
         ret = server.exec_comm(cmd)
         ret = ret.stdout
@@ -78,20 +76,18 @@ def remote_start_process(command, check_key, start_time=2):
 
 def remote_stop_process(process_name, kill_cmd='-9', stop_time=1):
     """
-    远程停止进程
-    :param server:  远程服务
-    :param process_name: 进程名字，必须包含在运行的进程命令中，否则不会被kill
-    :param kill_cmd:  停止进程方式
-    :param stop_time:  检测进程停止的时间
+    :param process_name: process name
+    :param kill_cmd:  signal
+    :param stop_time:  waiting stop time
     :return:
     """
     try:
         server = RemoteP(config.PERCEPTION_IP, config.PERCEPTION_USER, config.PERCEPTION_PWD)
         server.exec_comm('kill {} `ps -ef|grep "{}"|awk \'{{print $2}}\'`'.format(kill_cmd, process_name))
-        # 进程停止所需时间
+        # stop process time
         logger.info('wait time: {}s'.format(stop_time))
         time.sleep(stop_time)
-        # 检查是否kill 成功
+        # check
         r_bool, ret = server.exec_comm('ps -ef| grep {} | grep -v grep'.format(process_name))
         logger.info('stdout: {}'.format(ret))
         if process_name in ret:
@@ -104,10 +100,10 @@ def remote_stop_process(process_name, kill_cmd='-9', stop_time=1):
 
 def local_stop_process(process_name, kill_cmd='-9', stop_time=2):
     """
-    远程本地进程
-    :param process_name: 进程名字，必须包含在运行的进程命令中，否则不会被kill
-    :param kill_cmd:  停止进程方式
-    :param stop_time:  检测进程停止的时间
+    stop local process
+    :param process_name: process name
+    :param kill_cmd:  signal
+    :param stop_time:  waiting stop time
     :return:
     """
     try:
@@ -117,11 +113,11 @@ def local_stop_process(process_name, kill_cmd='-9', stop_time=2):
         ret = ret_obj.read()
         logger.info('kill process[{}] stdout: {}'.format(process_name, ret))
 
-        # 进程停止时间
+        # stop time
         logger.info('kill process wait time: {}s'.format(stop_time))
         time.sleep(stop_time)
 
-        # 检查是否kill 成功
+        # check
         r_bool = check_process(process_name)
         if r_bool:
             return False, 'stop failed, local process : {}'.format(process_name)
@@ -132,8 +128,7 @@ def local_stop_process(process_name, kill_cmd='-9', stop_time=2):
 
 
 def check_process(process_name: str):
-    """通过ps检查进程是否存在
-    return: True 进程存在； False 进程不存在"""
+    """return: True； False """
     check_cmd = 'ps -ef| grep {} | grep -v grep'.format(process_name)
     logger.info('check the local process exists: {}'.format(check_cmd))
     ret_obj = subprocess.Popen(check_cmd, shell=True, stdout=subprocess.PIPE)

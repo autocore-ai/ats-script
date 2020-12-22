@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 class AutoTestIO:
     """
-    自动化测试数据交换接口类
+    Automatic test data exchange interface class
     """
     def __init__(self, args=None):
         self.current_pose = None
@@ -44,20 +44,20 @@ class AutoTestIO:
     @property
     def pose(self):
         """
-        获取当前pose
+        get current pose
         """
         # return (self.current_pose.pose.position.x, self.current_pose.pose.position.y)
 
     def initialpose(self, data):
         """
-        设定初始pose
+        set init pise
         """
         data.header.frame_id = "viewer"
         self.pub_initialpose.publish(data)
 
     def goal(self, data):
         """
-        设定goal
+        set goal
         """
         data.header.frame_id = "viewer"
         data.header.stamp = rospy.get_rostime()
@@ -77,31 +77,32 @@ class AutoTestIO:
 
     def velocity_limit(self, data):
         """
-        设置最大速度km/h
+        set max speed km/h
         """
         self.pub_velocity_limit.publish(data / 3.6)
 
     def add_pedestrian(self, pose, speed):
         """
-        TODO 添加行人
+        TODO add pedestrian
         """
         pass
 
     def add_car(self, pose, speed):
         """
-        TODO 添加行人
+        TODO add car
         """
         pass
 
     def remove_obstacle(self, id=None):
         """
-        TODO 移除obstacle, 参数空则移除所有
+        TODO remove object, if argv is empty, remove all移除obstacle, 参数空则移除所有
         """
         pass
 
+
 if __name__ == '__main__':
     io = AutoTestIO()
-    init_pose = PoseWithCovarianceStamped() # 起点填充数据，事先用ros topic echo 记录下数据
+    init_pose = PoseWithCovarianceStamped()
     init_pose.pose.pose.position.x = 0
     init_pose.pose.pose.position.y = 1
     init_pose.pose.pose.position.z = 2
@@ -109,7 +110,7 @@ if __name__ == '__main__':
     init_pose.pose.pose.orientation.y = 0
     init_pose.pose.pose.orientation.z = 0
     init_pose.pose.pose.orientation.w = 1
-    io.initialpose(init_pose)               # 发送起点
+    io.initialpose(init_pose)
     goal_pose = PoseStamped()
     goal_pose.pose.position.x = 5
     goal_pose.pose.position.x = 0
@@ -118,8 +119,6 @@ if __name__ == '__main__':
     goal_pose.pose.orientation.y = 0
     goal_pose.pose.orientation.z = 0
     goal_pose.pose.orientation.w = 1
-    io.goal(goal_pose)                      # 发送终点
-    io.engage_autoware(True)                # engage
+    io.goal(goal_pose)
+    io.engage_autoware(True)
     time.sleep(3)
-
-

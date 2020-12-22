@@ -394,7 +394,3 @@ def stop_autoware_open() -> (bool, str):
     if not s_bool:
         return True, 'stop autoware failed'
     return True, ''
-
-
-if __name__ == '__main__':
-    pass

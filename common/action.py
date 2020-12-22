@@ -103,8 +103,3 @@ def stop_docker(d_name: str) -> (bool, bool):
     if stdout and stdout == d_name:
         return True, True
     return True, False
-
-
-if __name__ == '__main__':
-    # print(check_docker('test'))
-    check_docker('test')

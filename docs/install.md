@@ -3,9 +3,6 @@
 ## Install ros1 
 http://wiki.ros.org/melodic/Installation
 
-## Install Autoware4
-https://github.com/tier4/AutowareArchitectureProposal/
-
 ## python3.6 
 
 ubuntu with python3.6
@@ -49,14 +46,5 @@ cd autotest/common/script
 . run_rosbag.sh  // download perception docker
 . run_psim.sh  // download planning docker
 ```
-
-if docker updated, need to execute manually:
-
- - docker pull registry.autocore.ai/autotest/devel
-
- - docker pull registry.autocore.ai/autotest/debug
-
- - docker pull registry.autocore.ai/autotest/data
  
 And now, you can to run cases.
-
