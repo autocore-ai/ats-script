@@ -1,0 +1,2 @@
+Jira_ID,Priority,Story,CaseName,gt_name,Title,start.position.x,start.position.y,start.position.z,start.orientation.x,start.orientation.y,start.orientation.z,start.orientation.w,end.position.x,end.position.y,end.position.z,end.orientation.x,end.orientation.y,end.orientation.z,end.orientation.w,bag_name,duration
+1,Medium,route,test_planning_01,gt_01,first,-815.5006104,-249.5047607,0,0,0,-0.994364379,0.106016423,-1130.378662,-401.6962891,0,0,0,-0.771075398,0.63674385,gt_01.bag,90

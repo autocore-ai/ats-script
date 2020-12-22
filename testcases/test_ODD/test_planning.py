@@ -2,6 +2,7 @@
 import allure
 from common.process import *
 import pytest
+from common.cases_env_args import get_case_argv
 import common.planning.planning_conf as conf
 from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
@@ -9,7 +10,8 @@ import logging
 from common.action import *
 
 logger = logging.getLogger()
-CASE_LIST = generate_case_data('{}/testcases/test_ODD/cases/planning_cases_open.csv'.format(TEST_CASE_PATH))
+CASE_LIST = generate_case_data(get_case_argv()['planning'])
+BAG_BASE_PATH = get_case_argv()['planning_bag_path']
 
 
 def make_test_case(story, case_data, case_level, case_desc):
@@ -57,8 +59,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 for topic in TOPICS.split(" "):
                     logger.info("Downlaoding topic : {}".format(topic))
                     keyw = topic.split("/")
-                    assert topic_csv(gt_name+".bag", topic,"gt_"+keyw
-                    [-1],conf.LOCAL_GT_BAG_PATH), topic+" could not saved to csv file"
+                    assert topic_csv(gt_name+".bag", topic, "gt_" + keyw[-1], BAG_BASE_PATH), topic + " could not saved to csv file"
                     time.sleep(2)
 
                     save_csv_file(bag_path,gt_name)
