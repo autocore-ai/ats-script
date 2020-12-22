@@ -73,12 +73,11 @@ def make_test_case(story, case_data, case_level, case_desc):
                     for topic_one in TOPICS.split(" "):
                         hkey = topic_one.split("/")
                         assert topic_csv(bag_path + gt_name + ".bag", topic_one,
-                                         gt_name + "_" + hkey[-1], bag_path), topic_one + " could not saved to csv file"
+                                         gt_name + "_" + hkey[-1], bag_path), \
+                            topic_one + " could not saved to csv file"
                         time.sleep(2)
             else:
                 logger.info("csv files has already in bag file path: {}".format(gt_csv_file_name))
-        # with allure.step("collect ground_truth bag data"):
-        #
 
         step_3 = "start_record bag"
         with allure.step(step_3):
@@ -94,8 +93,6 @@ def make_test_case(story, case_data, case_level, case_desc):
         with allure.step(step_4):
             logger.info(step_4)
             time.sleep(20)
-            # dict_start = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "start_point")
-            # dict_end = read_jira_file(conf.LOCAL_JIRA_PLANNING_FILE_PATH, "end_point")
             dict_start = extrat_start_end_point(case_data, "start_point")
             dict_end = extrat_start_end_point(case_data, "end_point")
             start_point_info = list(dict_start.values())
@@ -106,29 +103,20 @@ def make_test_case(story, case_data, case_level, case_desc):
             start_orientation_sample = start_point_info[3:]
             end_position_sample = end_point_info[0:3]
             end_orientation_sample = end_point_info[3:]
-            add_start_end_point(start_position_sample, start_orientation_sample, end_position_sample,
-                                end_orientation_sample)
+            add_start_end_point(start_position_sample, start_orientation_sample,
+                                end_position_sample, end_orientation_sample)
             time.sleep(20)
             logger.info("auto engage")
 
-            # assert r_bool, msg
-        #
-        # step_check="check bag finished or not"
-        # with allure.step(step_check):
-        #     logger.info("step_check")
-        #     check_result, msg = check_bag(90,bag_path+name)
-        #     # logger.info(check_result,msg)
-        #     assert check_result, msg
-
-        step_6 = "6. end recording maunally"
+        step_6 = "6. end recording manually"
         with allure.step(step_6):
             logger.info(step_6)
             logger.info('record end, ready to kill -2')
             # time.sleep(90)
             for i in range(int(case_data['duration']) + 1):
                 time.sleep(1)
-                logger.info("waitting planning bag record finished {}s".format(i))
-            logger.info("waitting finished , check the bag duration ")
+                logger.info("waiting planning bag record finished {}s".format(i))
+            logger.info("waiting finished , check the bag duration ")
             r_bool, msg = local_stop_process(bag_path + name, '-2')
             logger.info(r_bool)
             logger.info(msg)
@@ -138,7 +126,6 @@ def make_test_case(story, case_data, case_level, case_desc):
         step_5 = "collect data"
         with allure.step(step_5):
             for topic in TOPICS.split(" "):
-                print(topic)
                 hkey = topic.split("/")
                 assert topic_csv(bag_path + name + ".bag", topic, name + "_" + hkey[-1],
                                  bag_path), topic + " could not saved to csv file"
@@ -240,7 +227,6 @@ def make_test_case(story, case_data, case_level, case_desc):
 
                 assert route_same(gt_route, t_route), "planning_route msg is not the same "
 
-    # 把生成的函数返回
     return test_planning
 
 
@@ -249,31 +235,7 @@ for case_arg in CASE_LIST:
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
                                                      case_arg['Priority'], case_arg['Title'], )
 
-#  局限于只有一条路经， 无障碍物
+
 if __name__ == '__main__':
     pass
-    # logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # logger = logging.getLogger(__name__)
-    #
-    # logger.info("Start print log")
-    # logger.debug("Do something")
-    # logger.warning("Something maybe fail.")
-    # logger.info("Finish")
-    # args = ['-v', '--alluredir', '~/autotest/allure_reports/allure']
-    # pytest.main(args)
 
-    # test_make_planning_testcase()
-
-    # args = ['-v', '-s', '--alluredir', '/home/minwei/autotest/allure_reports/result']
-    # # args = ['-v', '-s', '-k', 'child']
-    # print(args)
-    # # 根据参数生成执行命令，命令里包含了模块，用例等级等
-    # test_result = pytest.main(args)  # 全部通过，返回0；有失败或者错误，则返回1
-    # print(test_result)
-    #
-    # # 生成报告
-    # print('=' * 20)
-    # # generate = 'allure generate /home/minwei/autotest/allure_rep
-    # # orts/result/ -o /home/minwei/autotest/allure_reports/report/ --clean'
-    # # print('generate allure_results: {}'.format(generate))
-    # # os.system(generate)

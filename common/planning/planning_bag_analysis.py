@@ -1,19 +1,15 @@
 """
 1. Pose, X and Y take values respectively
-
 2. Calculation of yaw angle difference
-
-1. Bag, groundtruth bag
-
-2. Position compare the mean and variance of the two groups of data,
-if necessary, use F test to see if there is significant difference
-
+    1. Bag, groundtruth bag
+    2. Position compare the mean and variance of the two groups of data,
+    if necessary, use F test to see if there is significant difference
 """
-import numpy as np
-import math
-from common.planning.planning_action import *
 import re
+import math
+import numpy as np
 import matplotlib.pyplot as plt
+from common.planning.planning_action import *
 logger = logging.getLogger()
 
 
@@ -121,7 +117,6 @@ def orientation_one_point(a, b, point_num, four_angles):
 # Euclidean distance of all points, and then recombine into a Dataframe
 def eu_dataframe(a, b):
     a_num, b_num = point_count(a, b)
-    print("there are " + str(a_num) + " points")
     df_eu = pd.DataFrame()
     for i in range(0, a_num + 1):
         key, df = eur_calculate(a, b, i)
@@ -174,7 +169,6 @@ def plot_pose(a, b, pose_path):
     # ax3 = axislines.Subplot(fig, 133,sharex=ax)
     ax3.plot(list(a["field.pose.position.z"]), label="gt")
     ax3.plot(list(b["field.pose.position.z"]), label="test")
-    print(a["field.pose.position.z"])
     ax3.set_title('field.pose.position.z')
     ax3.legend()
     plt.savefig(pose_path)
@@ -270,7 +264,7 @@ def current_pose_analysis_yaw(range_scale, df1, df2):
                 result = True
     else:
         result = False
-        print("current pose shape is not the same")
+        logger.info("current pose shape is not the same")
         c_yaw_list = None
     return result, c_yaw_list
 
@@ -368,35 +362,3 @@ def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
     plt.savefig(tr_yaw_add1)
-
-
-if __name__ == '__main__':
-    pass
-    # local = "/home/minwei/autotest/bags/planning"
-    # GROUNDTRUTH_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
-    # TEST_TRAJECTORY = conf.LOCAL_PLANNING_BAG_PATH+ "gt_01_trajectory.csv"
-    # # compare_analysis(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    # # plot_eu(local + "/groundtruth_bags/gt_trajectory.csv", local + "/test_bags/test_trajectory.csv")
-    # a = pd.read_csv(    GROUNDTRUTH_TRAJECTORY )
-    # b = pd.read_csv(TEST_TRAJECTORY)
-    # count = a.shape[0] - b.shape[0]
-    # a.drop(a.tail(count).index, inplace=True)
-    # print(a.shape[0],b.shape[0])
-    # trajectory_yaw_plot(a , b)
-    # print(current_pose_analysis_yaw(10,a,b))
-    # trajectory_yaw_plot(a,b)
-    # compare_analysis(local + "/record_trajectory1.csv", local + "/record_trajectory.csv")
-
-    # print("==================================================")
-    # dd =extract(df1, df2)
-    # print(dd)
-
-    # df1 , df2 = csv_to_df(local + "/record_vehiclewist.csv", local + "/record_vehiclewist1.csv")
-    # # plot_twist(df1,df2)
-    # "/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv"
-    # dfa, dfb = csv_to_df("/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv",
-    #                      "/home/adlink/workspace/autotest/bags/planning/gt_01/gt_01_current_pose.csv")
-    # # dfb.drop(dfb.tail(3).index, inplace=True)
-    # # result, key, df_all = current_pose_analysis_eur(10, dfa,dfb)
-    # # df_all.to_csv("./tzzs_data.csv")
-    # plot_pose(dfa, dfb)

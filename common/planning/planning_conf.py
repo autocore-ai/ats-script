@@ -1,4 +1,5 @@
 # -*- coding:utf8 -*-
+
 # @Time : DATEDATE{TIME}
 # @File : planning_conf.py
 from config import TEST_CASE_PATH
@@ -10,8 +11,10 @@ PLANNING_AUTOWARE4_DEVEL = '~/workspace/test_autoware/AutowareArchitecturePropos
 
 PLANNING_ROS_MASTER_URI = 'http://{}:11311'.format(PLANNING_AUTOWARE4_IP)
 
-LOCAL_JIRA_PLANNING_FILE_PATH = '{}/testcases/test_ODD/cases/planning_cases_open.csv'.format(TEST_CASE_PATH)
+LOCAL_JIRA_PLANNING_FILE_PATH = '{}/testcases/test_ODD/cases/planning_cases_open.csv'. \
+    format(TEST_CASE_PATH)
 
-
-PLANNING_BAG_PATH = "{}/bags/planning/".format(TEST_CASE_PATH)
-PLANNING_BAG_PATH_OPEN = '{}/bags/planning_open'.format(TEST_CASE_PATH)  # record bags, play bags path
+PLANNING_BAG_PATH = "{}/bags/planning/". \
+    format(TEST_CASE_PATH)
+PLANNING_BAG_PATH_OPEN = '{}/bags/planning_open'. \
+    format(TEST_CASE_PATH)  # record bags, play bags path
