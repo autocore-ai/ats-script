@@ -10,6 +10,7 @@ General entrance of test execution
 
 import os
 import argparse
+from PIL import ImageGrab
 import pytest
 import config
 
@@ -41,7 +42,8 @@ def main():
         print('show rviz')
         config.RVIZ = True
 
-    p_args = ['-v', '-s',  '--alluredir', './allure_reports/result']
+    p_args = ['-v', '-s',  '--html=./allure_reports/report.html', '--self-contained-html',
+              '--alluredir', './allure_reports/result']
     if args.features:
         p_args.append('--allure-features')
         p_args.append(args.features)
