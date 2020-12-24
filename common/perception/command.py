@@ -1,5 +1,5 @@
 # -*- coding:utf8 -*-
-from config import TEST_IP
+from config import TEST_IP, ROS1_SETUP
 from common.perception.perception_conf import *
 
 AUTOWARE_SCREEN_NAME = 'autoware_test'
@@ -28,23 +28,21 @@ PERCEPTION_NODES_LIST = ['perception']
 STOP_PERCEPTION = 'cd ~/workspace;screen -S perception-test -X quit'
 
 # local record cmd
-ROSBAG_RECORD_O = 'export ROS_IP=%s;ROS_MASTER_URI=%s;source %s;rosbag record -O {name} ' \
-                  '--duration {t} {topic}' % (TEST_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_ROS1_SETUP)
-ROSBAG_RECORD_O_REMOTE = 'export ROS_IP=%s;ROS_MASTER_URI=%s;source %s;screen -d -m -S ' \
+ROSBAG_RECORD_O = 'export ROS_IP=%s;ROS_MASTER_URI=%s;rosbag record -O {name} ' \
+                  '--duration {t} {topic}' % (TEST_IP, PERCEPTION_ROS_MASTER_URI)
+ROSBAG_RECORD_O_REMOTE = 'export ROS_IP=%s;ROS_MASTER_URI=%s;screen -d -m -S ' \
                          'record_test rosbag record -O {name} --duration {t} {topic}' % \
-                         (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_ROS1_SETUP)
-ROSBAG_PLAY = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s;rosbag play {bag_path} --clock' %\
-              (TEST_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_ROS1_SETUP)
+                         (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI)
+ROSBAG_PLAY = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;rosbag play {bag_path} --clock' %\
+              (TEST_IP, PERCEPTION_ROS_MASTER_URI)
 ROSBAG_PLAY_REMOTE = 'export ROS_IP=%s;export ROS_MASTER_URI=%s;source %s;rosbag play {bag_path} ' \
-                     '--clock' % (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI, PERCEPTION_ROS1_SETUP)
+                     '--clock' % (PERCEPTION_BAG_REMOTE_IP, PERCEPTION_ROS_MASTER_URI, ROS1_SETUP)
 
 # =================================== open source command ===================================
-START_AUTOWARE_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER_URI={2};source {3};' \
-                      './run_rosbag.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI,
-                                               PERCEPTION_ROS1_SETUP)
-START_AUTOWARE_RVIZ_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER_URI={2};source {3}; ' \
-                      './run_rosbag_rviz.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI,
-                                                    PERCEPTION_ROS1_SETUP)
+START_AUTOWARE_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER_URI={2};' \
+                      './run_rosbag.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
+START_AUTOWARE_RVIZ_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER_URI={2};' \
+                      './run_rosbag_rviz.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
 GET_ROS_NODE_LIST = 'docker exec {} /bin/bash -c \'cd /AutowareArchitectureProposal && ' \
                         'source install/setup.bash && export ROS_IP={} && ' \
                         'export ROS_MASTER_URI={} && rosnode list\''.format(AUTOWARE_DOCKER_NAME,

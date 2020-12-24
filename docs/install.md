@@ -45,5 +45,21 @@ cd autotest/common/script
 . run_rosbag.sh  // download perception docker
 . run_psim.sh  // download planning docker
 ```
- 
+
+## Change to use bash
+
+After execute 'ls -l /bin/sh', if the result is /bin/sh -> dash, you need to exec:
+
+    - sudo  dpkg-reconfigure dash
+
+    - choose no
+
+    - exec 'ls -l /bin/sh', make sure result is '/bin/sh -> bash'
+
+## update config
+
+   - cd */autotes
+   - vi config.py
+   - update ROS1_SETUP, value is your ros1's setup.bash, such as: "ROS1_SETUP= '/opt/ros/melodic/setup.bash'"
+   
 And now, you can to run cases.

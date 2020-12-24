@@ -9,6 +9,7 @@ General entrance of test execution
 """
 
 import os
+import subprocess
 import argparse
 import pytest
 import config
@@ -49,6 +50,13 @@ def main():
     if args.stories:
         p_args.append('--allure-stories')
         p_args.append(args.stories)
+
+    # source ros setup.bash
+    proc = subprocess.Popen('source {ros1}'.format(ros1=config.ROS1_SETUP), shell=True, stderr=subprocess.PIPE)
+    stderr = proc.stderr.read()
+    if stderr:
+        print(stderr)
+        return
 
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))
