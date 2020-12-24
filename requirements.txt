@@ -3,7 +3,6 @@ pytest
 pytest-repeat
 pytest-rerunfailures
 allure-pytest
-Pillow
 pandas
 pycryptodomex
 matplotlib

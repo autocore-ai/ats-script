@@ -10,7 +10,6 @@ General entrance of test execution
 
 import os
 import argparse
-from PIL import ImageGrab
 import pytest
 import config
 
