@@ -5,8 +5,6 @@ Linux: ububtu
 
 ROS: ros1
 
-Autoware: Autoware4
-
 python: python3.6
 
 
