@@ -18,7 +18,6 @@ Session: at the session level, a test is executed only once, and all the functio
 """
 
 import pytest
-import allure
 import time
 import config
 import logging
@@ -62,3 +61,20 @@ def get_case_path(request):
         log_path = '{}/logs_{}/{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, cls_name, case_name)
 
     return log_path
+
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """
+    generate markdown report
+    | Priority  | Yes  |
+    :param item:
+    :param call:
+    :return:
+    """
+    out = yield
+
+    report = out.get_result()
+    if report.when == "call":
+        with open(config.TEST_CASE_MD_REPORT, 'a') as result:
+            result.write('| {case_name} | {result}|\n'.format(case_name=report.nodeid, result=report.outcome))

@@ -42,8 +42,7 @@ def main():
         print('show rviz')
         config.RVIZ = True
 
-    p_args = ['-v', '-s',  '--html=./allure_reports/report.html', '--self-contained-html',
-              '--alluredir', './allure_reports/result']
+    p_args = ['-v', '-s', '--alluredir', './allure_reports/result']
     if args.features:
         p_args.append('--allure-features')
         p_args.append(args.features)
@@ -58,6 +57,9 @@ def main():
         print(stderr)
         return
 
+    # clean report
+    with open(config.TEST_CASE_MD_REPORT, 'w') as md_r:
+        md_r.write('# Test Result\n|  TestCase   | Result  |\n|  ----  | ----  |\n')
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))
     if args.serve:

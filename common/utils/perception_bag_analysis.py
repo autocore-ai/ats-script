@@ -13,9 +13,9 @@ import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import rosbag
+sys.path.append('./../../')
 from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
     generate_pre_path_row, generate_scatter_rows
-sys.path.append('./../../')
 logger = logging.getLogger()
 
 SEMANTIC = {
@@ -144,7 +144,7 @@ class Analysis:
             # Handling the existing UUID
             data_struct = self.data_dict[uuid]
 
-            # semantic 处理 'semantic': {'type_1': [1, 2, 3, 1], 'type_2': [1, 2, 3, 1] },  # uuid对应的语义，以及每秒出现的次数
+            # semantic 'semantic': {'type_1': [1, 2, 3, 1], 'type_2': [1, 2, 3, 1] },
             semantic = SEMANTIC[obj.semantic.type]
             semantic_dict = data_struct['semantic']
             if semantic not in semantic_dict:
