@@ -36,8 +36,8 @@ def sum_md_report():
         if result in result_dict.keys():
             result_dict[result] += 1
 
-    insert_content = '# Test Report\n' \
-                     '##Summary\n\n' \
+    insert_content = '# Test Report\n\n' \
+                     '## Summary\n\n' \
                      '{} passed, {} skipped, {} failed, {} errors, {} expected failures, {} unexpected passes\n'.format(
         result_dict['passed'], result_dict['skipped'], result_dict['failed'], result_dict['errors'],
         result_dict['expected failures'], result_dict['unexpected passes'])
