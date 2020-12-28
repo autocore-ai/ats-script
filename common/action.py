@@ -73,15 +73,14 @@ def start_docker(cmd: str) -> (bool, str):
     :param cmd: start command
     :return:
     """
-    # p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    # stdout = p.stdout.read().decode('utf-8')
-    # stderr = p.stderr.read().decode('utf-8')
-    # logger.debug('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
-    # if stderr:
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout = p.stdout.read().decode('utf-8')
+    stderr = p.stderr.read().decode('utf-8')
+    logger.info('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    if stderr:
     #     logger.error(stderr)
-    #     return False, stderr
-    # return True, ''
-    subprocess.Popen(cmd, shell=True)
+        return False, stderr
+    # subprocess.Popen(cmd, shell=True)
     return True, ''
 
 

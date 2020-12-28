@@ -12,7 +12,7 @@ docker run -d --rm \
     --name=data \
     autocore/ats-data /bin/sh -c "sleep 30s"
 
-docker run -it --net=host --gpus=all --rm \
+docker run -t --net=host --gpus=all --rm \
     --name=runtime \
     --volumes-from debug \
     --volumes-from data \

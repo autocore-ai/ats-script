@@ -9,6 +9,6 @@ TEST_IP = '127.0.0.1'
 EXEC_CASE_TYPE = 1  # 1: open source 2: home
 RVIZ = False  # True show rviz
 
-ROS1_SETUP = '/opt/ros/melodic/setup.bash'
+ROS1_SETUP = '/opt/ros/noetic/setup.bash'
 
 
