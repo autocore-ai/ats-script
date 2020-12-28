@@ -54,7 +54,7 @@ def main():
 
     # pytest params
     if args.pytest:
-        p_args.append(args.pytest.split(' '))
+        p_args.extend(args.pytest.split(' '))
     print(p_args)
 
     # source ros setup.bash
