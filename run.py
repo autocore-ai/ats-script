@@ -17,37 +17,6 @@ import config
 CASE_TYPE = 1
 
 
-def sum_md_report():
-    """
-    sum markdown report
-    :return:
-    """
-    result_dict = {'passed': 0, 'skipped': 0, 'failed': 0, 'errors': 0,
-                   'expected failures': 0, 'unexpected passes': 0}
-
-    # summary test result
-    with open(config.TEST_CASE_MD_REPORT, 'r') as md_r:
-        all_con = md_r.readlines()
-
-    for result in all_con:
-        if len(result.split('|')) < 3:
-            continue
-        result = result.split('|')[-2].strip()
-        if result in result_dict.keys():
-            result_dict[result] += 1
-
-    insert_content = '# Test Report\n\n' \
-                     '## Summary\n\n' \
-                     '{} passed, {} skipped, {} failed, {} errors, {} expected failures, {} unexpected passes\n'.format(
-        result_dict['passed'], result_dict['skipped'], result_dict['failed'], result_dict['errors'],
-        result_dict['expected failures'], result_dict['unexpected passes'])
-    # 写如文件
-    with open(config.TEST_CASE_MD_REPORT, 'w') as md_r:
-        md_r.write(insert_content)
-        md_r.writelines(all_con)
-    print('generate markdown report successfully')
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--type', help="exec cases type, 1: open source cases 2: home cases, default 1",
@@ -60,8 +29,9 @@ def main():
     parser.add_argument('-r', '--rviz', help="show rviz, default False", action="store_true")
     parser.add_argument('-sv', '--serve', help="after executed cases finished, open test results in Browse;"
                                                " default False", action="store_true")
+    parser.add_argument('-pt', '--pytest', help="pytest params, such as '-m marker --count=5'")
     args = parser.parse_args()
-    print(args)
+
     if args.type == 2:
         config.EXEC_CASE_TYPE = 2
         print('exec home cases')
@@ -73,13 +43,19 @@ def main():
         print('show rviz')
         config.RVIZ = True
 
-    p_args = ['-v', '-s', '--alluredir', './allure_reports/result']
+    p_args = ['-v', '-s', '--html=./allure_reports/report.html', '--self-contained-html',
+              '--alluredir', './allure_reports/result']
     if args.features:
         p_args.append('--allure-features')
         p_args.append(args.features)
     if args.stories:
         p_args.append('--allure-stories')
         p_args.append(args.stories)
+
+    # pytest params
+    if args.pytest:
+        p_args.append(args.pytest.split(' '))
+    print(p_args)
 
     # source ros setup.bash
     proc = subprocess.Popen('source {ros1}'.format(ros1=config.ROS1_SETUP), shell=True, stderr=subprocess.PIPE)
@@ -88,13 +64,8 @@ def main():
         print(stderr)
         return
 
-    # clean report
-    with open(config.TEST_CASE_MD_REPORT, 'w') as md_r:
-        md_r.write('## Detail\n\n|  TestCase   | Result  |\n|  ----  | ----  |\n')
-
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))
-    sum_md_report()
 
     if args.serve:
         gen = 'allure serve ./allure_reports/result'
