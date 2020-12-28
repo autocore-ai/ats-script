@@ -129,3 +129,5 @@ bags/perception_open/*
 bags/planning/*
 bags/planning_open/*
 *.bak
+
+allure_reports
