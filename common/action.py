@@ -41,8 +41,6 @@ def check_node_list(exp_n_list: list, real_n_list: str) -> (bool, str):
     :param real_n_list:  real nodes list
     :return:  bool, str
     """
-    if sorted(exp_n_list) == sorted(real_n_list):
-        return True, ''
     for node in exp_n_list:
         if node not in real_n_list:
             return False, '{} not in expect nodes list'.format(node)
@@ -73,14 +71,14 @@ def start_docker(cmd: str) -> (bool, str):
     :param cmd: start command
     :return:
     """
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout = p.stdout.read().decode('utf-8')
-    stderr = p.stderr.read().decode('utf-8')
-    logger.info('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
-    if stderr:
+    # p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # stdout = p.stdout.read().decode('utf-8')
+    # stderr = p.stderr.read().decode('utf-8')
+    # logger.info('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
+    # if stderr:
     #     logger.error(stderr)
-        return False, stderr
-    # subprocess.Popen(cmd, shell=True)
+    #    return False, stderr
+    subprocess.Popen(cmd, shell=True)
     return True, ''
 
 
