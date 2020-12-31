@@ -59,7 +59,7 @@ def make_test_case(story, case_data, case_level, case_desc):
 
         step_desc = '3. stop record bag'
         with allure.step(step_desc):
-            time.sleep(1)
+            time.sleep(10)
 
             logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
             r_bool, ret = p_act.stop_record_bag()
