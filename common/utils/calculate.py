@@ -18,8 +18,10 @@ def cal_std(l_1, l_2, step=1):
     l1_len = len(l_1)
     l2_len = len(l_2)
     if l1_len > l2_len and l1_len in [l2_len, l2_len+step]:
+        step = l1_len - l2_len
         l_1 = l_1[step:]
     elif l1_len < l2_len and l2_len in [l1_len, l1_len+step]:
+        step = l2_len - l1_len
         l_2 = l_2[step:]
     elif l1_len == l2_len:
         pass
