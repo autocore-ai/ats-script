@@ -5,9 +5,9 @@
 from config import TEST_CASE_PATH
 
 PLANNING_AUTOWARE4_IP = '127.0.0.1'  # as master
-PLANNING_AUTOWARE4_USER = 'adlink'
-PLANNING_AUTOWARE4_PWD = 'adlink'
-PLANNING_AUTOWARE4_DEVEL = '~/workspace/test_autoware/AutowareArchitectureProposal'
+PLANNING_AUTOWARE4_USER = ''
+PLANNING_AUTOWARE4_PWD = ''
+PLANNING_AUTOWARE4_DEVEL = ''
 
 PLANNING_ROS_MASTER_URI = 'http://{}:11311'.format(PLANNING_AUTOWARE4_IP)
 
