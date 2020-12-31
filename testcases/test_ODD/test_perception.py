@@ -122,6 +122,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             save_path = '{}/{}'.format(bag_dir, 'uuid.png')
             r_bool, std_uuid, msg = compare_uuid(exp_uuid, real_uuid, save_path)
             logger.info('compare result of uuid std: {:<8.2f}'.format(std_uuid))
+            logger.info('compare result of uuid msg: {}'.format(msg))
             assert r_bool, 'compare of uuid wrong, message: {}'.format(msg)
             # attach uuid png
             attach_mag = 'uuid count bar/per'

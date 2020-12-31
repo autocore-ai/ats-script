@@ -24,8 +24,7 @@ import logging
 import numpy as np
 from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
     generate_pre_path_row, generate_scatter_rows
-from common.utils.calculate import cal_std, cal_euc_distance
-
+from common.utils.calculate import cal_std, cal_euc_distance, deal_list
 logger = logging.getLogger()
 
 
@@ -37,8 +36,11 @@ def compare_uuid(uuid_exp, uuid_rel, save_path, step=2):
     generate uuid compare graph
     Return bool, standard deviation, description information
     """
+    r_bool, uuid_exp, uuid_rel, msg = deal_list(uuid_exp, uuid_rel, step)
+    if not r_bool:
+        return False, 0, msg
     # cal std
-    r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel, step)
+    r_bool, std_uuid, diff_list, msg = cal_std(uuid_exp, uuid_rel)
     if not r_bool:
         return False, 0, msg
     logger.info('expect and real uuid diff: {diff}, std: {std}'.format(diff=diff_list, std=std_uuid))
@@ -71,13 +73,18 @@ def compare_semantic(sem_dict_exp, sem_dict_rel, save_path):
     # The standard deviation of each kind is calculated in a cycle, and the bar chart of each kind of semantic is drawn
     sem_list = []  # Store the drawing information corresponding to each semantic
     for sem, value in sem_dict_exp.items():
-        r_bool, std, diff_list, msg = cal_std(value, sem_dict_rel[sem], 1)
+        exp_sem = value
+        real_sem = sem_dict_rel[sem]
+        r_bool, exp_sem, real_sem, msg = deal_list(exp_sem, real_sem, 1)
+        if not r_bool:
+            return False, msg
+        r_bool, std, diff_list, msg = cal_std(exp_sem, real_sem)
         logger.info('semantic: {sem}, expect and real uuid diff: {diff}, std: {std}'.format(sem=sem,
                                                                                             diff=diff_list, std=std))
         if not r_bool:
             return False, msg
         sem_std_dict[sem] = std
-        sem_list.append({'data': {'expect semantic': value, 'real semantic': sem_dict_rel[sem]}, 'x_label': 'Second',
+        sem_list.append({'data': {'expect semantic': exp_sem, 'real semantic': real_sem}, 'x_label': 'Second',
                          'y_label': 'Count per second', 'title': 'Semantic: {} expect and real, '
                                                                  'std: {:<8.2f}'.format(sem, std)})
 
