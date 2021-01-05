@@ -145,6 +145,7 @@ def plot_twist(a, b, address):
     ax.set_title('tests')
     ax.legend()
     plt.savefig(address)
+    plt.close("all")
     # plt.show()
 
 
@@ -172,6 +173,7 @@ def plot_pose(a, b, pose_path):
     ax3.set_title('field.pose.position.z')
     ax3.legend()
     plt.savefig(pose_path)
+    plt.close("all")
     return True
 
 
@@ -304,13 +306,6 @@ def plot_eu(csv_file, csv_file_1, trajectory_path):
             a = round(a, 3)
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(eur_df.columns[df_index] + " std is {}".format(a))
-    # upper_loc = os.path.abspath(os.path.dirname(os.getcwd()))
-    # logger.info(upper_loc)
-    # print(upper_loc)
-    # upper_loc = upper_loc + "/autotest/bags"
-    pic_loc = TEST_CASE_PATH + '/trajectory.png'
-    logger.info(pic_loc)
-    plt.savefig(pic_loc)
 
     fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
     fig1.subplots_adjust(wspace=0.4, hspace=0.4)
@@ -328,6 +323,7 @@ def plot_eu(csv_file, csv_file_1, trajectory_path):
 
     logger.info(trajectory_path)
     plt.savefig(trajectory_path)
+    plt.close("all")
 
 
 def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
@@ -348,6 +344,7 @@ def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
             ax.set_title(yaw_df_sample.columns[df_index] + " std is {}".format(a))
     plt.savefig(tr_yaw_add)
 
+
     fig1, ax_list1 = plt.subplots(5, 5, figsize=(20, 16))
     fig1.subplots_adjust(wspace=0.4, hspace=0.4)
     for i, a_list in enumerate(ax_list1):
@@ -362,3 +359,4 @@ def trajectory_yaw_plot(a, b, tr_yaw_add, tr_yaw_add1):
             ax.plot([i for i in range(1, len(df_ex) + 1)], list(np.array(df_ex)))
             ax.set_title(yaw_df_sample.columns[df_index + 21] + " std is {}".format(a))
     plt.savefig(tr_yaw_add1)
+    plt.close("all")

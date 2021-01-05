@@ -8,25 +8,37 @@ import traceback
 logger = logging.getLogger()
 
 
-def cal_std(l_1, l_2, step=1):
+def deal_list(list_1, list_2, step):
+    """
+    compare two lists, and return equal length list
+    :param list_1:
+    :param list_2:
+    :param step:
+    :return:
+    """
+    len_list_1, len_list_2 = len(list_1), len(list_2)
+    if len_list_1 in [len_list_2+1, len_list_2+step]:
+        step = len_list_1 - len_list_2
+        list_1 = list_1[step:]
+    elif len_list_2 in [len_list_1+1, len_list_1+step]:
+        step = len_list_2 - len_list_1
+        list_2 = list_2[step:]
+    elif len_list_1 == len_list_2:
+        pass
+    else:
+        return False, list_1, list_2, 'step: {}, {}\'s len: {} is not equal {}\'s len: {}'.format(step, len_list_1,
+                                                                                                  list_1, len_list_2,
+                                                                                                  list_2)
+    return True, list_1, list_2, ''
+
+def cal_std(list_1, list_2):
     """
     Calculate the standard deviation of two arrays
     1. Calculate whether the length of two arrays is consistent. If not, remove the element
     2. Array subtraction
     3. Calculate the standard deviation
     """
-    l1_len = len(l_1)
-    l2_len = len(l_2)
-    if l1_len > l2_len and l1_len in [l2_len, l2_len+step]:
-        l_1 = l_1[step:]
-    elif l1_len < l2_len and l2_len in [l1_len, l1_len+step]:
-        l_2 = l_2[step:]
-    elif l1_len == l2_len:
-        pass
-    else:
-        return False, 0, [], '{}\'s len: {} is not equal {}\'s len: {}'.format(l_1, l1_len, l_2, l2_len)
-
-    diff = np.array(l_1)-np.array(l_2)
+    diff = np.array(list_1)-np.array(list_2)
     std = np.std(diff)
     return True, std, list(diff), ''
 

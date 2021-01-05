@@ -5,6 +5,7 @@ import logging
 import traceback
 
 import numpy as np
+import gc
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 logger = logging.getLogger()
@@ -44,6 +45,8 @@ def generate_bar(data_list, save_path, x_value=None, x_label='', y_label='', tit
     fig.tight_layout()
     # plt.show()
     fig.savefig(save_path, dpi=600)
+    plt.close('all')
+    gc.collect()
     return True, ''
 
 
@@ -94,6 +97,8 @@ def generate_bar_rows(data_list, save_path):
     fig.tight_layout()
     # plt.show()
     fig.savefig(save_path, dpi=600)
+    plt.close('all')
+    gc.collect()
     return True, ''
 
 
@@ -172,6 +177,8 @@ def generate_trace_rows(data_list, save_path):
             ax.legend()
         # plt.show()
         fig.savefig(save_path, dpi=600)
+        plt.close('all')
+        gc.collect()
     except Exception as e:
         logger.exception(e)
         return False, '%s' % traceback.format_exc()
@@ -198,7 +205,6 @@ def generate_line_rows(data_list, save_path):
         )
         ]
     """
-    logger.debug('generate_line_rows: {}'.format(data_list))
     row = len(data_list)
     if isinstance(data_list[0], dict):
         col = 1
@@ -243,6 +249,8 @@ def generate_line_rows(data_list, save_path):
             ax.legend()
     # plt.show()
     fig.savefig(save_path, dpi=600)
+    plt.close('all')
+    gc.collect()
     return True, ''
 
 
@@ -363,6 +371,8 @@ def generate_pre_path_row(data_dict, save_path):
                 ax_ori_line.legend()
     # plt.show()
     fig.savefig(save_path)
+    plt.close('all')
+    gc.collect()
     return True, ''
 
 
@@ -398,6 +408,8 @@ def generate_scatter_rows(scatter_list, save_path):
             ax.set_title(scatter_title)
             ax.legend()
         fig.savefig(save_path, dpi=600)
+        plt.close('all')
+        gc.collect()
 
     except Exception as e:
         # traceback.print_exc()

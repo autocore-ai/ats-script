@@ -284,7 +284,7 @@ def planning_open_env(get_case_path):
         aw_log_path = '{}_autoware.txt'.format(get_case_path)
         logger.info('autoware log path: {}'.format(aw_log_path))
         r_bool, msg = docker_start(aw_log_path)
-        assert r_bool , msg
+        assert r_bool, msg
         time.sleep(3)
         assert check_docker(), "docker has not started"
         time.sleep(3)

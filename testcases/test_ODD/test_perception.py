@@ -7,6 +7,7 @@ import time
 import logging
 import allure
 import pytest
+import gc
 
 from common.generate_case_data import generate_case_data
 from common.cases_env_args import get_case_argv
@@ -58,7 +59,7 @@ def make_test_case(story, case_data, case_level, case_desc):
 
         step_desc = '3. stop record bag'
         with allure.step(step_desc):
-            time.sleep(1)
+            time.sleep(10)
 
             logger.info('{eq} {step} {eq}'.format(eq='='*20, step=step_desc))
             r_bool, ret = p_act.stop_record_bag()
@@ -74,6 +75,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             bag_data = bag_real.data_dict
             logger.debug('object topic data: {}'.format(bag_data))
             allure.attach('{}'.format(bag_data), 'object topic data', allure.attachment_type.JSON)
+            del bag_data
 
         step_desc = '5. get expect bag data'
         with allure.step(step_desc):
@@ -86,6 +88,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             bag_data_exp = bag_exp.data_dict
             logger.debug('expect object topic data: {}'.format(bag_data_exp))
             allure.attach('{}'.format(bag_data_exp), 'expect object topic data', allure.attachment_type.JSON)
+            del bag_data_exp
 
         # compare with ground truth rosbag
         step_desc = '6. compare real bag with expect bag: 1. msg count'
@@ -119,6 +122,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             save_path = '{}/{}'.format(bag_dir, 'uuid.png')
             r_bool, std_uuid, msg = compare_uuid(exp_uuid, real_uuid, save_path)
             logger.info('compare result of uuid std: {:<8.2f}'.format(std_uuid))
+            logger.info('compare result of uuid msg: {}'.format(msg))
             assert r_bool, 'compare of uuid wrong, message: {}'.format(msg)
             # attach uuid png
             attach_mag = 'uuid count bar/per'
@@ -128,6 +132,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                                                  'the actual uuid is greater than {std_max}, ' \
                                                  'real std: {r_std:<8.2f}'.format(std_max=conf.UUID_STD_MAX,
                                                                                   r_std=std_uuid)
+            del exp_uuid
+            del real_uuid
 
         step_desc = '8. compare real bag with expect bag: 3. semantic'
         with allure.step(step_desc):
@@ -150,6 +156,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                 assert std < conf.SEM_STD_MAX, 'Semantic-{sem}: The standard deviation between the expected position ' \
                                                'and the actual position is greater than {std_max}, std: {r_std:<8.2f}'.\
                     format(sem=sem, std_max=conf.SEM_STD_MAX, r_std=std)
+            del exp_sem_dict
+            del real_sem_dict
 
         step_desc = '9. compare real bag with expect bag: 3. position'
         with allure.step(step_desc):
@@ -189,6 +197,10 @@ def make_test_case(story, case_data, case_level, case_desc):
                     assert dis < conf.PST_DIS_MAX, 'Position-{sem}: The distance between expect and actual is ' \
                                                    'more than {p_max}m, ' \
                                                    'distance: {dis}'.format(sem=sem, p_max=conf.PST_DIS_MAX, dis=dis)
+            del exp_pos_dict
+            del real_pos_dict
+            del exp_pos_all_dict
+            del real_pos_all_dict
 
         step_desc = '10. compare real bag with expect bag: 4. orientation'
         with allure.step(step_desc):
@@ -221,6 +233,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                     assert dis < conf.ORI_DIS_MAX, 'Orientation-{sem}: The distance between expect and ' \
                                                    'actual is more than {dis_max}, ' \
                                                    'yaw: {dis}'.format(sem=sem, dis_max=conf.ORI_DIS_MAX, dis=dis)
+            del exp_ori_dict
+            del real_ori_dict
 
         step_desc = '11. compare real bag with expect bag: 5. line speed'
         with allure.step(step_desc):
@@ -259,6 +273,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                                                     'diff: {r_dis}'.format(sem=sem,
                                                                            dis_max=conf.LINE_DIS_MAX,
                                                                            r_dis=dis)
+            del exp_line_dict
+            del real_line_dict
 
         step_desc = '12. compare real bag with expect bag: 6. prediction'
         with allure.step(step_desc):
@@ -328,6 +344,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                                                         'diff: {r_ori}'.format(sem=sem,
                                                                                ori_dis_max=conf.PRE_PATH_ORI_DIS_MAX,
                                                                                r_ori=ori)
+            del exp_pre_dict
+            del real_pre_dict
 
         step_desc = '13. compare real bag with expect bag: 7. shape'
         with allure.step(step_desc):
@@ -381,7 +399,12 @@ def make_test_case(story, case_data, case_level, case_desc):
                                                        'diff: {r_dis}'.format(sem=sem,
                                                                               dis_max=conf.SHAPE_DIS_Y_MAX,
                                                                               r_dis=dis)
+            del exp_shape_dict
+            del real_shape_dict
         logger.info('case is finished, now to clean env')
+        del bag_real_sum_dict
+        del bag_exp_sum_dict
+        gc.collect()
     # return fun
     return test_perception
 

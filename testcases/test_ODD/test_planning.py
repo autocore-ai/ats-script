@@ -2,6 +2,7 @@
 import logging
 import allure
 import pytest
+import gc
 from common.process import *
 from common.cases_env_args import get_case_argv
 from common.planning.planning_bag_analysis import *
@@ -72,9 +73,10 @@ def make_test_case(story, case_data, case_level, case_desc):
 
                     for topic_one in TOPICS.split(" "):
                         hkey = topic_one.split("/")
-                        assert topic_csv(bag_path + gt_name + ".bag", topic_one,
+                        csv_bool, csv_msg = topic_csv(bag_path + gt_name + ".bag", topic_one,
                                          gt_name + "_" + hkey[-1], bag_path), \
                             topic_one + " could not saved to csv file"
+                        assert csv_bool, csv_msg
                         time.sleep(2)
             else:
                 logger.info("csv files has already in bag file path: {}".format(gt_csv_file_name))
@@ -226,6 +228,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 allure.attach.file(t_route, "test route info")
 
                 assert route_same(gt_route, t_route), "planning_route msg is not the same "
+        gc.collect()
 
     return test_planning
 

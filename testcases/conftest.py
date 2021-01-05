@@ -51,13 +51,13 @@ def get_case_path(request):
             case_name = request.getfixturevalue('case_data')['CaseName']
             if 'Jira_ID' in request.getfixturevalue('case_data'):
                 case_id = request.getfixturevalue('case_data')['Jira_ID']
-                log_path = '{}/logs_{}/{}/{}_JiraID_{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name, case_id)
+                log_path = '{}/logs/log_{}/{}/{}_JiraID_{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name, case_id)
             else:
-                log_path = '{}/logs_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
+                log_path = '{}/logs/log_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
         else:
-            log_path = '{}/logs_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
+            log_path = '{}/logs/log_{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, case_name)
     else:
         cls_name = request.cls.__name__
-        log_path = '{}/logs_{}/{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, cls_name, case_name)
+        log_path = '{}/logs/log_{}/{}/{}/{}'.format(config.TEST_CASE_PATH, exec_time, case_path, cls_name, case_name)
 
     return log_path
