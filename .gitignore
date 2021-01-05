@@ -118,16 +118,12 @@ dmypy.json
 .idea
 common/*.csv
 common/*.png
-common/*.bag
+*.bag
 testcases/test_ODD/*.bag
 logs/*
 *.txt
-allure_reports/report/*
-allure_reports/result/*
-bags/perception/*
-bags/perception_open/*
-bags/planning/*
-bags/planning_open/*
+
+bags
 *.bak
 
 allure_reports
