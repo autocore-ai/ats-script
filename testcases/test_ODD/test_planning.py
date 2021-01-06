@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import logging
 import allure
 import pytest
 import gc
+import threading
 from common.process import *
 from common.cases_env_args import get_case_argv
 from common.planning.planning_bag_analysis import *
@@ -62,8 +64,9 @@ def make_test_case(story, case_data, case_level, case_desc):
                 for topic in TOPICS.split(" "):
                     logger.info("Downloading topic : {}".format(topic))
                     hkey = topic.split("/")
-                    assert topic_csv(gt_name + ".bag", topic, "gt_" + hkey[-1],
+                    csv_bool, csv_msg = topic_csv(gt_name + ".bag", topic, "gt_" + hkey[-1],
                                      BAG_BASE_PATH), topic + " could not saved to csv file"
+                    assert csv_bool, csv_msg
                     time.sleep(2)
 
                     save_csv_file(bag_path, gt_name)
@@ -94,7 +97,7 @@ def make_test_case(story, case_data, case_level, case_desc):
         step_4 = "add start end point， and engage"
         with allure.step(step_4):
             logger.info(step_4)
-            time.sleep(20)
+            time.sleep(2)
             dict_start = extrat_start_end_point(case_data, "start_point")
             dict_end = extrat_start_end_point(case_data, "end_point")
             start_point_info = list(dict_start.values())
@@ -105,17 +108,21 @@ def make_test_case(story, case_data, case_level, case_desc):
             start_orientation_sample = start_point_info[3:]
             end_position_sample = end_point_info[0:3]
             end_orientation_sample = end_point_info[3:]
-            add_start_end_point(start_position_sample, start_orientation_sample,
-                                end_position_sample, end_orientation_sample)
-            time.sleep(20)
+            th = threading.Thread(target=add_start_end_point, args=(start_position_sample, start_orientation_sample,
+                                                                    end_position_sample, end_orientation_sample))
+            th.start()
+            # add_start_end_point(start_position_sample, start_orientation_sample,
+            #                     end_position_sample, end_orientation_sample)
+            time.sleep(2)
             logger.info("auto engage")
 
         step_6 = "6. end recording manually"
         with allure.step(step_6):
             logger.info(step_6)
             logger.info('record end, ready to kill -2')
-            # time.sleep(90)
-            for i in range(int(case_data['duration']) + 1):
+            time.sleep(3)
+            for i in range(int(case_data['duration']) + 6):
+            # for i in range(10):
                 time.sleep(1)
                 logger.info("waiting planning bag record finished {}s".format(i))
             logger.info("waiting finished , check the bag duration ")
@@ -174,7 +181,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 logger.info("cut the extra columns , "
                             "now the  columns are {} , {}".format(df1.shape[0], df2.shape[0]))
 
-            yaw_range = 100
+            yaw_range = 1
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(yaw_range, df1, df2)
                 assert result, "current pose yaw caculation is out of range: {}".format(yaw_range)
@@ -234,11 +241,9 @@ def make_test_case(story, case_data, case_level, case_desc):
 
 
 for case_arg in CASE_LIST:
-    logger.info(case_arg)
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
                                                      case_arg['Priority'], case_arg['Title'], )
 
 
 if __name__ == '__main__':
     pass
-
