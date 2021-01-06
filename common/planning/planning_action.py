@@ -271,6 +271,15 @@ def check_bag():
         return True, ""
 
 
+def check_dir(bag_dir):
+    check_bag_dir = os.path.exists(bag_dir)
+    if check_bag_dir:
+        msg = ""
+    else:
+        msg = "Bag dir does not exists"
+    return check_bag_dir, msg
+
+
 def topic_csv(bag_name, topic_name, result_file_name, path):
     # bag_name
     cmd = "rostopic echo -b %s -p %s >  %s/%s.csv" % (

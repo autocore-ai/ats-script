@@ -50,6 +50,12 @@ def make_test_case(story, case_data, case_level, case_desc):
         logger.info("planning bag path : {}".format(bag_path))
         logger.info("planning bag record time: {}".format(str(duration_secs)))
 
+        step_init = "check bags in bags path"
+        with allure.step(step_init):
+            logger.info(bag_path)
+            gt_dir_bool, gt_dir_msg = check_dir(bag_path)
+            assert gt_dir_bool, gt_dir_msg
+
         step_info = "check ground truth has csv file or not"
         with allure.step(step_info):
             gt_csv_file_name = ['{}_current_pose.csv\n'.format(gt_name),

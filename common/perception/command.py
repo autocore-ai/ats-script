@@ -43,7 +43,7 @@ START_AUTOWARE_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER
                       './run_rosbag.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
 START_AUTOWARE_RVIZ_OPEN = 'cd {0}/common/script/;export ROS_IP={1};export ROS_MASTER_URI={2};' \
                       './run_rosbag_rviz.sh'.format(TEST_CASE_PATH, PERCEPTION_IP, PERCEPTION_ROS_MASTER_URI)
-GET_ROS_NODE_LIST = 'docker exec {} /bin/bash -c \'cd /AutowareArchitectureProposal && ' \
+GET_ROS_NODE_LIST = 'docker exec {} /bin/bash -c \'cd /ros1_workspace && ' \
                         'source install/setup.bash && export ROS_IP={} && ' \
                         'export ROS_MASTER_URI={} && rosnode list\''.format(AUTOWARE_DOCKER_NAME,
                                                                             PERCEPTION_IP,
