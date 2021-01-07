@@ -3,6 +3,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from common.action import *
 import time
+import re
 import pandas as pd
 import os
 import common.action as comm
@@ -303,3 +304,40 @@ def save_csv_file(path, bag_name):
                          path), topic + " could not saved to csv file"
         logger.info("saving address: " + path)
         time.sleep(2)
+
+
+def compare_bag_sec(gt_bag_path,test_bag_path):
+    cmd = "rosbag info {}".format(gt_bag_path)
+    cmd1 = "rosbag info {}".format(test_bag_path)
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    p1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    line = p.stdout.readlines()
+    t_line = p1.stdout.readlines()
+    pattern = re.compile(r'\d+')
+    res = []
+    res2 = []
+    for i in line:
+        ll = i.decode('utf-8')
+        ll.strip('')
+        if "duration" in ll:
+            res = re.findall(pattern, ll)
+    for j in t_line:
+        t_ll = j.decode('utf-8')
+        t_ll.strip('')
+        if "duration" in t_ll:
+            res2 = re.findall(pattern, t_ll)
+    sec_count = abs(int(res[0]) - int(res2[0]))
+    print(sec_count)
+    logger.info("gt bag sec: {}.{}s".format(res[0], res[1]))
+    logger.info("test bag sec: {}.{}s".format(res2[0], res2[1]))
+    if int(res2[0]) == 0:
+        return False, "recorded bag sec is zero"
+    if sec_count > 5:
+        return False, "bag sec is not comparable"
+    else:
+        return True, ""
+
+
+if __name__ == '__main__':
+    cc,dd = compare_bag_sec("~/workspace/autotest/bags/planning/gt_01/gt_01.bag", "~/workspace/autotest/bags/planning/gt_01/test_planning_01.bag")
+    print(cc,dd)
