@@ -71,7 +71,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                     logger.info("Downloading topic : {}".format(topic))
                     hkey = topic.split("/")
                     csv_bool, csv_msg = topic_csv(gt_name + ".bag", topic, "gt_" + hkey[-1],
-                                     BAG_BASE_PATH), topic + " could not saved to csv file"
+                                                  BAG_BASE_PATH), topic + " could not saved to csv file"
                     assert csv_bool, csv_msg
                     time.sleep(2)
 
@@ -83,8 +83,8 @@ def make_test_case(story, case_data, case_level, case_desc):
                     for topic_one in TOPICS.split(" "):
                         hkey = topic_one.split("/")
                         csv_bool, csv_msg = topic_csv(bag_path + gt_name + ".bag", topic_one,
-                                         gt_name + "_" + hkey[-1], bag_path), \
-                            topic_one + " could not saved to csv file"
+                                                      gt_name + "_" + hkey[-1], bag_path), \
+                                            topic_one + " could not saved to csv file"
                         assert csv_bool, csv_msg
                         time.sleep(2)
             else:
@@ -128,7 +128,7 @@ def make_test_case(story, case_data, case_level, case_desc):
             logger.info('record end, ready to kill -2')
             time.sleep(3)
             for i in range(int(case_data['duration']) + 6):
-            # for i in range(10):
+                # for i in range(10):
                 time.sleep(1)
                 logger.info("waiting planning bag record finished {}s".format(i))
             logger.info("waiting finished , check the bag duration ")
@@ -138,12 +138,20 @@ def make_test_case(story, case_data, case_level, case_desc):
             logger.info("end recording ")
             time.sleep(3)
 
+        step_add = "check bag sec is approximately  close to gt_bag"
+        with allure.step(step_add):
+            logger.info(bag_path + name + ".bag")
+            logger.info(gt_name + ".bag")
+            sec_bool, sec_msg = compare_bag_sec(bag_path + name + ".bag", bag_path + gt_name + ".bag")
+            assert sec_bool, sec_msg
+
         step_5 = "collect data"
         with allure.step(step_5):
             for topic in TOPICS.split(" "):
                 hkey = topic.split("/")
-                assert topic_csv(bag_path + name + ".bag", topic, name + "_" + hkey[-1],
-                                 bag_path), topic + " could not saved to csv file"
+                t_csv_bool, t_csv_msg = topic_csv(bag_path + name + ".bag", topic, name + "_" + hkey[-1],
+                                                  bag_path), topic + " could not saved to csv file"
+                assert t_csv_bool, t_csv_msg
                 time.sleep(2)
             for i in range(3):
                 logger.info("Waiting bag record.. {}s".format(i + 1))
@@ -187,7 +195,7 @@ def make_test_case(story, case_data, case_level, case_desc):
                 logger.info("cut the extra columns , "
                             "now the  columns are {} , {}".format(df1.shape[0], df2.shape[0]))
 
-            yaw_range = 1
+            yaw_range = 10
             with allure.step("4.current pose: comparison： 2. yaw angle is larger ont certain range， not pass "):
                 result, c_yaw_list = current_pose_analysis_yaw(yaw_range, df1, df2)
                 assert result, "current pose yaw caculation is out of range: {}".format(yaw_range)
@@ -249,7 +257,6 @@ def make_test_case(story, case_data, case_level, case_desc):
 for case_arg in CASE_LIST:
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
                                                      case_arg['Priority'], case_arg['Title'], )
-
 
 if __name__ == '__main__':
     pass
