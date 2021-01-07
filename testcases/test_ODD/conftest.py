@@ -272,6 +272,7 @@ def check_aw4_stop_home():
 def planning_open_env(get_case_path):
     step_0 = "check environment status , if status open, close it , if not , follow next step"
     with allure.step(step_0):
+        time.sleep(5)
         check_aw4_open()
         time.sleep(2)
         logger.info('aw4 env is ok, now to exec cases')
@@ -285,11 +286,22 @@ def planning_open_env(get_case_path):
         logger.info('autoware log path: {}'.format(aw_log_path))
         r_bool, msg = docker_start(aw_log_path)
         assert r_bool, msg
-        time.sleep(3)
-        assert check_docker(), "docker has not started"
+        count_sec = 0
+        wait_time = 80
+        for count_sec in range(wait_time):
+            time.sleep(1)
+            process_bol, aw4_status_bool = comm.check_docker(PLANNING_DOCKER_NAME)
+            if process_bol and aw4_status_bool:
+                logger.info("aw4 plannnig is runnning successfully")
+                break
+            if process_bol and not aw4_status_bool:
+                continue
+            if not process_bol:
+                assert False, aw4_status_bool
+        if count_sec == 79 and process_bol and not aw4_status_bool:
+            assert False, "exceed waiting time {} , aw4 starts failed".format(wait_time)
         time.sleep(3)
         # assert planning_topics_test(), "all planning related topics are ready"
-
     yield
 
     with allure.step("stop environment"):
