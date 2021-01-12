@@ -36,7 +36,7 @@ def log(get_case_path):
 
 
 @pytest.fixture(scope='function')
-def get_case_path(request):
+def get_case_log_path(request):
     """
     get log path
     :param request:

@@ -11,10 +11,10 @@ import gc
 
 from common.generate_case_data import generate_case_data
 from common.cases_env_args import get_case_argv
-from common.perception.compare_topics import compare_uuid, compare_semantic, compare_line, compare_position, \
+from common.ODD.perception.compare_topics import compare_uuid, compare_semantic, compare_line, compare_position, \
     compare_shape, compare_orientation, compare_prediction_paths
-import common.perception.perception_action as p_act
-import common.perception.perception_conf as conf
+import common.ODD.perception.perception_action as p_act
+import common.ODD.perception.perception_conf as conf
 from common.utils.perception_bag_analysis import Analysis
 logger = logging.getLogger()
 
@@ -28,7 +28,7 @@ def make_test_case(story, case_data, case_level, case_desc):
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
     @allure.severity(case_level)
-    def test_perception(perception_env, case_data):
+    def test_perception(env_opt, case_data):
         """
         Step：
         1. start env

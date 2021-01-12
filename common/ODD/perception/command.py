@@ -1,6 +1,6 @@
 # -*- coding:utf8 -*-
 from config import TEST_IP, ROS1_SETUP
-from common.perception.perception_conf import *
+from common.ODD.perception.perception_conf import *
 
 AUTOWARE_SCREEN_NAME = 'autoware_test'
 START_AUTOWARE_4 = 'cd {};export ROS_IP={};export ROS_MASTER_URI={};' \
