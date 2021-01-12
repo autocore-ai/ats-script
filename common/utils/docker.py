@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """
-@Project ：auto_test 
-@File    ：action.py
-@Date    ：2020/12/8 上午11:20 
-"""
+@Project ：autotest 
+@File    ：docker.py
+@Date    ：2021/1/11 上午11:21
 
-import subprocess
+docker operation
+"""
 import logging
+import subprocess
+
 logger = logging.getLogger()
 
 
@@ -31,38 +33,6 @@ def check_docker(d_name: str) -> (bool, bool):
     if len(stdout_list) == 1 and stdout_list[0] == d_name:
         return True, True
     return True, False
-
-
-def check_node_list(exp_n_list: list, real_n_list: str) -> (bool, str):
-    """
-    check node list
-
-    :param exp_n_list:  expect nodes list
-    :param real_n_list:  real nodes list
-    :return:  bool, str
-    """
-    for node in exp_n_list:
-        if node not in real_n_list:
-            return False, '{} not in expect nodes list'.format(node)
-    return True, ''
-
-
-def get_node_list(node_list_cmd: str) -> (bool, str):
-    """
-    1. get node list from current docker
-    2. if successful, return list
-    3. if not, return error
-
-    :param node_list_cmd:
-    :return: bool, list
-    """
-    p = subprocess.Popen(node_list_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout = p.stdout.read().decode('utf-8')
-    stderr = p.stderr.read().decode('utf-8')
-    logger.debug('start docker result, stdout: {}, stderr: {}'.format(stdout, stderr))
-    if stderr:
-        return False, stderr
-    return True, stdout
 
 
 def start_docker(cmd: str) -> (bool, str):

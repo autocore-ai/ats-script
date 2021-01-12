@@ -7,8 +7,9 @@
 """
 
 import config as conf
-import common.perception.perception_conf as per_conf
-import common.planning.planning_conf as pn_conf
+import common.ODD.perception.perception_conf as per_conf
+import common.ODD.planning.planning_conf as pn_conf
+import common.ODD.localization.localization_conf as lo_conf
 
 
 def get_case_argv() -> dict:
@@ -17,14 +18,18 @@ def get_case_argv() -> dict:
     :return: case dict
     """
     case_dict = {}
-    if conf.EXEC_CASE_TYPE == 1:
-        case_dict['perception'] = '{}/testcases/test_ODD/cases/perception_cases_open.csv'.format(conf.TEST_CASE_PATH)
-        case_dict['planning'] = '{}/testcases/test_ODD/cases/planning_cases_open.csv'.format(conf.TEST_CASE_PATH)
+    if conf.EXEC_CASE_TYPE == 1:  # open source
+        case_dict['perception'] = '{}/perception_cases_open.csv'.format(conf.ODD_CSV_CASES)
+        case_dict['planning'] = '{}/planning_cases_open.csv'.format(conf.ODD_CSV_CASES)
+        case_dict['localization'] = '{}/localization_cases_open.csv'.format(conf.ODD_CSV_CASES)
         case_dict['perception_bag_path'] = per_conf.PERCEPTION_BAG_PATH_OPEN
         case_dict['planning_bag_path'] = pn_conf.PLANNING_BAG_PATH_OPEN
-    else:
-        case_dict['perception'] = '{}/testcases/test_ODD/cases/perception_cases.csv'.format(conf.TEST_CASE_PATH)
-        case_dict['planning'] = '{}/testcases/test_ODD/cases/planning_cases.csv'.format(conf.TEST_CASE_PATH)
+        case_dict['localization_bag_path'] = lo_conf.LOCALIZATION_BAG_PATH_OPEN
+    else:  # home
+        case_dict['perception'] = '{}/perception_cases.csv'.format(conf.ODD_CSV_CASES)
+        case_dict['planning'] = '{}/planning_cases.csv'.format(conf.ODD_CSV_CASES)
+        case_dict['localization'] = '{}/localization_cases.csv'.format(conf.ODD_CSV_CASES)
         case_dict['perception_bag_path'] = per_conf.PERCEPTION_BAG_PATH
         case_dict['planning_bag_path'] = pn_conf.PLANNING_BAG_PATH
+        case_dict['localization_bag_path'] = lo_conf.LOCALIZATION_BAG_PATH
     return case_dict

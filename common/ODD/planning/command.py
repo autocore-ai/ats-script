@@ -1,5 +1,5 @@
 from config import TEST_CASE_PATH
-from common.planning.planning_conf import PLANNING_AUTOWARE4_IP, PLANNING_ROS_MASTER_URI, PLANNING_AUTOWARE4_DEVEL
+from common.ODD.planning import PLANNING_AUTOWARE4_IP, PLANNING_ROS_MASTER_URI, PLANNING_AUTOWARE4_DEVEL
 
 # ====================== Planning command ======================
 

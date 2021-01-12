@@ -5,11 +5,11 @@ perception environment and others funcs
 import time
 import logging
 import subprocess
-from common.perception.command import *
+from common.ODD.perception.command import *
 from common.utils.remote import RemoteP
-import common.perception.perception_conf as p_conf
+import common.ODD.perception.perception_conf as p_conf
 import common.utils.local as loc
-import common.action as comm
+import common.ODD.aw4_action as comm
 import config
 logger = logging.getLogger()
 
@@ -379,18 +379,4 @@ def start_autoware_open(aw_log_path):
     return True, ''
 
 
-def stop_autoware_open() -> (bool, str):
-    """
-    stop docker
-    :return:
-        bool: if True that means docker stopped
-        str:  Error message description
-    """
-    r_bool, s_bool = comm.stop_docker(AUTOWARE_DOCKER_NAME)
-    if not r_bool:
-        logger.error('stop autoware failed, msg: {}'.format(s_bool))
-        return False, s_bool
 
-    if not s_bool:
-        return True, 'stop autoware failed'
-    return True, ''

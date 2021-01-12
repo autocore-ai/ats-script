@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
-import logging
 import allure
 import pytest
 import gc
 import threading
-from common.process import *
+from common.utils.process import *
 from common.cases_env_args import get_case_argv
-from common.planning.planning_bag_analysis import *
 from common.generate_case_data import generate_case_data
-from common.action import *
+from common.ODD.aw4_action import *
 
 logger = logging.getLogger()
 CASE_LIST = generate_case_data(get_case_argv()['planning'])
@@ -21,7 +18,7 @@ def make_test_case(story, case_data, case_level, case_desc):
     @pytest.mark.parametrize("case_data", case_data, ids=[case_desc])
     @allure.story(story)
     @allure.severity(case_level)
-    def test_planning(planning_open_env, case_data):
+    def test_planning(env_opt, case_data):
         """
         1. Planning, local autoware setup.bash , roslaunch map
         It is expected that in this step, the interface will be written into docker

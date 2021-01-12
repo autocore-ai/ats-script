@@ -1,24 +1,19 @@
 # -*- coding:utf8 -*-
 from config import TEST_CASE_PATH
 # master info
-PERCEPTION_AUTOWARE4_IP = '127.0.0.1'  # as master
-PERCEPTION_AUTOWARE4_USER = ''
-PERCEPTION_AUTOWARE4_PWD = ''
-PERCEPTION_AUTOWARE4_DEVEL = ''
+LOCALIZATION_AUTOWARE4_IP = '127.0.0.1'  # as master
+LOCALIZATION_AUTOWARE4_USER = ''
+LOCALIZATION_AUTOWARE4_PWD = ''
+LOCALIZATION_AUTOWARE4_DEVEL = ''
 
-PERCEPTION_ROS_MASTER_URI = 'http://{}:11311'.format(PERCEPTION_AUTOWARE4_IP)
+LOCALIZATION_ROS_MASTER_URI = 'http://{}:11311'.format(LOCALIZATION_AUTOWARE4_IP)
 
 # perception server info
-PERCEPTION_IP = '127.0.0.1'
-PERCEPTION_USER = ''
-PERCEPTION_PWD = ''
-PERCEPTION_BAG_PATH = '{}/bags/perception'.format(TEST_CASE_PATH)  # record bags, play bags path
-PERCEPTION_BAG_PATH_OPEN = '{}/bags/perception_open'.format(TEST_CASE_PATH)  # record bags, play bags path
-
-PERCEPTION_BAG_REMOTE = False  # record or play bags env, True remote, False local
-PERCEPTION_BAG_REMOTE_IP = '127.0.0.1'
-PERCEPTION_BAG_REMOTE_USER = ''
-PERCEPTION_BAG_REMOTE_PWD = ''
+LOCALIZATION_IP = '127.0.0.1'
+LOCALIZATION_USER = ''
+LOCALIZATION_PWD = ''
+LOCALIZATION_BAG_PATH = '{}/bags/localization'.format(TEST_CASE_PATH)  # record bags, play bags path
+LOCALIZATION_BAG_PATH_OPEN = '{}/bags/localization_open'.format(TEST_CASE_PATH)  # record bags, play bags path
 
 # =================================== open source config ===================================
 AUTOWARE_DOCKER_NAME = 'runtime'

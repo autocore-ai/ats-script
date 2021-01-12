@@ -1,18 +1,17 @@
-import common.auto_test_io
+import common.ODD.auto_test_io
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
-from common.action import *
+from common.ODD.aw4_action import *
 import time
 import re
 import pandas as pd
 import os
-import common.action as comm
-from common.planning.command import *
+import common.ODD.aw4_action as comm
 import logging
 import config
 
 logger = logging.getLogger()
-io = common.auto_test_io
+io = common.ODD.auto_test_io
 
 
 def extrat_start_end_point(case_list, keyword):
