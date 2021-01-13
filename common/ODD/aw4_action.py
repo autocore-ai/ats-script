@@ -81,6 +81,7 @@ def check_aw4_status_docker(env_ip: str, module: str) -> (bool, int):
 
         # 2. get node list
         cmd = command.GET_ROS_NODE_LIST % (docker_name, aw4_ws, env_ip, master_uri)
+        logger.info('get ros node list command: %s' % cmd)
         r_bool, node_list_str = get_node_list(cmd)
         if not r_bool:
             logger.info('get autoware rosnode list failed, error: {}'.format(node_list_str))

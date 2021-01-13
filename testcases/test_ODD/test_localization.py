@@ -6,15 +6,17 @@ Localization module case
 import logging
 import allure
 import pytest
-import gc
 
 from common.generate_case_data import generate_case_data
-from common.cases_env_args import get_case_argv
+import common.ODD.config as odd_conf
+
 logger = logging.getLogger()
 
-case_argv = get_case_argv()
-CASE_LIST = generate_case_data(case_argv['localization'])
-BAG_BASE_PATH = case_argv['localization_bag_path']
+case_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['case_dir']
+CASE_LIST = generate_case_data('{case_path}/{case_dir}/localization_cases.csv'.format(case_path=odd_conf.ODD_CSV_CASES,
+                                                                                      case_dir=case_dir))
+bag_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['bag_dir']
+BAG_BASE_PATH = '{bag_path}/{bag_dir}/localization'.format(bag_path=odd_conf.BAG_PATH, bag_dir=bag_dir)
 
 
 def make_test_case(story, case_data, case_level, case_desc):

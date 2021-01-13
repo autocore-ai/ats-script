@@ -14,7 +14,6 @@ docker run -t --net=host --gpus=all --rm \
     --name=runtime \
     --volumes-from debug \
     --volumes-from data \
-    --env "DISPLAY" \
     --privileged \
     autocore/ats-devel /bin/bash -c  \
     "cd /ros1_workspace && \

@@ -34,7 +34,7 @@ def env_opt(request, get_case_log_path):
 
     # according to case function, get environment information
     env_ip = aw4_conf.TEST_MODULE_INFO[fun_name]['ros1_docker_ip']
-    wait_aw4_time = 80
+    wait_aw4_time = 100
 
     if aw4_conf.EXEC_CASE_TYPE in [1, 3]:  # open source
         """

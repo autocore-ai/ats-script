@@ -1,17 +1,17 @@
-import common.ODD.auto_test_io
-from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import PoseWithCovarianceStamped
-from common.ODD.aw4_action import *
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
 import time
 import re
-import pandas as pd
 import os
-import common.ODD.aw4_action as comm
+import subprocess
+import pandas as pd
 import logging
-import config
+import common.ODD.auto_test_io as io
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped
+import common.ODD.aw4_action as aw_act
 
 logger = logging.getLogger()
-io = common.ODD.auto_test_io
 
 
 def extrat_start_end_point(case_list, keyword):
@@ -135,42 +135,6 @@ def planning_topics_test():
     # return False
 
 
-def docker_start(aw_log_path):
-    """
-    for open branch:
-    subprocess starts docker sh file
-    """
-    start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING, log_path=aw_log_path)
-    if config.RVIZ:
-        start_cmd = '{cmd} > {log_path}'.format(cmd=START_DOCKER_4_PLANNING_RVIZ, log_path=aw_log_path)
-    logger.info('start autoware cmd: {}'.format(start_cmd))
-    r_bool, msg = comm.start_docker(start_cmd)
-    return r_bool, msg
-
-
-def check_docker():
-    cmd_docker = 'docker ps | grep %s' % PLANNING_DOCKER_NAME
-    logger.info('check planning docker, cmd: {}'.format(cmd_docker))
-    p = subprocess.Popen(cmd_docker, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    stderr = p.stderr.read().decode('utf-8')
-    stdout = p.stdout.read().decode('utf-8')
-    logger.info('check planning docker, stdout: {}, stderr: {}'.format(stdout, stderr))
-    if len(stderr) > 0:
-        return False, stderr
-    if len(stdout) == 0:  # docker is not exist, return
-        return True, False
-    logger.info('planning docker is running...')
-
-
-def docker_end():
-    """
-    for open branch:
-    subprocess ends docker sh file
-    """
-    r_bool, s_bool = comm.stop_docker(PLANNING_DOCKER_NAME)
-    return r_bool, s_bool
-
-
 def topic_tolist() -> list:
     shown = os.popen("rostopic list")
     topics = shown.readlines()
@@ -257,7 +221,7 @@ def start_record_bag(count_seconds, bag_name):
 
 def check_bag():
     count = 0
-    logger.info("checkbag")
+    logger.info("check bag")
     cmd = "ps -ef | grep record"
     result = os.popen(cmd)
     logger.info(cmd, "the result is {}".format(result))
@@ -280,7 +244,7 @@ def check_dir(bag_dir):
     return check_bag_dir, msg
 
 
-def topic_csv(bag_name, topic_name, result_file_name, path):
+def topic_csv(bag_name, topic_name,  path, result_file_name):
     # bag_name
     cmd = "rostopic echo -b %s -p %s >  %s/%s.csv" % (
         str(bag_name), topic_name, path, result_file_name)
@@ -325,10 +289,9 @@ def compare_bag_sec(gt_bag_path,test_bag_path):
         t_ll.strip('')
         if "duration" in t_ll:
             res2 = re.findall(pattern, t_ll)
-    sec_count = abs(int(res[0]) - int(res2[0]))
-    print(sec_count)
     logger.info("gt bag sec: {}.{}s".format(res[0], res[1]))
     logger.info("test bag sec: {}.{}s".format(res2[0], res2[1]))
+    sec_count = abs(int(res[0]) - int(res2[0]))
     if int(res2[0]) == 0:
         return False, "recorded bag sec is zero"
     if sec_count > 5:

@@ -10,16 +10,19 @@ import pytest
 import gc
 
 from common.generate_case_data import generate_case_data
-from common.cases_env_args import get_case_argv
 from common.ODD.perception.compare_topics import compare_uuid, compare_semantic, compare_line, compare_position, \
     compare_shape, compare_orientation, compare_prediction_paths
 import common.ODD.perception.perception_action as p_act
 import common.ODD.perception.perception_conf as conf
+import common.ODD.config as odd_conf
 from common.utils.perception_bag_analysis import Analysis
 logger = logging.getLogger()
 
-CASE_LIST = generate_case_data(get_case_argv()['perception'])
-BAG_BASE_PATH = get_case_argv()['perception_bag_path']
+case_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['case_dir']
+CASE_LIST = generate_case_data('{case_path}/{case_dir}/perception_cases.csv'.format(case_path=odd_conf.ODD_CSV_CASES,
+                                                                                    case_dir=case_dir))
+bag_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['bag_dir']
+BAG_BASE_PATH = '{bag_path}/{bag_dir}/perception'.format(bag_path=odd_conf.BAG_PATH, bag_dir=bag_dir)
 
 
 def make_test_case(story, case_data, case_level, case_desc):

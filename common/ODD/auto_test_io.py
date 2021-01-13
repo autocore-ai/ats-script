@@ -19,7 +19,7 @@ class AutoTestIO:
         try:
 
             my_handlers = copy.copy(logger.handlers)
-            rospy.init_node('io', argv=args, anonymous=True, disable_signals=True)
+            rospy.init_node('io', argv=args, anonymous=False, disable_signals=True)
             logger.handlers = my_handlers
             rospy.Subscriber('current_pose', PoseStamped,
                              self.callback_current_pose)
@@ -33,7 +33,7 @@ class AutoTestIO:
                 'vehicle/engage', Bool, queue_size=1, latch=True)
             self.pub_velocity_limit = rospy.Publisher(
                 'planning/scenario_planning/max_velocity', Float32, queue_size=1)
-            # _thread.start_new_thread(rospy.spin, ())
+            _thread.start_new_thread(rospy.spin, ())
         except Exception as e:
             logger.exception(e)
             raise e

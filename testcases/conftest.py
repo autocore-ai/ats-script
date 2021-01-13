@@ -26,13 +26,13 @@ logger = logging.getLogger()
 
 
 @pytest.fixture(autouse=True)
-def log(get_case_path):
+def log(get_case_log_path):
     """
     Dynamic logger
-    :param get_case_path: case
+    :param get_case_log_path: cases log path
     :return:
     """
-    return md_logger(get_case_path)  # Initial session log obj
+    return md_logger(get_case_log_path)  # Initial session log obj
 
 
 @pytest.fixture(scope='function')

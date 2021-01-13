@@ -13,6 +13,7 @@ import subprocess
 import argparse
 import pytest
 import config
+import common.ODD.config as odd_conf
 
 CASE_TYPE = 1
 
@@ -33,15 +34,15 @@ def main():
     args = parser.parse_args()
 
     if args.type == 2:
-        config.EXEC_CASE_TYPE = 2
+        odd_conf.EXEC_CASE_TYPE = 2
         print('exec home cases')
     else:
-        config.EXEC_CASE_TYPE = 1
+        odd_conf.EXEC_CASE_TYPE = 1
         print('exec open source cases')
 
     if args.rviz:
         print('show rviz')
-        config.RVIZ = True
+        odd_conf.RVIZ = True
 
     p_args = ['-v', '-s', '--html=./allure_reports/report.html', '--self-contained-html',
               '--alluredir', './allure_reports/result']
@@ -58,7 +59,7 @@ def main():
     print(p_args)
 
     # source ros setup.bash
-    proc = subprocess.Popen('source {ros1}'.format(ros1=config.ROS1_SETUP), shell=True, stderr=subprocess.PIPE)
+    proc = subprocess.Popen('source {ros1}'.format(ros1=odd_conf.ROS1_SETUP), shell=True, stderr=subprocess.PIPE)
     stderr = proc.stderr.read()
     if stderr:
         print(stderr)
