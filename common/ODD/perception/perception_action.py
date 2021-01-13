@@ -9,116 +9,8 @@ from common.ODD.perception.command import *
 from common.utils.remote import RemoteP
 import common.ODD.perception.perception_conf as p_conf
 import common.utils.local as loc
-import common.ODD.aw4_action as comm
 import config
 logger = logging.getLogger()
-
-
-def check_autoware_status():
-    """
-    check autoware4 running status by screen
-    1. judge: Is autoware and test env same env?
-    2. if same, local check
-    3. if not, remote to autoware and check
-    return:
-    True, True: first true, check
-    """
-    check_cmd_autoware = CHECK_AUTOWARE_4
-    logger.info('check autoware4 status, command: {}'.format(check_cmd_autoware))
-    check_cmd_node = CHECK_AUTOWARE_4_NODES
-    logger.info('check autoware4 nodes status, command: {}'.format(check_cmd_node))
-
-    if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        proc = subprocess.Popen(check_cmd_autoware, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stderr = proc.stderr.read().decode('utf-8')
-        ret = proc.stdout.read().decode('utf-8')
-        logger.info('check autoware result, stdout:{}, stderr: {}'.format(ret, stderr))
-        if len(stderr) > 1:
-            return False, stderr
-
-        if len(ret) == 0:
-            return True, False
-
-        # check nodes are all ok
-        proc = subprocess.Popen(check_cmd_node, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stderr = proc.stderr.read().decode('utf-8')
-        ret_nodes = proc.stdout.read().decode('utf-8')
-        logger.info('check Autoware nodes result, stdout: {}, stderr: {}'.format(ret_nodes, stderr))
-        # if len(stderr) > 1:
-        #     return False, stderr
-    else:
-        server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
-                         p_conf.PERCEPTION_AUTOWARE4_PWD)
-        r_bool, ret = server.exec_comm(check_cmd_autoware)
-        logger.info('check remote autoware4-Autoware, exec result: {}, autoware status: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-        if len(ret) == 0:
-            return True, False
-
-        r_bool, ret_nodes = server.exec_comm(check_cmd_node)
-        logger.info('check remote autoware4-Autoware nodes, exec result: {}, autoware status: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-
-    if AUTOWARE_SCREEN_NAME not in ret:
-        return True, False
-
-    # loop auto other nodes
-    for node in AUTOWARE_4_NODES_LIST:
-        if node not in ret_nodes:
-            return True, False
-
-    return True, True
-
-
-def start_autoware4():
-    """
-    start autowate4 by screen
-    1. judge:  Is autoware and test env same env?
-    2. if same, local start
-    3. if not, remote to autoware, to start
-    """
-    start_cmd_autoware = START_AUTOWARE_4
-    logger.info('start autoware4, command: {}'.format(START_AUTOWARE_4))
-    if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        subprocess.Popen(start_cmd_autoware, shell=True)
-        # stderr = p.stderr.read().decode('utf-8')
-        # if len(stderr) > 1:
-        #     logger.error('start autoware failed: {}'.format(stderr))
-        #     return False, stderr
-        return True, ''
-    else:
-        server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
-                         p_conf.PERCEPTION_AUTOWARE4_PWD)
-        r_bool_autoware4, ret_autoware4 = server.exec_comm(start_cmd_autoware)
-        logger.info('start remote autoware4, exec result: {}, msg: {}'.format(r_bool_autoware4, ret_autoware4))
-        if not r_bool_autoware4:
-            return False, ret_autoware4
-
-        return True, ''
-
-
-def stop_autoware4():
-    """
-    stop autoware4 by screen
-    1. judge:  Is autoware and test env same env?
-    2. if same, local stop
-    3. if not, remote to autoware, to stop
-    """
-    stop_cmd_autoware = STOP_AUTOWARE_4
-    logger.info('stop autoware4 command: {}'.format(stop_cmd_autoware))
-    if config.TEST_IP == p_conf.PERCEPTION_AUTOWARE4_IP:
-        subprocess.Popen(stop_cmd_autoware, shell=True, stderr=subprocess.PIPE)
-        return True, ''
-    else:
-        server = RemoteP(p_conf.PERCEPTION_AUTOWARE4_IP, p_conf.PERCEPTION_AUTOWARE4_PWD,
-                         p_conf.PERCEPTION_AUTOWARE4_PWD)
-        r_bool, ret = server.exec_comm(stop_cmd_autoware)
-        logger.info('stop remote autoware4, exec result: {}, msg: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-        return True, ''
 
 
 def start_perception():
@@ -234,21 +126,10 @@ def record_bag(result_bag_path, bag_duration):
     2. if need to remote record bag, record bag at remote, than download to local dir
     bag_name: according to bag_name to get record bag path
     """
-    topic = '/perception/object_recognition/objects'
-    if p_conf.PERCEPTION_BAG_REMOTE:
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, p_conf.PERCEPTION_BAG_REMOTE_PWD
-        logger.info('need to record bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
-        remote = RemoteP(ip, user, pwd)
-        record_command = ROSBAG_RECORD_O_REMOTE.format(name=result_bag_path, t=bag_duration, topic=topic)
-        logger.info('begin to record bag, remote command: {}'.format(record_command))
-        r_bool, ret = remote.exec_comm(record_command)
-        logger.info('remote record bag, exec result: {} status: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-    else:
-        record_comm = ROSBAG_RECORD_O.format(name=result_bag_path, t=bag_duration, topic=topic)
-        logger.info('begin to record bag, command: {}'.format(record_comm))
-        subprocess.Popen(record_comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    topic = p_conf.OBJECTS_TOPIC
+    record_comm = ROSBAG_RECORD_O.format(name=result_bag_path, t=bag_duration, topic=topic)
+    logger.info('begin to record bag, command: {}'.format(record_comm))
+    subprocess.Popen(record_comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     time.sleep(2)  # give time to ready record
     return True, 'begin to record bag'
 
@@ -258,26 +139,14 @@ def play_bag(bag_path):
     play rosbag
     bag_path: need to play bag's path
     """
-    if p_conf.PERCEPTION_BAG_REMOTE:
-        play_cmd = ROSBAG_PLAY_REMOTE.format(bag_path=bag_path)
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, \
-                        p_conf.PERCEPTION_BAG_REMOTE_PWD
-        logger.info('need to play bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
-        remote = RemoteP(ip, user, pwd)
-        logger.info('play command: {}'.format(play_cmd))
-        r_bool, ret = remote.exec_comm(play_cmd)
-        logger.info('play return: {}, msg: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-    else:
-        play_cmd = ROSBAG_PLAY.format(bag_path=bag_path)
-        logger.info('play command: {}'.format(play_cmd))
-        proc = subprocess.Popen(play_cmd, shell=True, stderr=subprocess.PIPE)
-        proc.wait()
-        stderr = proc.stderr.read().decode('utf-8')
-        logger.info('rosbag play result: {}'.format(stderr))
-        if len(stderr) > 0:
-            return False, stderr
+    play_cmd = ROSBAG_PLAY.format(bag_path=bag_path)
+    logger.info('play command: {}'.format(play_cmd))
+    proc = subprocess.Popen(play_cmd, shell=True, stderr=subprocess.PIPE)
+    proc.wait()
+    stderr = proc.stderr.read().decode('utf-8')
+    logger.info('rosbag play result: {}'.format(stderr))
+    if len(stderr) > 0:
+        return False, stderr
     return True, ''
 
 
@@ -288,22 +157,10 @@ def check_record_bag():
     check_cmd = 'ps -ef| grep result.bag | grep -v grep'
     logger.info('check record status, command: {}'.format(check_cmd))
 
-    if p_conf.PERCEPTION_BAG_REMOTE:
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, p_conf.PERCEPTION_BAG_REMOTE_PWD
-        logger.info('to check record bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
-        remote = RemoteP(ip, user, pwd)
-        r_bool, ret = remote.exec_comm(check_cmd)
-        logger.info('check record stauts, exec result: {} status: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-        record_status = False  # record status
-        if 'result.bag' in ret:
-            record_status = True
-    else:
-        r_bool, ret = loc.check_process('result.bag')
-        if not r_bool:
-            return False, ret
-        record_status = ret
+    r_bool, ret = loc.check_process('result.bag')
+    if not r_bool:
+        return False, ret
+    record_status = ret
     return True, record_status
 
 
@@ -313,70 +170,7 @@ def stop_record_bag():
     """
     stop_cmd = 'kill -2 `ps -ef|grep "result.bag"|awk \'{{print $2}}\'`'
     logger.info('stop record command: {}'.format(stop_cmd))
-    if p_conf.PERCEPTION_BAG_REMOTE:
-        ip, user, pwd = p_conf.PERCEPTION_BAG_REMOTE_IP, p_conf.PERCEPTION_BAG_REMOTE_USER, \
-                        p_conf.PERCEPTION_BAG_REMOTE_PWD
-        logger.info('need to stop record bag at remote, env: {}:{}/{}'.format(ip, user, pwd))
-        remote = RemoteP(ip, user, pwd)
-        r_bool, ret = remote.exec_comm(stop_cmd)
-        logger.info('stop remote record, return: {}, msg: {}'.format(r_bool, ret))
-        if not r_bool:
-            return False, ret
-    else:
-        r_bool, ret = loc.stop_process('result.bag', '-2', 5)
-        if not r_bool:
-            return False, ret
+    r_bool, ret = loc.stop_process('result.bag', '-2', 5)
+    if not r_bool:
+        return False, ret
     return True, ''
-
-
-def check_autoware_open_status() -> (bool, int):
-    """
-    check autoware4
-
-    steps:
-        1. check docker
-        2. get node list
-        3. check node list
-    :returns bool, int;
-    bool, exec cmd result,if exec successful, True, or not False,
-    int: 1. docker stopped 2. docker and autoware are running 3. docker is running, but autoware is not ok
-    """
-    # 1. check docker
-    r_bool, status_bool = comm.check_docker(AUTOWARE_DOCKER_NAME)
-    if not r_bool:
-        logger.info('check autoware docker(name: {}) error: {}'.format(AUTOWARE_DOCKER_NAME, status_bool))
-        return False, status_bool
-
-    if not status_bool:
-        return True, 1  # docker stopped
-
-    # 2. get node list
-    r_bool, node_list_str = comm.get_node_list(GET_ROS_NODE_LIST)
-    if not r_bool:
-        logger.info('get autoware rosnode list failed, error: {}'.format(node_list_str))
-        return False, node_list_str
-
-    # 3. check node list
-    r_bool, msg = comm.check_node_list(p_conf.AUTOWARE_NODE_LIST, node_list_str)
-    if not r_bool:
-        logger.info('check autoware rosnode failed, msg: {}'.format(msg))
-        return True, 3  # docker is running, but autoware is not ok
-    return True, 2  # docker and autoware are running
-
-
-def start_autoware_open(aw_log_path):
-    """
-    start autoware
-    :return:
-    """
-    start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_OPEN, log_path=aw_log_path)
-    if config.RVIZ:
-        start_cmd = '{cmd} > {log_path}'.format(cmd=START_AUTOWARE_RVIZ_OPEN, log_path=aw_log_path)
-    logger.info('start autoware cmd: {}'.format(start_cmd))
-    r_bool, msg = comm.start_docker(start_cmd)
-    if not r_bool:
-        return False, msg
-    return True, ''
-
-
-

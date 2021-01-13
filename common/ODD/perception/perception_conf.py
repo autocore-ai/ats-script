@@ -10,6 +10,7 @@ PERCEPTION_WORKSPACE = ''
 # if perception startup by docker, it will be invalid
 PERCEPTION_ROS_MASTER_URI = 'http://{}:11311'.format(PERCEPTION_IP)
 
+OBJECTS_TOPIC = '/perception/object_recognition/objects'
 # test perception node list
 PERCEPTION_NODE_LIST = [
     '/aggregator_node',
