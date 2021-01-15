@@ -7,7 +7,10 @@
 
 docker operation
 """
+import os
+import time
 import docker
+import tarfile
 import logging
 import subprocess
 from weakref import WeakValueDictionary
@@ -95,3 +98,30 @@ class MyContainer(metaclass=Singleton):
         container status
         """
         return self.container.status
+
+    def get_file(self, target_path: str, local_path: str) -> (bool, bool):
+        """
+        1. Retrieve a file or folder from the container in the form of a tar archive
+        2. tar -xvf tar
+        target_path: Path to the file or folder to retrieve
+        local_path: local path
+        return tuple
+        """
+        try:
+            stream, stat = self.container.get_archive(target_path)
+            logger.debug('get file stat: %s' % str(stat))
+            local_path_tar = '{l_p}/{t_name}.tar'.format(l_p=local_path, t_name='temp_%d' % int(time.time()))
+            logger.debug('local path: %s' % local_path_tar)
+            with open(local_path_tar, 'wb') as l_f:
+                for ch in stream:
+                    l_f.write(ch)
+            logger.debug('get tar successfully, now to extract file')
+            with tarfile.open(local_path_tar) as tar_f:
+                for name in tar_f.getnames():
+                    tar_f.extract(name, local_path)
+            logger.debug('delete local tar: %s' % local_path_tar)
+            os.system('rm -rf %s' % local_path_tar)
+            return True, ''
+        except Exception as e:
+            logger.error(e)
+            return False, 'get file[%s] from container except: %s' % (target_path, e.__str__())
