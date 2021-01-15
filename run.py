@@ -59,7 +59,7 @@ def main():
     print(p_args)
 
     # source ros setup.bash
-    proc = subprocess.Popen('source {ros1}'.format(ros1=odd_conf.ROS1_SETUP), shell=True, stderr=subprocess.PIPE)
+    proc = subprocess.Popen('source {ros2}'.format(ros2=odd_conf.ROS2_SETUP), shell=True, stderr=subprocess.PIPE)
     stderr = proc.stderr.read()
     if stderr:
         print(stderr)

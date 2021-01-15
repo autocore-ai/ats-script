@@ -1,4 +1,5 @@
 requests
+docker
 pytest
 pytest-repeat
 pytest-rerunfailures
@@ -11,4 +12,5 @@ fabric
 pycryptodome
 pyyaml
 rospkg
+lark
 gnupg

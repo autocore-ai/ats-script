@@ -12,7 +12,7 @@ import logging
 import numpy as np
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
-import rosbag
+import rclpy as rosbag
 sys.path.append('./../../')
 from common.utils.generate_graph import generate_bar, generate_bar_rows, generate_trace_rows, generate_line_rows, \
     generate_pre_path_row, generate_scatter_rows

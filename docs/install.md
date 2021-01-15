@@ -3,9 +3,9 @@
 ## Install ros1 
 http://wiki.ros.org/melodic/Installation
 
-## python3.6 
+## python3.8.5 
 
-ubuntu with python3.6
+ubuntu with python3.8
 
 ## Install JDK
 

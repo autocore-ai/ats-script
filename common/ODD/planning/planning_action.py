@@ -9,7 +9,6 @@ import logging
 import common.ODD.auto_test_io as io
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
-import common.ODD.aw4_action as aw_act
 
 logger = logging.getLogger()
 

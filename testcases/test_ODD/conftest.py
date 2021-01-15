@@ -20,6 +20,7 @@ import allure
 import logging
 import common.ODD.aw4_env as aw4_env
 import common.ODD.config as aw4_conf
+
 logger = logging.getLogger()
 
 
@@ -33,7 +34,7 @@ def env_opt(request, get_case_log_path):
     start_time = time.time()
 
     # according to case function, get environment information
-    env_ip = aw4_conf.TEST_MODULE_INFO[fun_name]['ros1_docker_ip']
+    env_ip = aw4_conf.TEST_MODULE_INFO[fun_name]['ros2_docker_ip']
     wait_aw4_time = 100
 
     if aw4_conf.EXEC_CASE_TYPE in [1, 3]:  # open source
@@ -55,7 +56,7 @@ def env_opt(request, get_case_log_path):
         step_desc = '3. check aw4 start ok, and waiting aw4 to start until start successfully, ' \
                     'max wait time: {w_t}s'.format(w_t=wait_aw4_time)
         aw4_env.wait_aw4_start(env_ip, fun_name, wait_aw4_time, step_desc)
-        time.sleep(2)
+        time.sleep(5)
         logger.info('aw4 environment is ok, now exec cases')
 
         yield

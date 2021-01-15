@@ -24,27 +24,27 @@ EXEC_CASE_SCENE = {
 # docker environment
 TEST_MODULE_INFO = {
     'test_perception': {'ros1_docker_ip': '127.0.0.1', 'ros1_docker_user': '', 'ros1_docker_pwd': '',
-                        'ros1_docker_name': 'runtime', 'ros1_aw4_workspace': '/ros1_workspace',
+                        'ros1_container_name': 'runtime', 'ros1_aw4_workspace': '/ros1_workspace',
                         'ros2_docker_ip': '127.0.0.1', 'ros2_docker_user': '', 'ros2_docker_pwd': '',
-                        'ros2_docker_name': '', 'ros2_aw4_workspace': '/ros1_workspace',
+                        'ros2_container_name': 'runtime-ros2', 'ros2_aw4_workspace': '/AutowareArchitectureProposal',
                         'master_uri': 'http://127.0.0.1:11311',
                         'node_list': PERCEPTION_NODE_LIST,
                         'start_cmd': 'cd {0}/common/ODD/script/;./run_rosbag.sh'.format(TEST_CASE_PATH),
                         'start_cmd_rviz': 'cd {0}/common/ODD/script/;./run_rosbag_rviz.sh'.format(TEST_CASE_PATH),
                         },
     'test_planning': {'ros1_docker_ip': '127.0.0.1', 'ros1_docker_user': '', 'ros1_docker_pwd': '',
-                      'ros1_docker_name': 'runtime', 'ros1_aw4_workspace': '/ros1_workspace',
+                      'ros1_container_name': 'runtime', 'ros1_aw4_workspace': '/ros1_workspace',
                       'ros2_docker_ip': '127.0.0.1', 'ros2_docker_user': '', 'ros2_docker_pwd': '',
-                      'ros2_docker_name': '', 'ros2_aw4_workspace': '',
+                      'ros2_container_name': 'runtime-ros2', 'ros2_aw4_workspace': '/AutowareArchitectureProposal',
                       'master_uri': 'http://127.0.0.1:11311',
                       'node_list': PLANNING_NODES,
                       'start_cmd': 'cd {0}/common/ODD/script/;./run_psim.sh'.format(TEST_CASE_PATH),
                       'start_cmd_rviz': 'cd {0}/common/ODD/script/;./run_psim_rviz.sh'.format(TEST_CASE_PATH)
                       },
     'test_localization': {'ros1_docker_ip': '127.0.0.1', 'ros1_docker_user': '/ros1_workspace', 'ros1_docker_pwd': '',
-                          'ros1_docker_name': 'runtime', 'ros1_aw4_workspace': '',
+                          'ros1_container_name': 'runtime', 'ros1_aw4_workspace': '',
                           'ros2_docker_ip': '127.0.0.1', 'ros2_docker_user': '', 'ros2_docker_pwd': '',
-                          'ros2_docker_name': '', 'ros2_aw4_workspace': '',
+                          'ros2_container_name': 'runtime-ros2', 'ros2_aw4_workspace': '/AutowareArchitectureProposal',
                           'master_uri': 'http://127.0.0.1:11311',
                           'node_list': PERCEPTION_NODE_LIST,
                           'start_cmd': 'cd {0}/common/ODD/script/;./run_rosbag.sh'.format(TEST_CASE_PATH),
@@ -61,6 +61,7 @@ AW4_RUN_STATUS = {
 RVIZ = False  # True show rviz
 
 ROS1_SETUP = '/opt/ros/noetic/setup.bash'
+ROS2_SETUP = '/opt/ros/foxy/setup.bash'
 
 # csv cases path
 ODD_CSV_CASES = '{}/testcases/test_ODD/cases'.format(TEST_CASE_PATH)
