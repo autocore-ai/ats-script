@@ -15,101 +15,6 @@ from rclpy.serialization import deserialize_message
 from rosidl_runtime_py.utilities import get_message
 
 
-def get_key_name(name):
-    """fix up topic to key names to make them a little prettier"""
-    if name[0] == '/':
-        name = name[1:]
-    name = name.replace('/', '.')
-    return name
-
-
-def prune_topics(bag_topics, include, exclude):
-    """
-    prune the topics.  If include is None add all to the set of topics to
-    use if include is a string regex match that string,
-    if it is a list use the list
-    If exclude is None do nothing, if string remove the topics with regex,
-    if it is a list remove those topics
-    """
-
-    topics_to_use = set()
-    # add all of the topics
-    if include is None:
-        for t in bag_topics:
-            topics_to_use.add(t)
-    elif isinstance(include, six.string_types):
-        check = re.compile(include)
-        for t in bag_topics:
-            if re.match(check, t) is not None:
-                topics_to_use.add(t)
-    else:
-        try:
-            # add all of the includes if it is in the topic
-            for topic in include:
-                if topic in bag_topics:
-                    topics_to_use.add(topic)
-        except:
-            warnings.warn('Error in topic selection Using All!')
-            topics_to_use = set()
-            for t in bag_topics:
-                topics_to_use.add(t)
-
-    to_remove = set()
-    # now exclude the exclusions
-    if exclude is None:
-        pass
-    elif isinstance(exclude, six.string_types):
-        check = re.compile(exclude)
-        for t in list(topics_to_use):
-            if re.match(check, t) is not None:
-                to_remove.add(t)
-    else:
-        for remove in exclude:
-            if remove in exclude:
-                to_remove.add(remove)
-
-    # final set stuff to get topics to use
-    topics_to_use = topics_to_use - to_remove
-    # return a list for the results
-    return list(topics_to_use)
-
-
-def get_base_fields(msg, prefix='', parse_header=True):
-    """
-    function to get the full names of every message field in the message
-    planning.scenario_planning.trajectory_points[0].point.pose.position.x
-    """
-    slots = msg.__slots__
-    msg_value = dict()
-    msg_arr_list = msg.get_fields_and_field_types().keys()
-    if prefix:
-        prefix += '.'
-    for i, m in enumerate(msg_arr_list):
-        slot_msg = getattr(msg, slots[i])
-        if not parse_header and m == 'header':
-            continue
-
-        if isinstance(slot_msg, list):
-            for j, s in enumerate(slot_msg):
-                if hasattr(s, '__slots__'):
-                    sub_msg_value = get_base_fields(
-                        s, prefix=prefix + m + '[%d]' % j,
-                        parse_header=parse_header,
-                    )
-                    msg_value.update(sub_msg_value)
-                else:
-                    msg_value[prefix + s] = s
-        elif hasattr(slot_msg, '__slots__'):
-            sub_msg_value = get_base_fields(
-                slot_msg, prefix=prefix + m,
-                parse_header=parse_header,
-            )
-            msg_value.update(sub_msg_value)
-        else:
-            msg_value[prefix+m] = slot_msg
-    return msg_value
-
-
 class Ros2bag:
 
     def __init__(self, bag_path):
@@ -142,8 +47,8 @@ class Ros2bag:
 
         topic_types = reader.get_all_topics_and_types()
         topic_type_map = {topic.name: topic.type for topic in topic_types}
-        bag_topics = prune_topics(topic_type_map.keys(), include, exclude)
-        prefix_key_dict = {topic: get_key_name(topic) for topic in bag_topics}
+        bag_topics = self.prune_topics(topic_type_map.keys(), include, exclude)
+        prefix_key_dict = {topic: self.get_key_name(topic) for topic in bag_topics}
         storage_filter = rospy.StorageFilter(topics=bag_topics)
         reader.set_filter(storage_filter)
         msg_len = self.get_length(bag_topics)
@@ -162,7 +67,7 @@ class Ros2bag:
                 index.append(msg.header.stamp.nanosec)
 
             if hasattr(msg, '__slots__'):
-                msg_dict = get_base_fields(msg, prefix=topic_prefix, parse_header=parse_header)
+                msg_dict = self.get_base_fields(msg, prefix=topic_prefix, parse_header=parse_header)
                 for field, value in msg_dict.items():
                     if field not in datastore:
                         datastore[field] = np.empty(msg_len)
@@ -191,3 +96,98 @@ class Ros2bag:
             if topic_count['topic_metadata']['name'] in topics:
                 msg_count += topic_count['message_count']
         return msg_count
+
+    @staticmethod
+    def get_key_name(name):
+        """fix up topic to key names to make them a little prettier"""
+        if name[0] == '/':
+            name = name[1:]
+        name = name.replace('/', '.')
+        return name
+
+    @staticmethod
+    def prune_topics(bag_topics, include, exclude):
+        """
+        prune the topics.  If include is None add all to the set of topics to
+        use if include is a string regex match that string,
+        if it is a list use the list
+        If exclude is None do nothing, if string remove the topics with regex,
+        if it is a list remove those topics
+        """
+
+        topics_to_use = set()
+        # add all of the topics
+        if include is None:
+            for t in bag_topics:
+                topics_to_use.add(t)
+        elif isinstance(include, six.string_types):
+            check = re.compile(include)
+            for t in bag_topics:
+                if re.match(check, t) is not None:
+                    topics_to_use.add(t)
+        else:
+            try:
+                # add all of the includes if it is in the topic
+                for topic in include:
+                    if topic in bag_topics:
+                        topics_to_use.add(topic)
+            except:
+                warnings.warn('Error in topic selection Using All!')
+                topics_to_use = set()
+                for t in bag_topics:
+                    topics_to_use.add(t)
+
+        to_remove = set()
+        # now exclude the exclusions
+        if exclude is None:
+            pass
+        elif isinstance(exclude, six.string_types):
+            check = re.compile(exclude)
+            for t in list(topics_to_use):
+                if re.match(check, t) is not None:
+                    to_remove.add(t)
+        else:
+            for remove in exclude:
+                if remove in exclude:
+                    to_remove.add(remove)
+
+        # final set stuff to get topics to use
+        topics_to_use = topics_to_use - to_remove
+        # return a list for the results
+        return list(topics_to_use)
+
+    @classmethod
+    def get_base_fields(self, msg, prefix='', parse_header=True):
+        """
+        function to get the full names of every message field in the message
+        planning.scenario_planning.trajectory_points[0].point.pose.position.x
+        """
+        slots = msg.__slots__
+        msg_value = dict()
+        msg_arr_list = msg.get_fields_and_field_types().keys()
+        if prefix:
+            prefix += '.'
+        for i, m in enumerate(msg_arr_list):
+            slot_msg = getattr(msg, slots[i])
+            if not parse_header and m == 'header':
+                continue
+
+            if isinstance(slot_msg, list):
+                for j, s in enumerate(slot_msg):
+                    if hasattr(s, '__slots__'):
+                        sub_msg_value = self.get_base_fields(
+                            s, prefix=prefix + m + '[%d]' % j,
+                            parse_header=parse_header,
+                        )
+                        msg_value.update(sub_msg_value)
+                    else:
+                        msg_value[prefix + s] = s
+            elif hasattr(slot_msg, '__slots__'):
+                sub_msg_value = self.get_base_fields(
+                    slot_msg, prefix=prefix + m,
+                    parse_header=parse_header,
+                )
+                msg_value.update(sub_msg_value)
+            else:
+                msg_value[prefix + m] = slot_msg
+        return msg_value

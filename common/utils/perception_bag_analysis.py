@@ -71,7 +71,7 @@ class Analysis:
 
         """
         ans_list = []
-        for _, (_, msg, mt) in enumerate(self.bag.read_messages()):
+        for _, msg, mt in self.bag.read_messages():
             if not msg.objects:
                 continue
             sect = self.time_section(mt.to_sec())  # time segment of the current time
