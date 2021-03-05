@@ -61,18 +61,25 @@ class Ros2bag:
             msg_type = get_message(topic_type_map[topic])
             msg = deserialize_message(msg, msg_type)
             topic_prefix = prefix_key_dict[topic] if prefix_topic else ''
-            if seconds:
-                index.append(msg.header.stamp.sec)
-            else:
-                index.append(msg.header.stamp.nanosec)
+            try:
+                if seconds:
+                    index.append(msg.header.stamp.sec)
+                else:
+                    index.append(msg.header.stamp.nanosec)
+            except Exception as e:
+                warnings.warn('No stamp: %s', msg)
+                index.append(1)
 
             if hasattr(msg, '__slots__'):
                 msg_dict = self.get_base_fields(msg, prefix=topic_prefix, parse_header=parse_header)
                 for field, value in msg_dict.items():
                     if field not in datastore:
                         datastore[field] = np.empty(msg_len)
-                    datastore[field][count] = value
-
+                    if value.__class__.__name__ == 'array':
+                        datastore[field][count] = '.'.join([str(v) for v in value.tolist()])
+                        return
+                    else:
+                        datastore[field][count] = value
             else:
                 if topic_prefix not in datastore:
                     datastore[topic_prefix] = np.empty(msg_len)
@@ -114,7 +121,6 @@ class Ros2bag:
         If exclude is None do nothing, if string remove the topics with regex,
         if it is a list remove those topics
         """
-
         topics_to_use = set()
         # add all of the topics
         if include is None:
