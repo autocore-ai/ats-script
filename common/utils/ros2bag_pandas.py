@@ -6,6 +6,7 @@ ros2 bag format sqlite3, serialization_format cdr
 import six
 import re
 import warnings
+
 import rosbag2_py as rospy
 import pandas as pd
 import yaml
@@ -48,7 +49,9 @@ class Ros2bag:
         topic_types = reader.get_all_topics_and_types()
         topic_type_map = {topic.name: topic.type for topic in topic_types}
         bag_topics = self.prune_topics(topic_type_map.keys(), include, exclude)
+        # print(bag_topics)
         prefix_key_dict = {topic: self.get_key_name(topic) for topic in bag_topics}
+        # print(prefix_key_dict)
         storage_filter = rospy.StorageFilter(topics=bag_topics)
         reader.set_filter(storage_filter)
         msg_len = self.get_length(bag_topics)
@@ -59,12 +62,17 @@ class Ros2bag:
         while reader.has_next():
             (topic, msg, t) = reader.read_next()
             msg_type = get_message(topic_type_map[topic])
+            # print(topic)
             msg = deserialize_message(msg, msg_type)
+            # print(topic)
             topic_prefix = prefix_key_dict[topic] if prefix_topic else ''
             if seconds:
-                index.append(msg.header.stamp.sec)
+                index.append(str(msg.header.stamp.sec))
             else:
-                index.append(msg.header.stamp.nanosec)
+                try:
+                    index.append(msg.header.stamp.nanosec)
+                except:
+                    index.append("")
 
             if hasattr(msg, '__slots__'):
                 msg_dict = self.get_base_fields(msg, prefix=topic_prefix, parse_header=parse_header)
@@ -191,3 +199,21 @@ class Ros2bag:
             else:
                 msg_value[prefix + m] = slot_msg
         return msg_value
+
+if __name__ == '__main__':
+    # Ros2bag.dataframe("home/Workspace/autotest/rosbag2_2021_03_03-15_57_27/02.bag/02.bag_0.db3")
+    TOPICS_LIST = ["/planning/scenario_planning/trajectory",
+                   "/vehicle/status/twist",
+                   "/vehicle/status/velocity",
+                   "/current_pose"
+                   ]
+    bag= Ros2bag("/home/autotest/Workspace/autotest/bags/aw4/planning/gt_01/gteg_01")
+    # cc = bag.dataframe(include='/vehicle/status/velocity')
+    # print(cc)
+    count = 0
+    for i in TOPICS_LIST:
+        cc = bag.dataframe(include=i)
+        cc.to_excel(str(count)+".xlsx")
+        count = count+1
+
+    print(cc)

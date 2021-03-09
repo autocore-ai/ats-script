@@ -74,7 +74,7 @@ def check_aw4_status_docker(env_ip: str, module: str) -> (bool, int):
         # 1. check container status
         try:
             container = MyContainer(container_name)
-            logger.info('container[%s] is exist' % container_name)
+            # logger.info('container[%s] is exist' % container_name)
         except NotFound:
             return True, 1  # docker stopped
 

@@ -9,7 +9,7 @@ import logging
 import common.ODD.auto_test_io as io
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
-
+from common.utils.ros2bag_pandas import *
 logger = logging.getLogger()
 
 
@@ -210,7 +210,11 @@ TOPICS = "/planning/scenario_planning/trajectory /current_pose " \
 def start_record_bag(count_seconds, bag_name):
     """record bag,  放入当前目录"""
     # print(os.popen('env | grep ROS').read())
-    cmd = 'rosbag record -O {} {} --duration {}'.format(bag_name, TOPICS, str(count_seconds))
+    # cmd = 'ros2 bag record -o {} {} --duration {}'.format(bag_name, TOPICS, str(count_seconds))
+    # cmd = 'ros2 bag record {} -o {}  '.format(TOPICS, bag_name)
+    # cmd = 'ros2 bag record {} -o {} -d 60'.format(TOPICS,"/home/autotest/Workspace/autotest/bags/aw4/planning/gt_01/gtt_01")
+    cmd = 'ros2 bag record {} -o {}'.format(TOPICS,"/home/autotest/Workspace/autotest/bags/aw4/planning/gt_01/gteg_01")
+    time.sleep(3)
     logger.info("the bag recorded address is {}".format(cmd))
     p = subprocess.Popen(cmd, shell=True)
     logger.info("start recording")
@@ -245,7 +249,7 @@ def check_dir(bag_dir):
 
 def topic_csv(bag_name, topic_name,  path, result_file_name):
     # bag_name
-    cmd = "rostopic echo -b %s -p %s >  %s/%s.csv" % (
+    cmd = "ros2 topic echo -b %s -p %s >  %s/%s.csv" % (
         str(bag_name), topic_name, path, result_file_name)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     stderr = p.stderr.read().decode('utf-8')
@@ -298,6 +302,11 @@ def compare_bag_sec(gt_bag_path,test_bag_path):
     else:
         return True, ""
 
+def db3_to_df(topic, db3_path):
+
+    bag = Ros2bag(db3_path)
+    cc = bag.dataframe(include=topic,seconds=True)
+    return cc
 
 if __name__ == '__main__':
     cc,dd = compare_bag_sec("~/workspace/autotest/bags/planning/gt_01/gt_01.bag", "~/workspace/autotest/bags/planning/gt_01/test_planning_01.bag")

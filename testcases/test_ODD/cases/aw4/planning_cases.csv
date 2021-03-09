@@ -1,2 +1,3 @@
 Priority,Story,CaseName,gt_name,Title,start.position.x,start.position.y,start.position.z,start.orientation.x,start.orientation.y,start.orientation.z,start.orientation.w,end.position.x,end.position.y,end.position.z,end.orientation.x,end.orientation.y,end.orientation.z,end.orientation.w,bag_name,duration
-Medium,route,test_planning_01,gt_01,first,27.6782608,45.14562225,0,0,0,-0.962622198,0.27084775,-14.1374855,23.72875214,0,0,0,0.962200168,-0.272343235,gt_01.bag,60
+Medium,route,test_planning_01,gt_01,first,37.38,0.18,0,0,0,-0.971452930232181,0.237232385,-25.83,-28.56,0,0,0,0.227146949,0.973860495,gt_01.bag,60
+

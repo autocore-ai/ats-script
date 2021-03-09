@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
-
+import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped
@@ -14,10 +14,12 @@ class AutoTestIO(Node):
     Automatic test data exchange interface class
     """
     def __init__(self):
-        super().__init__('io_ros2',  automatically_declare_parameters_from_overrides=True)
+        # super().__init__('io_ros2',  automatically_declare_parameters_from_overrides=True)
+        # rclpy.init()
+        # super(AutoTestIO, self).default_callback_group.__init__()
         self.pub_initialpose = self.create_publisher(PoseWithCovarianceStamped, 'initialpose', 10)
         self.pub_goal = self.create_publisher(PoseStamped, 'planning/mission_planning/goal', 10)
-        self.pub_autoware_engage = self.create_publisher(Bool, 'autoware/put/engage', 1)
+        # self.pub_autoware_engage = self.create_publisher(Bool, 'autoware/put/engage', 1)
 
     def initialpose(self, position: list, orientation: list):
         """

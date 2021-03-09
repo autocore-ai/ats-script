@@ -37,17 +37,29 @@ def eur_calculate(a, b, point_num):
     ac, bc = point_count(a, b)
     if ac == bc:
         a_col = a.columns
-        keyword = str("points" + str(point_num) + ".pose.position.x")
-        keyword1 = str("points" + str(point_num) + ".pose.position.y")
+        logger.info("a_col{}".format(a_col))
+        ss = "["+str(point_num)+"]"
+        keyword = str("points[{}].pose.position.x" .format(str(point_num)))
+        #planning.scenario_planning.trajectory.points[0].pose.position.x
+        keyword1 = str("points[{}].pose.position.y" .format(str(point_num)))
+        logger.info("KEYWORD{}".format(keyword))
+        logger.info("KEYWORD111{}".format(keyword1))
+
         for i in a_col:
+
             if keyword in str(i):
                 dfx_a = a[i]
+                logger.info("dfx_aaaaaaaaaaaaaaa{}".format(dfx_a))
                 dfx_b = b[i]
+                logger.info("dfx_bbbbbbbbbbbbbbb{}".format(dfx_b))
             if keyword1 in str(i):
                 dfy_a = a[i]
+                logger.info("dfy_aaaaaaaaaaaaaaa{}".format(dfy_a))
                 dfy_b = b[i]
+                logger.info("dfy_bbbbbbbbbbbbbb{}".format(dfy_b))
 
         df_all = np.sqrt((dfx_a - dfx_b) ** 2 + (dfy_a - dfy_b) ** 2)
+        logger.info("df_all -------------------{}".format(df_all))
         key = "eu_distance of " + str(point_num)
     return key, df_all
 
@@ -91,7 +103,9 @@ def orientation_one_point(a, b, point_num, four_angles):
     a_angle = []
     b_angle = []
     for angle in four_angles:
-        keyword = str("points" + str(point_num) + ".pose.orientation." + angle)
+
+        keyword = 'trajectory.points[{}].pose.orientation.{}'.format(str(point_num),str(angle))
+        # keyword = str("points" + str(point_num) + ".pose.orientation." + angle)
         # Find the column that exists in the dataframe
         for i in a_col:
             if keyword in str(i):
@@ -119,10 +133,12 @@ def orientation_one_point(a, b, point_num, four_angles):
 # Euclidean distance of all points, and then recombine into a Dataframe
 def eu_dataframe(a, b):
     a_num, b_num = point_count(a, b)
+    logger.info("eu dataframe {}   {}".format(a_num,b_num))
     df_eu = pd.DataFrame()
     for i in range(0, a_num + 1):
         key, df = eur_calculate(a, b, i)
         df_eu[key] = df
+    logger.info("df_eu {}".format(df_eu))
     return df_eu
 
 
@@ -139,8 +155,8 @@ def yaw_df(a, b):
 
 # plot two speeds
 def plot_twist(a, b, address):
-    df1_1 = a["field.twist.linear.x"]
-    df2_1 = b["field.twist.linear.x"]
+    df1_1 = a["vehicle.status.twist.twist.linear.x"]
+    df2_1 = b['vehicle.status.twist.twist.linear.x']
     fig, ax = plt.subplots(1, 1, figsize=(10, 8))
     ax.plot([i for i in range(1, len(df1_1) + 1)], list(np.array(df1_1) * 3.6), label="1")
     ax.plot([i for i in range(1, len(df2_1) + 1)], list(np.array(df2_1) * 3.6), label="2")
@@ -156,23 +172,23 @@ def plot_pose(a, b, pose_path):
     fig.subplots_adjust(bottom=0.2)
     # ax = axislines.Subplot(fig, 131)
     ax = ax_list[0]
-    ax.plot(list(a["field.pose.position.x"]), label="gt")
-    ax.plot(list(b["field.pose.position.x"]), label="test")
-    ax.set_title('field.pose.position.x')
+    ax.plot(list(a['current_pose.pose.position.x']), label="gt")
+    ax.plot(list(b['current_pose.pose.position.x']), label="test")
+    ax.set_title('current_pose.pose.position.x')
     ax.legend()
 
     ax2 = ax_list[1]
     # ax2 = axislines.Subplot(fig, 132, sharex=ax)
-    ax2.plot(list(a["field.pose.position.y"]), label="gt")
-    ax2.plot(list(b["field.pose.position.y"]), label="test")
-    ax2.set_title('field.pose.position.y')
+    ax2.plot(list(a['current_pose.pose.position.y']), label="gt")
+    ax2.plot(list(b['current_pose.pose.position.y']), label="test")
+    ax2.set_title('current_pose.pose.position.y')
     ax2.legend()
 
     ax3 = ax_list[2]
     # ax3 = axislines.Subplot(fig, 133,sharex=ax)
-    ax3.plot(list(a["field.pose.position.z"]), label="gt")
-    ax3.plot(list(b["field.pose.position.z"]), label="test")
-    ax3.set_title('field.pose.position.z')
+    ax3.plot(list(a['current_pose.pose.position.z']), label="gt")
+    ax3.plot(list(b['current_pose.pose.position.z']), label="test")
+    ax3.set_title('current_pose.pose.position.z')
     ax3.legend()
     plt.savefig(pose_path)
     plt.close("all")
@@ -180,7 +196,7 @@ def plot_pose(a, b, pose_path):
 
 
 def velocity_not_zero(df):
-    df_1 = df["field.twist.linear.x"]
+    df_1 = df["vehicle.status.twist.twist.linear.x"]
     if df_1.sum() != 0:
         return True
     else:
@@ -188,7 +204,7 @@ def velocity_not_zero(df):
 
 
 def current_pose_change(df):
-    df_list = df["field.pose.position.x"].tolist()
+    df_list = df["current_pose.pose.position.x"].tolist()
     if len(set(df_list)) != 1:
         return True
     else:
@@ -230,6 +246,8 @@ def current_pose_analysis_eur(rangenum, df1, df2):
 def current_pose_analysis_yaw(range_scale, df1, df2):
     ac = df1.shape[0]
     bc = df2.shape[0]
+    logger.info("current pose:{}".format(ac))
+    logger.info("current pose:{}".format(bc))
     a_col = df1.columns
     b_col = df2.columns
     four_angles = ["w", "x", "y", "z"]
@@ -290,11 +308,11 @@ def route_same(csv_a, csv_b):
         return False
 
 
-def plot_eu(csv_file, csv_file_1, trajectory_path):
+def plot_eu(a, b, trajectory_path):
     fig, ax_list = plt.subplots(5, 5, figsize=(20, 16))
     fig.subplots_adjust(wspace=0.4, hspace=0.4)
     # fig.subplots_adjust(bottom=0.02,top =0.03)
-    a, b = csv_to_df(csv_file, csv_file_1)
+    # a, b = csv_to_df(csv_file, csv_file_1)
     eur_df = eu_dataframe(a, b)
     logger.info("Euclidean distance dataframe for all the points : {}".format(eur_df))
     for i, a_list in enumerate(ax_list):

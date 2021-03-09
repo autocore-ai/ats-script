@@ -83,13 +83,17 @@ class MyContainer(metaclass=Singleton):
         ``demux=True``, a tuple of two bytes: stdout and stderr.
         """
         try:
+            command = '/bin/bash -c {}'.format(cmd)
             command = '/bin/bash -c \'{cmd}\''.format(cmd=cmd)
             exit_code, output = self.container.exec_run(command, demux=True)
             if exit_code == 0:
                 return True, output
-            logger.error('exec cmd inside container[%s], exit code: %d, output: %s' % (self.name_or_id,
+            else:
+            # logger.error('exec cmd inside container[%s], exit code: %d, output: %s' % (self.name_or_id,
+            #                                                                            exit_code, str(output)))
+                logger.info('exec cmd inside container[%s], exit code: %d, output: %s' % (self.name_or_id,
                                                                                        exit_code, str(output)))
-            return False, str(output)
+            # return False, str(output)
         except Exception as e:
             return False, 'exec command in container[%s] exception: %s' % (self.name_or_id, e.__str__())
 
