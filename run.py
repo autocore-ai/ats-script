@@ -20,8 +20,8 @@ CASE_TYPE = 1
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--type', help="exec cases type, 1: open source cases 2: home cases, default 1",
-                        type=int, choices=[1, 2])
+    parser.add_argument('-t', '--type', help="exec cases type, 1: open source cases 2: home cases 3: future way cases, default 1",
+                        type=int, choices=[1, 2, 3])
     parser.add_argument('-f', '--features', help="tested features, such as perception,planning")
     parser.add_argument('-s', '--stories',  help="tested stories, such as adult,car")
     parser.add_argument('-l', '--level', type=int,  choices=[0, 1, 2, 3, 4],
@@ -36,6 +36,9 @@ def main():
     if args.type == 2:
         odd_conf.EXEC_CASE_TYPE = 2
         print('exec home cases')
+    elif args.type == 3:
+        odd_conf.EXEC_CASE_TYPE = 3
+        print('exec future way cases')
     else:
         odd_conf.EXEC_CASE_TYPE = 1
         print('exec open source cases')
@@ -57,13 +60,6 @@ def main():
     if args.pytest:
         p_args.extend(args.pytest.split(' '))
     print(p_args)
-
-    # source ros setup.bash
-    proc = subprocess.Popen('source {ros2}'.format(ros2=odd_conf.ROS2_SETUP), shell=True, stderr=subprocess.PIPE)
-    stderr = proc.stderr.read()
-    if stderr:
-        print(stderr)
-        return
 
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))

@@ -39,7 +39,7 @@ def check_bag_OK(gt_bag_path, ret_bag_path):
     gt_bag = Ros2bag(gt_bag_path)
     gt_bag_info = gt_bag.bag_info
 
-    ret_bag = Ros2bag(bag_path)
+    ret_bag = Ros2bag(ret_bag_path)
     ret_bag_info = ret_bag.bag_info
     
     # check msg count
@@ -70,11 +70,11 @@ def check_bag_OK(gt_bag_path, ret_bag_path):
     return True, ''
 
 
-def check_route_ids(case_gt_path, case_bag_record_path):
-    route_id_topic = conf.CURRENT_POSE_TOPIC
+def check_route_ids(gt_bag_path, bag_record_path):
+    route_id_topic = conf.ROUTE_TOPIC
 
     gt_bag = Ros2bag(gt_bag_path)
-    ret_bag = Ros2bag(bag_path)
+    ret_bag = Ros2bag(bag_record_path)
     # read topic msg
     gt_dataframe = gt_bag.dataframe(include=[route_id_topic])
     gt_topic_keys = gt_dataframe.keys()
@@ -84,9 +84,9 @@ def check_route_ids(case_gt_path, case_bag_record_path):
 
     gt_route_id_list = [gt_dataframe[key].values.astype(int) for key in gt_dataframe.keys() if key.split('.')[-1] == 'lane_ids']
     ret_route_id_list = [ret_dataframe[key].values.astype(int) for key in ret_dataframe.keys() if key.split('.')[-1] == 'lane_ids']
-    allure.attach('expect route ids: {}\nreal route ids: {}'.
-                          format(gt_route_id_list, ret_route_id_list, 'compare route ids',
-                          allure.attachment_type.TEXT))
+    
+    allure.attach('expect route ids: {}\nreal route ids: {}'.format(gt_route_id_list, ret_route_id_list), 'compare route ids',
+                          allure.attachment_type.TEXT)
     
     if gt_route_id_list != ret_route_id_list:
         return False, 'result bag route ids are not equal ground truth, result ids: {}, gt ids: {}'.format(ret_route_id_list, gt_route_id_list)
@@ -94,7 +94,7 @@ def check_route_ids(case_gt_path, case_bag_record_path):
     return True, ''
 
 
-def check_current_pose(case_gt_path, case_bag_record_path):
+def check_current_pose(gt_bag_path, bag_record_path):
     """
     ckeck current posse and generate trace
     1. check position
@@ -104,7 +104,7 @@ def check_current_pose(case_gt_path, case_bag_record_path):
     step = 20
 
     gt_bag = Ros2bag(gt_bag_path)
-    ret_bag = Ros2bag(bag_path)
+    ret_bag = Ros2bag(bag_record_path)
     
     # read topic msg
     gt_dataframe = gt_bag.dataframe(include=[current_post_topic])
@@ -138,7 +138,7 @@ def check_current_pose(case_gt_path, case_bag_record_path):
                                         }
                                     },
                                     ]
-    save_path = '/'.join(case_bag_record_path.split('/')[:-1]) + '/current_pose_trace%s.png' % case_bag_record_path.split('result')[-1]
+    save_path = '/'.join(bag_record_path.split('/')[:-1]) + '/current_pose_trace%s.png' % bag_record_path.split('result')[-1]
     logger.info('current pose trace picture path: %s' % save_path)
     r_bool, msg = generate_trace_rows(pic_current_pose_position_list, save_path)
     if not r_bool:
@@ -179,7 +179,7 @@ def check_current_pose(case_gt_path, case_bag_record_path):
     pic_current_pose_yaw_list = [( {'title': 'Current Pose Yaw', 'data': {'gt_yaw': gt_yaw_list, 'real_yaw': ret_yaw_list}}), 
                                  ( {'title': 'Current Pose gt', 'data': {'gt_yaw': gt_yaw_list}}),
                                  ( {'title': 'Current Pose real', 'data': {'real_yaw': ret_yaw_list}})]
-    save_path = '/'.join(case_bag_record_path.split('/')[:-1]) + '/current_pose_yaw_lines%s.png' % case_bag_record_path.split('result')[-1]
+    save_path = '/'.join(bag_record_path.split('/')[:-1]) + '/current_pose_yaw_lines%s.png' % bag_record_path.split('result')[-1]
     r_bool, msg = generate_line_rows(pic_current_pose_yaw_list, save_path)
     if not r_bool:
         return False, msg
@@ -199,7 +199,7 @@ def check_current_pose(case_gt_path, case_bag_record_path):
     return True, ''
 
 
-def check_twist(case_gt_path, case_bag_record_path):
+def check_twist(gt_bag_path, bag_record_path):
     """
     ckeck twist and generate picture
     """
@@ -207,7 +207,7 @@ def check_twist(case_gt_path, case_bag_record_path):
     step = 20
 
     gt_bag = Ros2bag(gt_bag_path)
-    ret_bag = Ros2bag(bag_path)
+    ret_bag = Ros2bag(bag_record_path)
     
     # read topic msg
     gt_dataframe = gt_bag.dataframe(include=[twist_topic])
@@ -225,7 +225,7 @@ def check_twist(case_gt_path, case_bag_record_path):
     pic_line_x_list = [( {'title': 'Twist Line X', 'data': {'gt_twist': gt_line_x, 'real_twist': ret_line_x}}), 
                                  ( {'title': 'Twist gt line x', 'data': {'gt_yaw': gt_line_x}}),
                                  ( {'title': 'Twist real line x', 'data': {'real_yaw': ret_line_x}})]
-    save_path = '/'.join(case_bag_record_path.split('/')[:-1]) + '/twist_line_x%s.png' % case_bag_record_path.split('result')[-1]
+    save_path = '/'.join(bag_record_path.split('/')[:-1]) + '/twist_line_x%s.png' % bag_record_path.split('result')[-1]
     r_bool, msg = generate_line_rows(pic_line_x_list, save_path)
     if not r_bool:
         return False, msg
@@ -252,7 +252,7 @@ def check_twist(case_gt_path, case_bag_record_path):
     return True, ''
 
 
-def check_velocity(case_gt_path, case_bag_record_path):
+def check_velocity(gt_bag_path, bag_record_path):
     """
     check velocity
     """
@@ -260,7 +260,7 @@ def check_velocity(case_gt_path, case_bag_record_path):
     step = 20
 
     gt_bag = Ros2bag(gt_bag_path)
-    ret_bag = Ros2bag(bag_path)
+    ret_bag = Ros2bag(bag_record_path)
     
     # read topic msg
     gt_dataframe = gt_bag.dataframe(include=[vlty_topic])
@@ -278,7 +278,7 @@ def check_velocity(case_gt_path, case_bag_record_path):
     pic_vlty_list = [( {'title': 'Twist velocity', 'data': {'gt_velocity': gt_vlty, 'real_velocity': ret_vlty}}), 
                                  ( {'title': 'Twist gt velocity', 'data': {'gt_velocity': gt_vlty}}),
                                  ( {'title': 'Twist real velocity', 'data': {'real_velocity': ret_vlty}})]
-    save_path = '/'.join(case_bag_record_path.split('/')[:-1]) + '/velocity%s.png' % case_bag_record_path.split('result')[-1]
+    save_path = '/'.join(bag_record_path.split('/')[:-1]) + '/velocity%s.png' % bag_record_path.split('result')[-1]
     r_bool, msg = generate_line_rows(pic_vlty_list, save_path)
     if not r_bool:
         return False, msg

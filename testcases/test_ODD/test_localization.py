@@ -12,12 +12,6 @@ import common.ODD.config as odd_conf
 
 logger = logging.getLogger()
 
-case_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['case_dir']
-CASE_LIST = generate_case_data('{case_path}/{case_dir}/localization_cases.csv'.format(case_path=odd_conf.ODD_CSV_CASES,
-                                                                                      case_dir=case_dir))
-bag_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['bag_dir']
-BAG_BASE_PATH = '{bag_path}/{bag_dir}/localization'.format(bag_path=odd_conf.BAG_PATH, bag_dir=bag_dir)
-
 
 def make_test_case(story, case_data, case_level, case_desc):
     """dynamic generate test case"""
@@ -40,10 +34,16 @@ def make_test_case(story, case_data, case_level, case_desc):
     return test_localization
 
 
-for case_arg in CASE_LIST:
-    # logger.info(case_arg)
-    globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
-                                                     case_arg['Priority'], case_arg['Desc'])
+if odd_conf.EXEC_CASE_TYPE == 2:
+    case_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['case_dir']
+    CASE_LIST = generate_case_data('{case_path}/{case_dir}/localization_cases.csv'.format(case_path=odd_conf.ODD_CSV_CASES,
+                                                                                        case_dir=case_dir))
+    bag_dir = odd_conf.EXEC_CASE_SCENE[odd_conf.EXEC_CASE_TYPE]['bag_dir']
+    BAG_BASE_PATH = '{bag_path}/{bag_dir}/localization'.format(bag_path=odd_conf.BAG_PATH, bag_dir=bag_dir)
+    for case_arg in CASE_LIST:
+        # logger.info(case_arg)
+        globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
+                                                        case_arg['Priority'], case_arg['Desc'])
 
 
 if __name__ == '__main__':

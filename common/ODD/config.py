@@ -18,7 +18,7 @@ EXEC_CASE_TYPE = 1  # 1: open source 2: home 3: future way
 EXEC_CASE_SCENE = {
     1: {'desc': 'open source aw4 scene', 'bag_dir': 'aw4', 'case_dir': 'aw4'},
     2: {'desc': 'home aw4 scene', 'bag_dir': 'home', 'case_dir': 'home'},
-    3: {'desc': 'future way', 'bag_dir': 'future_way', 'case_dir': 'fw'},
+    3: {'desc': 'future way', 'bag_dir': 'fw', 'case_dir': 'fw'},
 }
 
 # docker environment
