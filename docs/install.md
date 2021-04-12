@@ -1,7 +1,7 @@
 # Deployment
 
-## Install ros1 
-http://wiki.ros.org/melodic/Installation
+## Install ros2
+rolling
 
 ## python3.8.5 
 
@@ -56,10 +56,16 @@ After execute 'ls -l /bin/sh', if the result is /bin/sh -> dash, you need to exe
 
     - exec 'ls -l /bin/sh', make sure result is '/bin/sh -> bash'
 
-## update config
+## build msg， generate Python autoware message data module
 
-   - cd */autotes
-   - vi config.py
-   - update ROS1_SETUP, value is your ros1's setup.bash, such as: "ROS1_SETUP= '/opt/ros/melodic/setup.bash'"
+1. copy autoware4's msg to local dir
    
+2. cd msg
+   
+3. source /opt/ros/rolling/setup.bash
+   
+4. colcon build
+
+5. After build successful, source ./install/setup.bash
+
 And now, you can to run cases.

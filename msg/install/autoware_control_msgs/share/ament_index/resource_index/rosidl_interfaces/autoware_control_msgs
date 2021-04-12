@@ -1,0 +1,10 @@
+msg/ControlCommand.idl
+msg/ControlCommand.msg
+msg/ControlCommandStamped.idl
+msg/ControlCommandStamped.msg
+msg/EmergencyMode.idl
+msg/EmergencyMode.msg
+msg/EngageMode.idl
+msg/EngageMode.msg
+msg/GateMode.idl
+msg/GateMode.msg

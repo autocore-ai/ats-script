@@ -71,7 +71,7 @@ class Ros2bag:
                 else:
                     index.append(msg.header.stamp.nanosec)
             except Exception as e:
-                warnings.warn('No stamp: %s', msg)
+                warnings.warn('No stamp: {}'.format(msg))
                 index.append(1)
 
             if hasattr(msg, '__slots__'):
@@ -80,8 +80,9 @@ class Ros2bag:
                     if field not in datastore:
                         datastore[field] = np.empty(msg_len)
                     if value.__class__.__name__ == 'array':
-                        datastore[field][count] = '.'.join([str(v) for v in value.tolist()])
-                        return
+                        value_list = value.tolist() 
+                        if value_list:
+                            datastore[field][count] = '.'.join([str(v) for v in value.tolist()])
                     else:
                         datastore[field][count] = value
             else:
@@ -201,21 +202,3 @@ class Ros2bag:
             else:
                 msg_value[prefix + m] = slot_msg
         return msg_value
-
-if __name__ == '__main__':
-    # Ros2bag.dataframe("home/Workspace/autotest/rosbag2_2021_03_03-15_57_27/02.bag/02.bag_0.db3")
-    TOPICS_LIST = ["/planning/scenario_planning/trajectory",
-                   "/vehicle/status/twist",
-                   "/vehicle/status/velocity",
-                   "/current_pose"
-                   ]
-    bag= Ros2bag("/home/autotest/Workspace/autotest/bags/aw4/planning/gt_01/gteg_01")
-    # cc = bag.dataframe(include='/vehicle/status/velocity')
-    # print(cc)
-    count = 0
-    for i in TOPICS_LIST:
-        cc = bag.dataframe(include=i)
-        cc.to_excel(str(count)+".xlsx")
-        count = count+1
-
-    print(cc)

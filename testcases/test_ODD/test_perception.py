@@ -415,7 +415,7 @@ def make_test_case(story, case_data, case_level, case_desc):
 for case_arg in CASE_LIST:
     # logger.info(case_arg)
     globals()[case_arg['CaseName']] = make_test_case(case_arg['Story'], [case_arg['test_case']],
-                                                     case_arg['Priority'], case_arg['Title'])
+                                                     case_arg['Priority'], case_arg['Desc'])
 
 
 if __name__ == '__main__':

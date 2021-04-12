@@ -1,0 +1,12 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from autoware_planning_msgs/msg/LaneSequence.msg
+// generated code does not contain a copyright notice
+
+
+module autoware_planning_msgs {
+  module msg {
+    struct LaneSequence {
+      sequence<int64> lane_ids;
+    };
+  };
+};

@@ -14,11 +14,11 @@ from common.ODD.planning.planning_conf import PLANNING_NODES
 # bag path
 BAG_PATH = '{}/bags'.format(TEST_CASE_PATH)
 
-EXEC_CASE_TYPE = 1  # 1: open source 2: home
+EXEC_CASE_TYPE = 1  # 1: open source 2: home 3: future way
 EXEC_CASE_SCENE = {
     1: {'desc': 'open source aw4 scene', 'bag_dir': 'aw4', 'case_dir': 'aw4'},
     2: {'desc': 'home aw4 scene', 'bag_dir': 'home', 'case_dir': 'home'},
-    3: {'desc': 'open source aw4.auto', 'bag_dir': 'aw4.auto', 'case_dir': 'aw4.auto'},
+    3: {'desc': 'future way', 'bag_dir': 'future_way', 'case_dir': 'fw'},
 }
 
 # docker environment
@@ -41,7 +41,7 @@ TEST_MODULE_INFO = {
                       'start_cmd': 'cd {0}/common/ODD/script/;./run_psim.sh'.format(TEST_CASE_PATH),
                       'start_cmd_rviz': 'cd {0}/common/ODD/script/;./run_psim_rviz.sh'.format(TEST_CASE_PATH)
                       },
-    'test_localization': {'ros1_docker_ip': '127.0.0.1', 'ros1_docker_user': '/ros1_workspace', 'ros1_docker_pwd': '',
+    'test_future_way': {'ros1_docker_ip': '127.0.0.1', 'ros1_docker_user': '/ros1_workspace', 'ros1_docker_pwd': '',
                           'ros1_container_name': 'runtime', 'ros1_aw4_workspace': '',
                           'ros2_docker_ip': '127.0.0.1', 'ros2_docker_user': '', 'ros2_docker_pwd': '',
                           'ros2_container_name': 'runtime-ros2', 'ros2_aw4_workspace': '/AutowareArchitectureProposal',

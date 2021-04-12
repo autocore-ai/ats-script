@@ -26,7 +26,7 @@ def generate_case_data(csv_case_path):
 
     for index, d in df.iterrows():
         case_name = d['CaseName']
-        case_dict = {'Title': d['Title'], 'Priority': d['Priority'], 'Story': d['Story'],
+        case_dict = {'Desc': d['Desc'], 'Priority': d['Priority'], 'Story': d['Story'],
                      'CaseName': d['CaseName']}
         jira_id = ''
         if 'Jira_ID' in d:
@@ -34,7 +34,7 @@ def generate_case_data(csv_case_path):
             case_dict['Jira_ID'] = jira_id
             d.drop('Jira_ID', inplace=True)
 
-        d.drop('Title', inplace=True)
+        d.drop('Desc', inplace=True)
         d.drop('Priority', inplace=True)
         d.drop('Story', inplace=True)
         d.drop('CaseName', inplace=True)

@@ -3,6 +3,7 @@
 General calculation method
 """
 import logging
+import math
 import numpy as np
 import traceback
 logger = logging.getLogger()
@@ -58,3 +59,18 @@ def cal_euc_distance(array1, array2):
         logger.error(array2)
         logger.exception(e)
         return False, '%s' % traceback.format_exc()
+
+
+def to_euler_angles(orientation):
+    """w、x、y、z to euler angles"""
+    w = orientation[3]
+    x = orientation[0]
+    y = orientation[1]
+    z = orientation[2]
+    # r = math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
+    # p = math.asin(2 * (w * y - z * z))
+    y = math.atan2(2 * (w * z + x * y), 1 - 2 * (z * z + y * y))
+    # angles['roll'] = r * 180 / math.pi
+    # angles['pitch'] = p * 180 / math.pi
+    # angles['yaw'] = y * 180 / math.pi
+    return y * 180 / math.pi

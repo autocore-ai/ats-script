@@ -29,7 +29,7 @@ def env_opt(request, get_case_log_path):
     """startup case run environment"""
     logger.info('execute cases: %s' % aw4_conf.EXEC_CASE_SCENE[aw4_conf.EXEC_CASE_TYPE]['desc'])
     fun_name = request.function.__name__
-    logger.info('case function is %s' % fun_name)
+    logger.info('****************** case function is %s ******************' % fun_name)
     logger.info('startup run environment...')
     start_time = time.time()
 
@@ -82,6 +82,29 @@ def env_opt(request, get_case_log_path):
     end_time = time.time()
     allure.attach('Case exec time: {}'.format(end_time - start_time), 'Case exec time', allure.attachment_type.TEXT)
 
+
+
+@pytest.fixture(scope='function')
+def fw_env_opt(request, get_case_log_path):
+    """
+    future way environment
+    
+    setup:
+    1. set domain info
+    2. check remote docker environment
+    
+    teardown:
+    1. check record rosbag process has been stopped 
+    """
+    logger.info('execute cases: %s' % aw4_conf.EXEC_CASE_SCENE[aw4_conf.EXEC_CASE_TYPE]['desc'])
+    fun_name = request.function.__name__
+    logger.info('****************** exec case %s ******************' % fun_name)
+    start_time = time.time()
+
+    yield
+
+    step_desc = 'tear down'
+    logger.info('test case[%s] exec finished' % fun_name)
 
 if __name__ == '__main__':
     pass
