@@ -1,8 +1,0 @@
-msg/ControlCommand.idl
-msg/ControlCommand.msg
-msg/ControlCommandStamped.idl
-msg/ControlCommandStamped.msg
-msg/EmergencyMode.idl
-msg/EmergencyMode.msg
-msg/GateMode.idl
-msg/GateMode.msg

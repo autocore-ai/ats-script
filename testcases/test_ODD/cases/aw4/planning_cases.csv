@@ -1,3 +1,0 @@
-Priority,Story,CaseName,gt_name,Desc,start.position.x,start.position.y,start.position.z,start.orientation.x,start.orientation.y,start.orientation.z,start.orientation.w,end.position.x,end.position.y,end.position.z,end.orientation.x,end.orientation.y,end.orientation.z,end.orientation.w,bag_name,duration
-Medium,route,test_planning_01,gt_01,first,37.38,0.18,0,0,0,-0.971452930232181,0.237232385,-25.83,-28.56,0,0,0,0.227146949,0.973860495,gt_01.bag,60
-

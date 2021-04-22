@@ -129,3 +129,5 @@ bags
 allure_reports
 *.png
 *.json
+.vscode
+logs
