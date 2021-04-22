@@ -127,7 +127,6 @@ bags
 *.bak
 
 allure_reports
-*.png
 *.json
 .vscode
 logs
