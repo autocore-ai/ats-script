@@ -121,7 +121,6 @@ common/*.png
 *.bag
 testcases/test_ODD/*.bag
 logs/*
-*.txt
 
 bags
 *.bak
