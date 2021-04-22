@@ -1,6 +1,9 @@
 FROM ros:rolling
 ADD . /autotest
-WORKDIR /autotest
 RUN apt-get update && apt-get install -y python3-pip
+WORKDIR  /autotest/testSDV/msgs
+RUN /bin/bash -c "source /opt/ros/rolling/setup.bash && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
+WORKDIR /autotest
 RUN pip3 install -r requirements.txt
-CMD source /opt/ros/rolling/setup.bash && source msg/install/setup.bash
+RUN /bin/bash -c "source /opt/ros/rolling/setup.bash && source /autotest/testSDV/msgs/install/setup.bash"
+ENTRYPOINT ["bash", "./start.sh"]

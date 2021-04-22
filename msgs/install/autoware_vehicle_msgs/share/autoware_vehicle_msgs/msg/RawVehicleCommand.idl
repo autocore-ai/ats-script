@@ -1,0 +1,21 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from autoware_vehicle_msgs/msg/RawVehicleCommand.msg
+// generated code does not contain a copyright notice
+
+#include "autoware_vehicle_msgs/msg/RawControlCommand.idl"
+#include "autoware_vehicle_msgs/msg/Shift.idl"
+#include "std_msgs/msg/Header.idl"
+
+module autoware_vehicle_msgs {
+  module msg {
+    struct RawVehicleCommand {
+      std_msgs::msg::Header header;
+
+      autoware_vehicle_msgs::msg::RawControlCommand control;
+
+      autoware_vehicle_msgs::msg::Shift shift;
+
+      int32 emergency;
+    };
+  };
+};

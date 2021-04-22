@@ -9,68 +9,38 @@ General entrance of test execution
 """
 
 import os
+import time
 import subprocess
+import threading
 import argparse
 import pytest
 import config
-import common.ODD.config as odd_conf
-
-CASE_TYPE = 1
+import monitor.sdv_monitor as s_m
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', '--type', help="exec cases type, 1: open source cases 2: home cases 3: future way cases, default 1",
-                        type=int, choices=[1, 2, 3])
-    parser.add_argument('-f', '--features', help="tested features, such as perception,planning")
-    parser.add_argument('-s', '--stories',  help="tested stories, such as adult,car")
-    parser.add_argument('-l', '--level', type=int,  choices=[0, 1, 2, 3, 4],
-                        help="tested cases level, 0: trivial, 1: minor, 2: normal, 3: critical, 4: blocker")
-    parser.add_argument('-m', '--mark', help="cases marker")
-    parser.add_argument('-r', '--rviz', help="show rviz, default False", action="store_true")
-    parser.add_argument('-sv', '--serve', help="after executed cases finished, open test results in Browse;"
-                                               " default False", action="store_true")
     parser.add_argument('-pt', '--pytest', help="pytest params, such as '-m marker --count=5'")
     args = parser.parse_args()
 
-    if args.type == 2:
-        odd_conf.EXEC_CASE_TYPE = 2
-        print('exec home cases')
-    elif args.type == 3:
-        odd_conf.EXEC_CASE_TYPE = 3
-        print('exec future way cases')
-    else:
-        odd_conf.EXEC_CASE_TYPE = 1
-        print('exec open source cases')
-
-    if args.rviz:
-        print('show rviz')
-        odd_conf.RVIZ = True
-
     p_args = ['-v', '-s', '--html=./allure_reports/report.html', '--self-contained-html',
               '--alluredir', './allure_reports/result']
-    if args.features:
-        p_args.append('--allure-features')
-        p_args.append(args.features)
-    if args.stories:
-        p_args.append('--allure-stories')
-        p_args.append(args.stories)
 
     # pytest params
     if args.pytest:
         p_args.extend(args.pytest.split(' '))
-    print(p_args)
 
+    print('start monitor ......')
+    t = threading.Thread(target=s_m.main)
+    t.start()
+    time.sleep(2)
+
+    print('test ego car ......')
     test_result = pytest.main(p_args)  # All pass, return 0; failure or error, return 1
     print('cases exec result: {}'.format(test_result))
 
-    if args.serve:
-        gen = 'allure serve ./allure_reports/result'
-    else:
-        gen = 'allure generate ./allure_reports/result/ -o ./allure_reports/report/ --clean'
-    print('generate allure_results: {}'.format(gen))
-    os.system(gen)
-
+    t.join()
+    
 
 if __name__ == "__main__":
     main()

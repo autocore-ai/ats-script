@@ -1,8 +1,5 @@
 requests
-docker
 pytest
-pytest-repeat
-pytest-rerunfailures
 pytest-html
 allure-pytest
 pandas
@@ -11,6 +8,4 @@ matplotlib
 fabric
 pycryptodome
 pyyaml
-rospkg
-lark
-gnupg
+kubernetes

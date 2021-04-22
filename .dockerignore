@@ -1,0 +1,7 @@
+*
+!monitor
+!testSDV
+!config.py
+!run.py
+!start.sh
+!requirements.txt
