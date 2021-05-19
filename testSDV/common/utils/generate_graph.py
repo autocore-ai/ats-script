@@ -192,7 +192,7 @@ def generate_line_rows(data_list, save_path):
     data_ Dict1 and data_ The number of elements in dict2 is equal
     data_list = [
         (
-            {title: CAR_Shape_X, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2],
+            {title: CAR_Shape_X, x_label: x_name, y_label: y_name, data: {'shape_exp_x': [2, 3, 4, 2], 'shape_real_x': [2, 3, 4, 2],
             'shape_diff_x': [2, 3, 4, 2]}},
             {title: CAR_Shape_Y, data: {'shape_exp_y': [2, 3, 4, 2], 'shape_real_y': [2, 3, 4, 2],
             'shape_diff_y': [2, 3, 4, 2]
@@ -236,6 +236,10 @@ def generate_line_rows(data_list, save_path):
                 axe.grid()
                 # axe.axis('equal')
                 axe.set_title(title)
+                if 'x_label' in data_dict:
+                    axe.set_xlabel(data_dict['x_label'])
+                if 'y_label' in data_dict:
+                    axe.set_xlabel(data_dict['y_label'])
                 axe.legend()
         else:
             title = data_tuple['title']
@@ -244,7 +248,10 @@ def generate_line_rows(data_list, save_path):
                 data_len = len(d_list) + 1
                 ax.plot(range(1, data_len), d_list, label=label)
             ax.grid()
-            # ax.axis('equal')
+            if 'x_label' in data_tuple:
+                ax.set_xlabel(data_tuple['x_label'])
+            if 'y_label' in data_tuple:
+                ax.set_xlabel(data_tuple['y_label'])
             ax.set_title(title)
             ax.legend()
     # plt.show()

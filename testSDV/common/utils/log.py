@@ -40,7 +40,7 @@ def md_logger(log_path):
             'fh': {
                 'level': 'DEBUG',
                 'class': 'logging.handlers.TimedRotatingFileHandler',  # Split by date
-                'formatter': 'simple',
+                'formatter': 'standard',
                 'filename': logfile_path_staff,  # log file
                 'when': 'D',
                 'interval': 1,
@@ -52,14 +52,14 @@ def md_logger(log_path):
             '': {
                 # Here we add the two handlers defined above, that is,
                 # log data is written to the file and printed to the screen
-                'handlers': ['sh', 'fh'],
+                'handlers': ['sh'],
                 'level': 'DEBUG',
                 'propagate': True,  # Pass up (higher level logger)
             },
             'sdv_test': {
                 # Here we add the two handlers defined above, that is,
                 # log data is written to the file and printed to the screen
-                'handlers': ['sh', 'fh'],
+                'handlers': ['fh'],
                 'level': 'DEBUG',
                 'propagate': True,  # Pass up (higher level logger)
             },

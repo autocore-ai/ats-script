@@ -71,7 +71,7 @@ class Ros2bag:
                 else:
                     index.append(msg.header.stamp.nanosec)
             except Exception as e:
-                warnings.warn('No stamp: {}'.format(msg))
+                # warnings.warn('No stamp: {}'.format(msg))
                 index.append(1)
 
             if hasattr(msg, '__slots__'):

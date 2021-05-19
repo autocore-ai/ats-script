@@ -41,7 +41,7 @@ def my_logger(log_path):
             'monitor': {
                 'level': 'DEBUG',
                 'class': 'logging.handlers.TimedRotatingFileHandler',  # Split by date
-                'formatter': 'simple',
+                'formatter': 'standard',
                 'filename': logfile_path_staff,  # log file
                 'when': 'D',
                 'interval': 1,
@@ -53,7 +53,7 @@ def my_logger(log_path):
             'monitor': {
                 # Here we add the two handlers defined above, that is,
                 # log data is written to the file and printed to the screen
-                'handlers': ['sh', 'monitor'],
+                'handlers': ['monitor'],
                 'level': 'DEBUG',
                 'propagate': True,  # Pass up (higher level logger)
             },

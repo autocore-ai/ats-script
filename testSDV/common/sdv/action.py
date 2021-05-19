@@ -4,9 +4,11 @@ sys.path.append('../')
 sys.path.append('../../')
 sys.path.append('../../../')
 import time
+import os
 import logging
 import allure
 import subprocess
+import threading
 import signal
 import rclpy
 
@@ -27,7 +29,7 @@ def record_bag(result_bag_path, bag_duration=None):
     record_comm = 'ros2 bag record {topic} -o {bag_name}'.format(topic=topic, bag_name=result_bag_path)
     logger.info('begin to record bag, command: {}'.format(record_comm))
 
-    proc = subprocess.Popen(record_comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    proc = subprocess.Popen(record_comm, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
     time.sleep(2)  # give time to ready record
     
     return True, proc
@@ -42,6 +44,14 @@ def wait_stop_signal(max_wait_time=100):
     rclpy.init()
 
     stop_record_sub = AutowareStateSubscriber()
+    th = threading.Thread(target=rclpy.spin, args=(stop_record_sub,))
+    th.start()
+
+    wait_t = 100
+    while wait_t > 0 and not stop_record_sub.running:
+        time.sleep(1)
+        wait_t += 1
+        logger.info('waiting autoware start, waiting %ds ...' % wait_t)
 
     t = 0
     while not stop_record_sub.stop:
@@ -55,8 +65,11 @@ def wait_stop_signal(max_wait_time=100):
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    stop_record_sub.destroy_node()
-    rclpy.shutdown()
+    # logger.info('++++++++++++++++ begin to destory node ++++++++++++++++++')
+    # stop_record_sub.destroy_node()
+    # logger.info('++++++++++++++++ destory node successfully ++++++++++++++++++')
+    # rclpy.shutdown()
+    # logger.info('++++++++++++++++ shut down ++++++++++++++++++')
     return True, ''
 
 
@@ -64,10 +77,19 @@ def stop_reocrd_bag(proc):
     """
     stop record bag
     """
-    proc.send_signal(signal.SIGINT)
-    ret_code = proc.wait()
-    logger.info('stop record bag process, return code: {}'.format(ret_code))
-    return ret_code, ''
+    try:
+        # proc.send_signal(signal.SIGINT)
+        proc.send_signal(signal.SIGTERM)
+        
+        # ret_code = proc.wait()
+        os.killpg(proc.pid, signal.SIGINT)
+    except Exception as e:
+        logger.exception(e)
+
+    # logger.info('stop record bag process, return code: {}'.format(ret_code))
+    time.sleep(2)
+    logger.info('stop record finished')
+    return True, ''
 
 
 def check_bag_OK(gt_bag_path, ret_bag_path):
@@ -86,10 +108,10 @@ def check_bag_OK(gt_bag_path, ret_bag_path):
     # check msg count
     gt_bag_msg_count = gt_bag_info['rosbag2_bagfile_information']['message_count']
     ret_bag_msg_count = ret_bag_info['rosbag2_bagfile_information']['message_count']
-    msg_min_count = gt_bag_msg_count - 100
-    msg_max_count = gt_bag_msg_count + 100
+    msg_min_count = gt_bag_msg_count - 200
+    msg_max_count = gt_bag_msg_count + 200
     if ret_bag_msg_count < msg_min_count or ret_bag_msg_count > msg_max_count:
-        return False, 'result bag count[{ret_count}] not in [{min_count}, {max_count}]'.format(ret_count=ret_bag_msg_count, 
+        return False, 'result bag message counts[{ret_count}] not in [{min_count}, {max_count}]'.format(ret_count=ret_bag_msg_count, 
                                                                                                  min_count=msg_min_count,
                                                                                                  max_count=msg_max_count)
 
@@ -102,8 +124,8 @@ def check_bag_OK(gt_bag_path, ret_bag_path):
     for topic, count in gt_topic_count_dict.items():
         if topic not in ret_topic_count_dict.keys():
             return False, 'result bag don\'t have the topic %s' % topic
-        min_count = count - 100
-        max_count = count + 100
+        min_count = count - 200
+        max_count = count + 200
         ret_msg_count = ret_topic_count_dict[topic]
         if ret_msg_count < min_count or min_count > max_count:
             return False, 'result bag topic[{0}] msg count not in [{1}, {2}]'.format(topic, min_count, max_count)
@@ -119,8 +141,8 @@ def check_autoware_state(gt_bag_path, bag_record_path):
     gt_dataframe = gt_bag.dataframe(include=[state_topic])
     ret_dataframe = ret_bag.dataframe(include=[state_topic])
 
-    gt_state = [(content[0]) for _, content in gt_dataframe.iterrows()]
-    ret_state = [(content[0]) for _, content in ret_dataframe.iterrows()]
+    gt_state = set((content[0]) for _, content in gt_dataframe.iterrows())
+    ret_state = set((content[0]) for _, content in ret_dataframe.iterrows())
    
     if gt_state != ret_state:
         return False, 'autoware state list are different, gt state: {gt}, real state: {ret}'.format(gt=gt_state, ret=ret_state)
@@ -158,7 +180,7 @@ def check_current_pose(gt_bag_path, bag_record_path):
     2. check orientation(yaw)
     """
     current_post_topic = conf.CURRENT_POSE_TOPIC
-    step = 20
+    step = 200
 
     gt_bag = Ros2bag(gt_bag_path)
     ret_bag = Ros2bag(bag_record_path)
@@ -213,7 +235,7 @@ def check_current_pose(gt_bag_path, bag_record_path):
     allure.attach('ground truth position and real result position euclidean distance:\n {}'.format(euc_dis_ret),
                   'ground truth position and real result position euclidean distance',
                    allure.attachment_type.TEXT)
-    max_euc_distance = 1
+    max_euc_distance = 5
     for euc in euc_dis_ret:
         if euc > max_euc_distance:
             return False, 'current pose max euclidean distance[{}] > {}'.format(euc, max_euc_distance)
@@ -233,9 +255,9 @@ def check_current_pose(gt_bag_path, bag_record_path):
     ret_yaw_list = [to_euler_angles(ori) for ori in ret_ori_list]
 
     # make picture line row
-    pic_current_pose_yaw_list = [( {'title': 'Current Pose Yaw', 'data': {'gt_yaw': gt_yaw_list, 'real_yaw': ret_yaw_list}}), 
-                                 ( {'title': 'Current Pose gt', 'data': {'gt_yaw': gt_yaw_list}}),
-                                 ( {'title': 'Current Pose real', 'data': {'real_yaw': ret_yaw_list}})]
+    pic_current_pose_yaw_list = [( {'title': 'Current Pose Yaw', 'x_label': 'time', 'y_label': 'yaw', 'data': {'gt_yaw': gt_yaw_list, 'real_yaw': ret_yaw_list}}), 
+                                 ( {'title': 'Current Pose gt', 'x_label': 'time', 'y_label': 'yaw', 'data': {'gt_yaw': gt_yaw_list}}),
+                                 ( {'title': 'Current Pose real', 'x_label': 'time', 'y_label': 'yaw', 'data': {'real_yaw': ret_yaw_list}})]
     save_path = '%s/current_pose_yaw_lines.png' % bag_record_path
     r_bool, msg = generate_line_rows(pic_current_pose_yaw_list, save_path)
     if not r_bool:
@@ -246,7 +268,7 @@ def check_current_pose(gt_bag_path, bag_record_path):
     r_bool, euc_dis_ret = cal_euc_distance(gt_position_list, ret_position_list)
     if not r_bool:
         return False, euc_dis_ret
-    max_yaw = 10
+    max_yaw = 100
     for dis in euc_dis_ret:
         if dis > max_yaw:
             return False, 'current pose max yaw [{}] > {}'.format(euc, max_yaw)
@@ -261,7 +283,7 @@ def check_twist(gt_bag_path, bag_record_path):
     ckeck twist and generate graph
     """
     twist_topic = conf.TWIST_TOPIC
-    step = 20
+    step = 200
 
     gt_bag = Ros2bag(gt_bag_path)
     ret_bag = Ros2bag(bag_record_path)
@@ -279,9 +301,9 @@ def check_twist(gt_bag_path, bag_record_path):
         return False, msg
 
     # make picture line row
-    pic_line_x_list = [( {'title': 'Twist Line X', 'data': {'gt_twist': gt_line_x, 'real_twist': ret_line_x}}), 
-                                 ( {'title': 'Twist gt line x', 'data': {'gt_yaw': gt_line_x}}),
-                                 ( {'title': 'Twist real line x', 'data': {'real_yaw': ret_line_x}})]
+    pic_line_x_list = [( {'title': 'Twist Line X', 'x_label': 'time', 'y_label': 'line-x speed', 'data': {'gt_twist': gt_line_x, 'real_twist': ret_line_x}}), 
+                                 ( {'title': 'Twist gt line x', 'x_label': 'time', 'y_label': 'line-x speed', 'data': {'gt_yaw': gt_line_x}}),
+                                 ( {'title': 'Twist real line x', 'x_label': 'time', 'y_label': 'line-x speed', 'data': {'real_yaw': ret_line_x}})]
     save_path = '%s/twist_line_x.png' % bag_record_path
     r_bool, msg = generate_line_rows(pic_line_x_list, save_path)
     if not r_bool:
@@ -293,7 +315,7 @@ def check_twist(gt_bag_path, bag_record_path):
     r_bool, euc_dis_ret = cal_euc_distance(gt_line_x, ret_line_x)
     if not r_bool:
         return False, euc_dis_ret
-    max_dis = 2
+    max_dis = 5
     for dis in euc_dis_ret:
         if dis > max_dis:
             return False, 'Twist max distance [{}] > {}'.format(euc, max_dis)
@@ -314,7 +336,7 @@ def check_velocity(gt_bag_path, bag_record_path):
     check velocity
     """
     vlty_topic = conf.VELOCITY_TOPIC
-    step = 20
+    step = 200
 
     gt_bag = Ros2bag(gt_bag_path)
     ret_bag = Ros2bag(bag_record_path)
@@ -324,17 +346,18 @@ def check_velocity(gt_bag_path, bag_record_path):
     ret_dataframe = ret_bag.dataframe(include=[vlty_topic])
 
     logger.info("*" * 20 + " check velocity begin " + "*" * 20)
-    gt_vlty = [content[0] for _, content in gt_dataframe.iterrows()]
-    ret_vlty = [content[0] for _, content in ret_dataframe.iterrows()]
-
-    r_bool,gt_vlty, ret_vlty, msg = deal_list(gt_vlty, ret_vlty, step)
+        
+    gt_vlty = [content[2] for _, content in gt_dataframe.iterrows()]
+    ret_vlty = [content[2] for _, content in ret_dataframe.iterrows()]
+     
+    r_bool, gt_vlty, ret_vlty, msg = deal_list(gt_vlty, ret_vlty, step)
     if not r_bool:
         return False, msg
 
     # make picture line row
-    pic_vlty_list = [( {'title': 'Twist velocity', 'data': {'gt_velocity': gt_vlty, 'real_velocity': ret_vlty}}), 
-                                 ( {'title': 'Twist gt velocity', 'data': {'gt_velocity': gt_vlty}}),
-                                 ( {'title': 'Twist real velocity', 'data': {'real_velocity': ret_vlty}})]
+    pic_vlty_list = [( {'title': 'Twist velocity', 'x_label': 'time', 'y_label': 'velocity', 'data': {'gt_velocity': gt_vlty, 'real_velocity': ret_vlty}}), 
+                                 ( {'title': 'Twist gt velocity', 'x_label': 'time', 'y_label': 'velocity', 'data': {'gt_velocity': gt_vlty}}),
+                                 ( {'title': 'Twist real velocity','x_label': 'time', 'y_label': 'velocity', 'data': {'real_velocity': ret_vlty}})]
     save_path = '%s/velocity.png' % bag_record_path
     r_bool, msg = generate_line_rows(pic_vlty_list, save_path)
     if not r_bool:
@@ -346,10 +369,10 @@ def check_velocity(gt_bag_path, bag_record_path):
     r_bool, euc_dis_ret = cal_euc_distance(gt_vlty, ret_vlty)
     if not r_bool:
         return False, euc_dis_ret
-    max_dis = 2
+    max_dis = 5
     for dis in euc_dis_ret:
         if dis > max_dis:
-            return False, 'Velocity max distance [{}] > {}'.format(euc, max_dis)
+            return False, 'Velocity max distance [{}] > {}'.format(dis, max_dis)
         
     r_bool, std, diff_list, msg = cal_std(gt_vlty, ret_vlty)
     allure.attach('ground truth velocity and real result velocity std:\n {}'.format(std),

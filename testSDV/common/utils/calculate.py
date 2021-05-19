@@ -18,18 +18,17 @@ def deal_list(list_1, list_2, step):
     :return:
     """
     len_list_1, len_list_2 = len(list_1), len(list_2)
-    if len_list_1 in [len_list_2+1, len_list_2+step]:
+    if len_list_2 < len_list_1 < len_list_2+step:
         step = len_list_1 - len_list_2
         list_1 = list_1[step:]
-    elif len_list_2 in [len_list_1+1, len_list_1+step]:
+    elif len_list_1 < len_list_2 < len_list_1+step:
         step = len_list_2 - len_list_1
         list_2 = list_2[step:]
     elif len_list_1 == len_list_2:
         pass
     else:
-        return False, list_1, list_2, 'step: {}, {}\'s len: {} is not equal {}\'s len: {}'.format(step, len_list_1,
-                                                                                                  list_1, len_list_2,
-                                                                                                  list_2)
+        return False, list_1, list_2, 'step: {}, fisrt[{}]::second[{}], first: {} second: {}'.format(step, len_list_1, len_list_2,
+                                                                                                     list_1, list_2)
     return True, list_1, list_2, ''
 
 def cal_std(list_1, list_2):

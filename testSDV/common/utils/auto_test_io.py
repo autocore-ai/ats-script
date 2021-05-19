@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from std_msgs.msg import Bool
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import PoseWithCovarianceStamped
+from autoware_system_msgs.msg import AutowareState
 import logging
 logger = logging.getLogger()
 
@@ -65,14 +66,28 @@ class AutowareStateSubscriber(Node):
     def __init__(self):
         super().__init__('autoware_state_subscriber')
         self.subscription = self.create_subscription(
-            String,
-            'topic',
+            AutowareState,
+            '/autoware/state',
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
         self.stop = False
+        self.running = False
+        self.state = []
 
     def listener_callback(self, msg):
-        logger.info('I heard: "%s"' % msg.data)
-        if msg == 'ArrivedGoal':
+        self.running = True
+        
+        state = msg.state
+        if state not in self.state:
+            logger.info('I heard: "%s"' % msg)   
+            self.state.append(state)
+            logger.info(self.state)   
+
+        elif state in self.state and self.state[-1] != state:
+            logger.info('I heard: "%s"' % msg)   
+            self.state.append(state)
+            logger.info(self.state)    
+
+        if state == 'ArrivedGoal':
             self.stop = True

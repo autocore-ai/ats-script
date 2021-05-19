@@ -7,17 +7,12 @@ import requests
 import json
 import logging
 import sys
-sys.path.append('../')
-sys.path.append('../../')
 
 from kubernetes import client, config, watch
-from monitor.config import CENTER_DB_URL, NAMESPACE
+from monitor.config import CENTER_DB_PATH, NAMESPACE, WATCH_INTEVAL
 from config import CURRENT_DIR
 from monitor.log import my_logger
 
-# CURRENT_DIR = './../'
-
-# logging.basicConfig(level=logging.DEBUG, filename='%s/logs/monitor.log' % CURRENT_DIR, filemode='w',format='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s')
 log_path = '%s/logs' % CURRENT_DIR
 logger = my_logger(log_path)
 
@@ -27,7 +22,7 @@ def monitor_sdv(namespace):
     # default location.
     # config.load_kube_config()
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-        logger.info('load_incluster_config')
+        logger.info('load incluster config')
         config.load_incluster_config()
     else:
         config.load_kube_config()
@@ -35,37 +30,38 @@ def monitor_sdv(namespace):
     v1 = client.CoreV1Api()
     w = watch.Watch()
     
-    # list all namespaces
-    # print(v1.list_namespaced_pod(namespace))
-    stream = w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=10)
-    err_container_dict = {}
+    timeout = WATCH_INTEVAL
+    stream = w.stream(v1.list_namespaced_pod, namespace, timeout_seconds=timeout)
+
+    container_state_dict = {}
+    pods_count = 0
 
     for event in stream:
+        pods_count += 1
         logger.info("Watch Event: %s %s" % (event['type'], event['object'].metadata.name))
         pod_name = event['object'].metadata.name
-        
+        pod_ip = event['object'].status.pod_ip
+        container_state_dict[pod_name] = {'ip': pod_ip, 'container': []}
+
         containter_status_list = event['raw_object']['status']['containerStatuses']
         for con_status in containter_status_list:
-            state = con_status['state']
-            
-            if 'running' not in state:
-                desc = 'container[{name}] state: {state}'.format(name=con_status['name'], state=state) 
-                err_container_dict[pod_name] = desc  # 具体信息待完善
-                continue
+            container_name = con_status['name']
+            state = list(con_status['state'].keys())[0]
+            container_state_dict[pod_name]['container'].append({container_name: state})
 
-            running_state = state['running']
-            if not running_state:
-                desc = 'container[{name}] state: {state}'.format(name=con_status['name'], state=state) 
-                err_container_dict[pod_name] = desc  # 具体信息待完善
+    logger.info('watch %d pods' % pods_count)
 
-    return err_container_dict
+    return container_state_dict
 
 
-def send_message_to_center_db(err_dict):
-    url = CENTER_DB_URL
+def send_message_to_center_db(container_state_dict):
+    logger.info('pod state: {}'.format((container_state_dict)))
+    url = 'http://{ip}:8000{path}'.format(ip=os.getenv('HOST_IP'), path=CENTER_DB_PATH)
+    logger.info('pod state center db url: %s' % url)
+
     try:
-        ret = requests.post(url, headers={'Content-Type': 'application/json;'}, data=json.dumps(err_dict))
-        logger.info('send to center db return: {}'.format(ret.json()))
+        ret = requests.put(url, headers={'Content-Type': 'application/json;'}, data=json.dumps(container_state_dict))
+        logger.info('send to center db return, state: {}, {}'.format(ret.status_code, ret.text))
     except Exception as e:
         logger.exception('send pods state to center db failed: {}'.format(e))
 
@@ -73,14 +69,14 @@ def send_message_to_center_db(err_dict):
 def main():
     count = 0
 
-    logger.info('begin listen sdv pod ......')
+    logger.info('beginning to listen sdv pod state ......')
     while True:
         err_dict = monitor_sdv(NAMESPACE)
-        if err_dict:
-            logger.info('listening sdv pod error message: {}'.format(err_dict))
-            send_message_to_center_db(err_dict)
+        # if err_dict:
+        logger.info('listening sdv pod message: {}'.format(err_dict))
+        send_message_to_center_db(err_dict)
         count += 1
-        logger.info('watch count: %d' % count)
+        logger.info('watch counts: %d' % count)
 
 
 if __name__ == '__main__':

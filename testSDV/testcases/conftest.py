@@ -80,9 +80,11 @@ def sdv_env_opt(request, get_case_log_path):
     fun_name = request.function.__name__
     logger.info('****************** exec case %s ******************' % fun_name)
     start_time = time.time()
+    logger.info('****************** watch autoware %s ******************' % fun_name)
 
     yield
 
+    logger.info('****************** teardown ******************')
     step_desc = 'tear down'
     logger.info('check ros2 bag already stopped')
     process_name = 'record'
@@ -93,3 +95,21 @@ def sdv_env_opt(request, get_case_log_path):
         if r_bool:
             logger.error("kill -9 record failed: %s" % ret)
     logger.info('test case[%s] exec finished' % fun_name)
+
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_runtest_makereport(item, call):
+    """
+    generate markdown report
+    | Priority  | Yes  |
+    :param item:
+    :param call:
+    :return:
+    """
+    out = yield
+
+    report = out.get_result()
+    result_path = config.TEST_CASE_PATH + '/result.txt'
+    if report.when == "call":
+        with open(result_path, 'a') as result:
+            result.write('{case_name};{result}\n'.format(case_name=report.nodeid, result=report.outcome))

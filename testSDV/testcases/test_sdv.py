@@ -30,9 +30,8 @@ def make_test_case(story, case_data, case_level, case_desc):
         bag_dir_path = '{bag_path}/{test_name}'.format(bag_path=BAG_BASE_PATH, test_name=case_data['CaseName'])
         logger.info('case bag path: {}'.format(bag_dir_path))
         case_gt_path = '{b_dir}/gt'.format(b_dir=bag_dir_path)
-        case_bag_record_path = '{b_dir}/retsult_{d}'.format(b_dir=bag_dir_path, 
+        case_bag_record_path = '{b_dir}/result_{d}'.format(b_dir=bag_dir_path, 
                                                             d=str(datetime.datetime.now())[:19].replace(' ', '_').replace('-', '_').replace(':', '_'))
-        # case_bag_record_path = '/home/duan/aaa/ats-script/testSDV/bags/test_sdv_first/result_2021_04_08_18_08_50'
         logger.info('ground truth path: %s' % case_gt_path)
         logger.info('record bag path: %s' % case_bag_record_path)
 
@@ -47,7 +46,6 @@ def make_test_case(story, case_data, case_level, case_desc):
         step_desc = ' 2. waiting record bag stop signal'
         with allure.step(step_desc):
             logger.info('='*20 + step_desc + '='*20)
-            print(case_data)
             runtime = int(case_data['runtime'])
             r_bool, ret = act.wait_stop_signal(runtime+10)
             logger.info('waiting record bag stop signal return: {}, info: {}'.format(r_bool, ret))
