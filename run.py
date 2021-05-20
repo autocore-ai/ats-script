@@ -33,7 +33,7 @@ def exec_case(p_args):
     os.system(gen)
 
     # post exec result to zenoh db test
-    test_result_url = 'http://%s:30007/report/index.html' % host_ip
+    test_result_url = 'http://%s:8111/report/index.html' % host_ip
     url = 'http://{ip}:8000/rsu/autotest/result_url/'.format(ip=host_ip)
     logger.info('test result center db url: %s' % url)
 
