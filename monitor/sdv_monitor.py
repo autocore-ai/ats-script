@@ -35,19 +35,22 @@ def monitor_sdv(namespace):
 
     container_state_dict = {}
     pods_count = 0
-
     for event in stream:
         pods_count += 1
-        logger.info("Watch Event: %s %s" % (event['type'], event['object'].metadata.name))
-        pod_name = event['object'].metadata.name
-        pod_ip = event['object'].status.pod_ip
-        container_state_dict[pod_name] = {'ip': pod_ip, 'container': []}
+        try:
+            logger.info("Watch Event: %s %s" % (event['type'], event['object'].metadata.name))
+            pod_name = event['object'].metadata.name
+            pod_ip = event['object'].status.pod_ip
+            container_state_dict[pod_name] = {'ip': pod_ip, 'container': []}
 
-        containter_status_list = event['raw_object']['status']['containerStatuses']
-        for con_status in containter_status_list:
-            container_name = con_status['name']
-            state = list(con_status['state'].keys())[0]
-            container_state_dict[pod_name]['container'].append({container_name: state})
+            containter_status_list = event['raw_object']['status']['containerStatuses']
+            for con_status in containter_status_list:
+                container_name = con_status['name']
+                state = list(con_status['state'].keys())[0]
+                container_state_dict[pod_name]['container'].append({container_name: state})
+        except Exception as e:
+            logger.exception(e)
+            logger.error('event: {}'.format(event))
 
     logger.info('watch %d pods' % pods_count)
 
