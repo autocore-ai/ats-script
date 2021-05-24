@@ -43,7 +43,7 @@ def monitor_sdv(namespace):
             pod_ip = event['object'].status.pod_ip
             container_state_dict[pod_name] = {'ip': pod_ip, 'container': []}
 
-            containter_status_list = event['raw_object']['status']['containerStatuses']
+            containter_status_list = event['raw_object']['status']['containerStatuses'] if 'containerStatuses' in event['raw_object']['status'] else []
             for con_status in containter_status_list:
                 container_name = con_status['name']
                 state = list(con_status['state'].keys())[0]
