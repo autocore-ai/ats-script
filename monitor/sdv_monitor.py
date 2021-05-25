@@ -22,7 +22,7 @@ def monitor_sdv(namespace):
     # default location.
     # config.load_kube_config()
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-        logger.info('load incluster config')
+        logger.debug('load incluster config')
         config.load_incluster_config()
     else:
         config.load_kube_config()
