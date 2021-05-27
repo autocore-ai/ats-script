@@ -137,17 +137,16 @@ def check_bag_OK(gt_bag_path, ret_bag_path):
 
 def check_autoware_state(gt_bag_path, bag_record_path):
     state_topic = conf.STATE
-    gt_bag = Ros2bag(gt_bag_path)
     ret_bag = Ros2bag(bag_record_path)
     # read topic msg
-    gt_dataframe = gt_bag.dataframe(include=[state_topic])
     ret_dataframe = ret_bag.dataframe(include=[state_topic])
 
-    gt_state = set((content[0]) for _, content in gt_dataframe.iterrows())
     ret_state = set((content[0]) for _, content in ret_dataframe.iterrows())
-   
-    if gt_state != ret_state:
-        return False, 'autoware state list are different, gt state: {gt}, real state: {ret}'.format(gt=gt_state, ret=ret_state)
+    allure.attach('autoware state \nreal: {}'.format(ret_state),
+                  'autoware state',
+                   allure.attachment_type.TEXT)
+    if not ('WaitingForRoute' in ret_state and 'Planning' in ret_state and 'WaitingForEngage' in ret_state and 'Driving' in ret_state and 'ArrivedGoal' in ret_state):
+        return False, 'autoware state error, real state: {ret}'.format(ret=ret_state)
     return True, ''
 
 
@@ -200,7 +199,7 @@ def check_current_pose(gt_bag_path, bag_record_path):
     distance, path = fastdtw(gt_position_list, ret_position_list, dist=euclidean)
     logger.info('dtw of position: {}'.format(distance))
     allure.attach('dtw of position: {}'.format(distance),
-                  'DTW',
+                  'position DTW',
                    allure.attachment_type.TEXT)
     if distance > 200:
         return False, 'position DTW[{}] > 200'.format(distance)
@@ -261,7 +260,7 @@ def check_current_pose(gt_bag_path, bag_record_path):
     distance, path = fastdtw(gt_ori_list, ret_ori_list, dist=euclidean)
     logger.info('dtw of orientation: {}'.format(distance))
     allure.attach('dtw of orientation: {}'.format(distance),
-                  'DTW',
+                  'orientation DTW',
                    allure.attachment_type.TEXT)
     if distance > 300:
         return False, 'orientation DTW[{}] > 300'.format(distance)
@@ -318,7 +317,7 @@ def check_twist(gt_bag_path, bag_record_path):
     distance, _ = fastdtw(gt_line_x, ret_line_x, dist=euclidean)
     logger.info('DTW of twist: {}'.format(distance))
     allure.attach('dtw of twist: {}'.format(distance),
-                  'DTW',
+                  'twist DTW',
                    allure.attachment_type.TEXT)
     # dtw
     if distance > 50:
@@ -379,7 +378,7 @@ def check_velocity(gt_bag_path, bag_record_path):
     ret_vlty = [content[2] for _, content in ret_dataframe.iterrows()]
     distance, _ = fastdtw(gt_vlty, ret_vlty, dist=euclidean)
     allure.attach('dtw of velocity: {}'.format(distance),
-                  'DTW',
+                  'velocity DTW',
                    allure.attachment_type.TEXT)
     logger.info('DTW of velocity: {}'.format(distance))
     # dtw
